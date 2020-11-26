@@ -1522,7 +1522,7 @@ namespace Velociraptor
             while (!_threadDataSample.EventExitProcessThread.WaitOne(0))
             {              
                 #region DataSample_0
-                if (_threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].WaitOne(0))
+                if (_threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].WaitOne(0))  
                 {              
                     if (_fifoDataSample != null)
                     {
