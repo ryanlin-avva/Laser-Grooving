@@ -19,7 +19,7 @@ namespace Velociraptor.AddOn
         bool _isOpen = false;
         
         public List<double> data1dlist = new List<double>();
-        cProjectSettings _cprojectSettings = new cProjectSettings();
+        cProjectSettings _cprojectSettings = new cProjectSettings();   
         StreamWriter _streamWriter = null;
         #region Constructor
         public cCsvWriteFiles()
@@ -48,7 +48,7 @@ namespace Velociraptor.AddOn
         #endregion
 
         #region Open
-        public bool Open(cProjectSettings projectSettings, string directory, string fileName,  double NumberOfSamples, int ScanningMode, int DataDirection)
+        public bool Open(cProjectSettings projectSettings, string directory, string fileName,  double NumberOfSamples, int ScanningMode, int DataDirection, int ZPos)
         {           
             Close();
             if (projectSettings != null)
@@ -72,17 +72,17 @@ namespace Velociraptor.AddOn
                 if (ScanningMode == 0)
                 {
                     _streamWriter.Write(string.Format("5"));
-                    _streamWriter.WriteLine("");
-                    _streamWriter.Write(string.Format("{0}", DataDirection));
-                    _streamWriter.WriteLine("");
+                    _streamWriter.WriteLine("");     
                 }
                 else
                 {
                     _streamWriter.Write(string.Format("1"));
-                    _streamWriter.WriteLine("");
-                    _streamWriter.Write(string.Format("{0}", DataDirection));
-                    _streamWriter.WriteLine("");
+                    _streamWriter.WriteLine("");  
                 }
+                _streamWriter.Write(string.Format("{0}", DataDirection));
+                _streamWriter.WriteLine("");
+                _streamWriter.Write(string.Format("{0}", ZPos));
+                _streamWriter.WriteLine("");
                 _filelist.Add(_fileposx);
                 _filelist.Add(_fileposy);
                 //_filelist.Add(_fileposz);
@@ -153,12 +153,13 @@ namespace Velociraptor.AddOn
                                         data1dlist.Add( signalData.DataToDouble);
                                     }
                                     break;
-                                /*case eSodxSignal.Global_Signal_Start_Position_Z:
-                                    if (_streamWriter != null)
-                                    {                                  
-                                            _streamWriter.Write(string.Format("{0},", signalData.DataToDouble));  
-                                    }
-                                    break;*/
+                                //case eSodxSignal.Global_Signal_Start_Position_Z:
+                                //    if (_streamWriter != null)
+                                //    {
+                                //        //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
+                                //        data1dlist.Add(signalData.DataToDouble);
+                                //    }
+                                //    break;
                                 case eSodxSignal.Altitude:
                                     if ((_streamWriter != null) && (signalData.DataToArrayDouble != null) && (signalData.DataToArrayDouble.Length == 192))
                                     {
@@ -256,50 +257,93 @@ namespace Velociraptor.AddOn
                 }
                 if (ScanningMode == 1)
                 {
-                //if (data1dlist.Count < NumberOfSamples * 386 * 5)
+                if (data1dlist.Count < NumberOfSamples * 386 * 5)
+                {
+                    MessageBox.Show("請重掃!!");
+                    return (false);
+                }
+                //if (data1dlist.Count < NumberOfSamples * 387 * 5)
                 //{
                 //    MessageBox.Show("請重掃!!");
                 //    return (false);
                 //}
-                //for (int n = 0; n < (data1dlist.Count) / 386; n++)
+                //for (int n = 0; n < (data1dlist.Count) / 387 / 5; n++)
                 //{
-                //    _streamWriter.Write(string.Format("{0},", data1dlist[n * 386]));
-                //    _streamWriter.Write(string.Format("{0},", data1dlist[1 + n * 386]));
-                //    for (int i = 2; i < 386; i++)
+                //    _streamWriter.Write(string.Format("{0},", data1dlist[n * 387]));
+                //    _streamWriter.Write(string.Format("{0},", data1dlist[1 + n * 387]));
+                //    _streamWriter.Write(string.Format("{0},", data1dlist[2 + n * 387]));
+                //    for (int i = 3; i < 387; i++)
                 //    {
-                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
-                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + (2 * NumberOfSamples - 1 - n) * 386]));
-                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + (2 * NumberOfSamples + n) * 386]));
-                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + (4 * NumberOfSamples - 1 - n) * 386]));
+                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 387]));
+                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + (2 * NumberOfSamples - 1 - n) * 387]));
+                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + (2 * NumberOfSamples + n) * 387]));
+                //        _streamWriter.Write(string.Format("{0},", data1dlist[i + (4 * NumberOfSamples - 1 - n) * 387]));
 
-                //        if (i == 385)
+                //        if (i == 386)
                 //        {
-                //            _streamWriter.Write(string.Format("{0}", data1dlist[i + (4 * NumberOfSamples + n) * 386]));
+                //            _streamWriter.Write(string.Format("{0}", data1dlist[i + (4 * NumberOfSamples + n) * 387]));
                 //        }
                 //        else
                 //        {
-                //            _streamWriter.Write(string.Format("{0},", data1dlist[i + (4 * NumberOfSamples + n) * 386]));
+                //            _streamWriter.Write(string.Format("{0},", data1dlist[i + (4 * NumberOfSamples + n) * 387]));
                 //        }
-
                 //    }
-
                 //    _streamWriter.WriteLine("");
                 //}
-                for (int n = 0; n < (data1dlist.Count) / 386; n++)
+
+                for (int n = 0; n < (data1dlist.Count) / 386 / 5; n++)
                 {
-                    for (int i = 0; i < 386; i++)
+                    _streamWriter.Write(string.Format("{0},", data1dlist[n * 386]));
+                    _streamWriter.Write(string.Format("{0},", data1dlist[1 + n * 386]));
+                    for (int i = 2; i < 386; i++)
                     {
+                        _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
+                        _streamWriter.Write(string.Format("{0},", data1dlist[i + (2 * NumberOfSamples - 1 - n) * 386]));
+                        _streamWriter.Write(string.Format("{0},", data1dlist[i + (2 * NumberOfSamples + n) * 386]));
+                        _streamWriter.Write(string.Format("{0},", data1dlist[i + (4 * NumberOfSamples - 1 - n) * 386]));
+
                         if (i == 385)
                         {
-                            _streamWriter.Write(string.Format("{0}", data1dlist[i + n * 386]));
+                            _streamWriter.Write(string.Format("{0}", data1dlist[i + (4 * NumberOfSamples + n) * 386]));
                         }
                         else
                         {
-                            _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
+                            _streamWriter.Write(string.Format("{0},", data1dlist[i + (4 * NumberOfSamples + n) * 386]));
                         }
                     }
                     _streamWriter.WriteLine("");
                 }
+
+                //for (int n = 0; n < (data1dlist.Count) / 386; n++)
+                //{
+                //    for (int i = 0; i < 386; i++)
+                //    {
+                //        if (i == 385)
+                //        {
+                //            _streamWriter.Write(string.Format("{0}", data1dlist[i + n * 386]));
+                //        }
+                //        else
+                //        {
+                //            _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
+                //        }
+                //    }
+                //    _streamWriter.WriteLine("");
+                //}
+                //for (int n = 0; n < (data1dlist.Count) / 387; n++)
+                //{
+                //    for (int i = 0; i < 387; i++)
+                //    {
+                //        if (i == 386)
+                //        {
+                //            _streamWriter.Write(string.Format("{0}", data1dlist[i + n * 387]));
+                //        }
+                //        else
+                //        {
+                //            _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 387]));
+                //        }
+                //    }
+                //    _streamWriter.WriteLine("");
+                //}
                 #region Recording = false
                 _cprojectSettings.Project.Recording = false;
                 #endregion

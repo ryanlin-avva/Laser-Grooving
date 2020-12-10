@@ -18,6 +18,7 @@ namespace Velociraptor.AddOn
         int _dieWidth = 0;
         int _startMeasureXPos = 0;
         int _startMeasureYPos = 0;
+        int _startMeasureZPos = 0;
 
 
         #region Constructor
@@ -113,6 +114,16 @@ namespace Velociraptor.AddOn
             set
             {
                 _startMeasureYPos = value;
+            }
+        }
+        #endregion
+        #region StartMeasureZPos
+        public int StartMeasureZPos
+        {
+            get { return (_startMeasureZPos); }
+            set
+            {
+                _startMeasureZPos = value;
             }
         }
         #endregion

@@ -141,7 +141,8 @@ namespace Velociraptor
         double ypos = -0.1;
         int move_distance = 0;
         int die_count = 0;
-        int counter = 0;     
+        int counter = 0;
+        int counter_end = 0;     
         #region Threads
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
@@ -803,7 +804,7 @@ namespace Velociraptor
             int _timoutStatistics = 250, _timoutStatisticsValue = 0; //Display Statistics step 250 mms
             int _timoutDataSample = 1, _timoutDataSampleValue = 0;
 
-            while (!_threadGui.EventExitProcessThread.WaitOne(20))
+            while (!_threadGui.EventExitProcessThread.WaitOne(10))
             {
                 dTimeout = _tm.FlashTiming;
                 _timoutStatisticsValue += (int)dTimeout;
@@ -1084,6 +1085,7 @@ namespace Velociraptor
                             ReadParameter.SetStartPosition = int.Parse(ntb_x_cur_pos.Text);
                             _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
                             _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
+                            _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
                             #region set triggerParameter
                             _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, Re_LongData[0]);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, ReadParameter.EnableTriggerDuringReturnMovement);
@@ -1105,11 +1107,11 @@ namespace Velociraptor
                             {
                                 if(rb_showdata_x.Checked)
                                 {
-                                    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, ReadParameter.MeasureDistance, ReadParameter.ScanningMode,0);
+                                    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, ReadParameter.MeasureDistance, ReadParameter.ScanningMode,0, _acquisitionTab.StartMeasureZPos);
                                 }
                                 if(rb_showdata_y.Checked)
                                 {
-                                    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, ReadParameter.MeasureDistance, ReadParameter.ScanningMode,1);
+                                    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, ReadParameter.MeasureDistance, ReadParameter.ScanningMode,1, _acquisitionTab.StartMeasureZPos);
                                 }
 
                             }
@@ -1127,6 +1129,10 @@ namespace Velociraptor
                                 }
                             }
                             #endregion
+                            if (_threadDataSample != null)
+                            {
+                                _threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].Set();
+                            }
                             if (ReadParameter.ScanningMode == 0)
                             {                               
                                 _threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].Set();
@@ -1138,10 +1144,7 @@ namespace Velociraptor
                                 
                             }
                             _acquisitionTab.Recording = true;
-                            if (_threadDataSample != null)
-                            {
-                                _threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].Set();
-                            }
+                            
                         }
                     }
                     #endregion
@@ -1197,7 +1200,7 @@ namespace Velociraptor
                             {
                                 ProcessStartInfo Info2 = new ProcessStartInfo();
 
-                                Info2.FileName = "SInspector.exe";//執行的檔案名稱
+                                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
 
                                 Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
 
@@ -1234,7 +1237,7 @@ namespace Velociraptor
                             {
                                 ProcessStartInfo Info2 = new ProcessStartInfo();
 
-                                Info2.FileName = "SInspector.exe";//執行的檔案名稱
+                                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
 
                                 Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
 
@@ -1319,7 +1322,7 @@ namespace Velociraptor
                             PosForMea[i].PositionData = PosDataForMea[i];
                             // By setting the completion attribute to "COMMAND_STARTED (starting the command)," 
                             // the control returns to the application immediately after positioning command execution.
-                            WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.LATCH_COMPLETED;
+                            WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.POSITIONING_COMPLETED;
                             Direction[i] = (Int16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE;
                             Timeout[i] = 0;
                         }
@@ -1395,10 +1398,10 @@ namespace Velociraptor
                             MotionDataForMea[i].CoordinateSystem = (Int16)CMotionAPI.ApiDefs.WORK_SYSTEM;
                             MotionDataForMea[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
                             MotionDataForMea[i].VelocityType = (Int16)CMotionAPI.ApiDefs.VTYPE_UNIT_PAR;
-                            MotionDataForMea[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
+                            MotionDataForMea[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_UNIT_PAR;
                             MotionDataForMea[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
                             MotionDataForMea[i].DataType = 0;
-                            //MotionData[i].MaxVelocity    = 10000; 
+                            MotionDataForMea[i].MaxVelocity    = 2000; 
                             MotionDataForMea[i].Acceleration = AccDataForMea[i];
                             MotionDataForMea[i].Deceleration = DecDataForMea[i];
                             MotionDataForMea[i].FilterTime = 10;
@@ -1435,64 +1438,69 @@ namespace Velociraptor
                             MessageBox.Show(String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
+                        Thread.Sleep(80);
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMea, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
+               
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-                        Thread.Sleep(20);
+                        Thread.Sleep(80);
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveBackX, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
+                  
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-                        Thread.Sleep(20);
+                        Thread.Sleep(80);
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveForwardX, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
+           
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-                        Thread.Sleep(20);
+                        Thread.Sleep(80);
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveBackX, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
+ 
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-                        Thread.Sleep(20);
+                        Thread.Sleep(80);
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveForwardX, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
-                        }
+                        }                       
                     }
                     #endregion
                     #region FifoDataSample
@@ -1520,7 +1528,7 @@ namespace Velociraptor
         public void ThreadDataSample_0()
         {
             while (!_threadDataSample.EventExitProcessThread.WaitOne(0))
-            {              
+            {
                 #region DataSample_0
                 if (_threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].WaitOne(0))  
                 {              
@@ -1538,20 +1546,14 @@ namespace Velociraptor
                                     {
                                         if (xpos != clsDataSample.SignalDataList[0].DataToDouble )
                                         {
-                                            //if (ypos > clsDataSample.SignalDataList[1].DataToDouble )
+
+                                            if (counter == 0)
+                                            {
+                                                ypos = _acquisitionTab.StartMeasureYPos;
+                                            }
+                                            //if (ypos == clsDataSample.SignalDataList[1].DataToDouble)
                                             //{
-                                            //    if(counter == 0)
-                                            //    {
-                                            //        ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                            //    }
-                                            //    else
-                                            //    {
-                                            //        ypos = clsDataSample.SignalDataList[1].DataToDouble+1;
-                                            //    }
-                                            //}
-                                            //else
-                                            //{ 
-                                                if ((_ccsvWriteFiles != null))
+                                            if (_ccsvWriteFiles != null)
                                                 {
                                                     lock (_ccsvWriteFiles)
                                                     {
@@ -1562,12 +1564,14 @@ namespace Velociraptor
                                                             xpos = clsDataSample.SignalDataList[0].DataToDouble;
                                                             ypos = clsDataSample.SignalDataList[1].DataToDouble;
                                                         }                                                     
-                                                        if (counter == _acquisitionTab.NumberOfSamples -3)
-                                                        {                                                           
+                                                        if (counter == _acquisitionTab.NumberOfSamples +1)
+                                                        {
+                                                            Thread.Sleep(50);                                                    
                                                             _ccsvWriteFiles.WriteList(_cprojectSettings, ReadParameter.MeasureDistance, ReadParameter.ScanningMode);
                                                             _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
                                                             btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
                                                             counter = 0;
+                                                            counter_end = 0;
                                                             xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
                                                         }
                                                     }                                                 
@@ -1580,7 +1584,8 @@ namespace Velociraptor
                                         }
                                         else
                                         {                                          
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos+ReadParameter.MeasureDistance) && (int)ypos == _acquisitionTab.StartMeasureYPos+1)
+                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 1)&& counter_end == 0)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1590,29 +1595,14 @@ namespace Velociraptor
                                                         {
                                                             counter = counter + 1;
                                                             _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = _acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance-1;
+                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
                                                             ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                        }                                                       
-                                                    }
-                                                }
-                                            }
-                                            if(xpos == (_acquisitionTab.StartMeasureXPos+1 ) && ypos == _acquisitionTab.StartMeasureYPos + 2)
-                                            {
-                                                if ((_ccsvWriteFiles != null))
-                                                {
-                                                    lock (_ccsvWriteFiles)
-                                                    {
-                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {
-                                                            counter = counter + 1;
-                                                            _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = _acquisitionTab.StartMeasureXPos + 2;
-                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                            counter_end = 1;
                                                         }
                                                     }
                                                 }
                                             }
-                                            if(xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && ypos == _acquisitionTab.StartMeasureYPos + 3)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == _acquisitionTab.StartMeasureYPos + 2&& counter_end == 1)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1622,13 +1612,14 @@ namespace Velociraptor
                                                         {
                                                             counter = counter + 1;
                                                             _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = _acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance-1;
+                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
                                                             ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                            counter_end = 2;
                                                         }
                                                     }
                                                 }
                                             }
-                                            if(xpos == (_acquisitionTab.StartMeasureXPos+1) && ypos == _acquisitionTab.StartMeasureYPos + 4)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == _acquisitionTab.StartMeasureYPos + 3 && counter_end == 2)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1638,15 +1629,31 @@ namespace Velociraptor
                                                         {
                                                             counter = counter + 1;
                                                             _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = _acquisitionTab.StartMeasureXPos + 2;
+                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
                                                             ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                            counter_end = 3;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == _acquisitionTab.StartMeasureYPos + 4 && counter_end == 3)
+                                            {
+                                                if ((_ccsvWriteFiles != null))
+                                                {
+                                                    lock (_ccsvWriteFiles)
+                                                    {
+                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
+                                                        {
+                                                            counter = counter + 1;
+                                                            _ccsvWriteFiles.Add(clsDataSample);
+                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
+                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                            counter_end = 0;
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-
-
                                     }
                                     #endregion                                
                                 }
@@ -1812,7 +1819,7 @@ namespace Velociraptor
             {
                 ProcessStartInfo Info2 = new ProcessStartInfo();
 
-                Info2.FileName = "SInspector.exe";//執行的檔案名稱
+                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
 
                 Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
 
@@ -1820,17 +1827,21 @@ namespace Velociraptor
 
                 Process.Start(Info2);
             }
-            if (rb_showdata_y.Checked)
+            else if (rb_showdata_y.Checked)
             {
                 ProcessStartInfo Info2 = new ProcessStartInfo();
 
-                Info2.FileName = "SInspector.exe";//執行的檔案名稱
+                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
 
                 Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
 
                 Info2.Arguments = string.Format(@"{0} 1 1", _cprojectSettings.Project.DataDirectoryFilename);
 
                 Process.Start(Info2);
+            }
+            else
+            {
+                MessageBox.Show("請選擇切割道方向!!");
             }
 
         }
@@ -2757,7 +2768,7 @@ namespace Velociraptor
                 MotionDataForMove[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
                 MotionDataForMove[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
                 MotionDataForMove[i].DataType = 0;
-                //MotionData[i].MaxVelocity    = 10000; 
+                MotionDataForMove[i].MaxVelocity    = 5000; 
                 MotionDataForMove[i].Acceleration = AccDataForMove[i];
                 MotionDataForMove[i].Deceleration = DecDataForMove[i];
                 MotionDataForMove[i].FilterTime = 10;
@@ -2828,7 +2839,7 @@ namespace Velociraptor
                 MotionDataForMove[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
                 MotionDataForMove[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
                 MotionDataForMove[i].DataType = 0;
-                //MotionData[i].MaxVelocity    = 10000; 
+                MotionDataForMove[i].MaxVelocity    = 5000; 
                 MotionDataForMove[i].Acceleration = AccDataForMove[i];
                 MotionDataForMove[i].Deceleration = DecDataForMove[i];
                 MotionDataForMove[i].FilterTime = 10;
