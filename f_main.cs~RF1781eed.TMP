@@ -142,8 +142,7 @@ namespace Velociraptor
         int move_distance = 0;
         int die_count = 0;
         int counter = 0;
-        int counter_end = 0;
-        double dataIntensityAverage = 0;
+        int counter_end = 0;     
         #region Threads
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
@@ -2082,12 +2081,6 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region btn_AutoFocus_Click
-        private void btn_AutoFocus_Click(object sender, EventArgs e)
-        {
-            FocusClimbing();
-        }
-        #endregion
 
         #endregion
 
@@ -3968,35 +3961,11 @@ namespace Velociraptor
         #endregion
         private void FocusClimbing()
         {
-            int zpos = Get_Z_MotorPos();
-            int zpos_MaxIntensity = Get_Z_MotorPos();
-            if (0 < zpos && zpos < 100)
-            {
-                for (int i = 0; i < 100; i++)
-                {
-                    movePositionRelative(2, -1, 1);
-                    lock (_fifoDataSample)
-                    {
-                        cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();
-                        if (dataIntensityAverage < clsDataSample.SignalDataList[3].Average(0, true))
-                        {
-                            dataIntensityAverage = clsDataSample.SignalDataList[3].Average(0, true);
-                            zpos = Get_Z_MotorPos();
-                        }
-                        else
-                        {
-                            zpos_MaxIntensity = Get_Z_MotorPos();
-                        }
-                    }
-                }
-                movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_MaxIntensity);
-            }
-            else
-            {
-                movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), 99);
-                FocusClimbing();
-            }
+
         }
+
+       
     }
+
 }
 

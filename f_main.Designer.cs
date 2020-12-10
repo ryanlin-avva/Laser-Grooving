@@ -233,6 +233,8 @@
             this.btn_load_wafer = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label44 = new System.Windows.Forms.Label();
+            this.label43 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label42 = new System.Windows.Forms.Label();
@@ -243,8 +245,7 @@
             this.btn_connection = new System.Windows.Forms.Button();
             this.btn_dnld_raw_execute = new System.Windows.Forms.Button();
             this.btn_dark = new System.Windows.Forms.Button();
-            this.label43 = new System.Windows.Forms.Label();
-            this.label44 = new System.Windows.Forms.Label();
+            this.btn_AutoFocus = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -2393,6 +2394,7 @@
             // 
             // tbp_record
             // 
+            this.tbp_record.Controls.Add(this.btn_AutoFocus);
             this.tbp_record.Controls.Add(this.groupBox3);
             this.tbp_record.Controls.Add(this.btn_JOG_Positive_Start);
             this.tbp_record.Controls.Add(this.btn_origin_return);
@@ -2939,6 +2941,26 @@
             this.groupBox2.TabIndex = 163;
             this.groupBox2.TabStop = false;
             // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label44.Location = new System.Drawing.Point(655, 136);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(35, 21);
+            this.label44.TabIndex = 168;
+            this.label44.Text = "um";
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label43.Location = new System.Drawing.Point(655, 55);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(35, 21);
+            this.label43.TabIndex = 167;
+            this.label43.Text = "um";
+            // 
             // button2
             // 
             this.button2.BackColor = System.Drawing.Color.White;
@@ -3053,25 +3075,15 @@
             this.btn_dark.UseVisualStyleBackColor = true;
             this.btn_dark.Click += new System.EventHandler(this.btn_dark_Click);
             // 
-            // label43
+            // btn_AutoFocus
             // 
-            this.label43.AutoSize = true;
-            this.label43.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label43.Location = new System.Drawing.Point(655, 55);
-            this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(35, 21);
-            this.label43.TabIndex = 167;
-            this.label43.Text = "um";
-            // 
-            // label44
-            // 
-            this.label44.AutoSize = true;
-            this.label44.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label44.Location = new System.Drawing.Point(655, 136);
-            this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(35, 21);
-            this.label44.TabIndex = 168;
-            this.label44.Text = "um";
+            this.btn_AutoFocus.Location = new System.Drawing.Point(813, 62);
+            this.btn_AutoFocus.Name = "btn_AutoFocus";
+            this.btn_AutoFocus.Size = new System.Drawing.Size(75, 23);
+            this.btn_AutoFocus.TabIndex = 169;
+            this.btn_AutoFocus.Text = "自動對焦";
+            this.btn_AutoFocus.UseVisualStyleBackColor = true;
+            this.btn_AutoFocus.Click += new System.EventHandler(this.btn_AutoFocus_Click);
             // 
             // f_main
             // 
@@ -3339,6 +3351,7 @@
         private System.Windows.Forms.Button btn_move_distance_z;
         private System.Windows.Forms.Label label44;
         private System.Windows.Forms.Label label43;
+        private System.Windows.Forms.Button btn_AutoFocus;
     }
 }
 
