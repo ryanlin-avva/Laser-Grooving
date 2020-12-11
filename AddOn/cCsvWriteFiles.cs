@@ -255,8 +255,8 @@ namespace Velociraptor.AddOn
                         _streamWriter.WriteLine("");
                     }
                 }
-                if (ScanningMode == 1)
-                {
+            if (ScanningMode == 1)
+            {
                 if (data1dlist.Count < NumberOfSamples * 386 * 5)
                 {
                     MessageBox.Show("請重掃!!");

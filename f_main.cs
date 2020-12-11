@@ -1446,7 +1446,7 @@ namespace Velociraptor
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-               
+                       
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
@@ -1460,7 +1460,7 @@ namespace Velociraptor
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-                  
+                        
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
@@ -1474,7 +1474,7 @@ namespace Velociraptor
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
-           
+                        
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
@@ -1488,7 +1488,7 @@ namespace Velociraptor
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
                         }
- 
+                        
                         rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                         if (rc != CMotionAPI.MP_SUCCESS)
                         {
@@ -1540,6 +1540,9 @@ namespace Velociraptor
                             while (_fifoDataSample.Count > 0)
                             {                            
                                 cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();     //把_fifoDataSample中的資料取出來到clsDataSample
+                                clsDataSample.SignalDataList[0].DataType = eDataType.LongInt;
+                                clsDataSample.SignalDataList[1].DataType = eDataType.LongInt;
+                                clsDataSample.SignalDataList[2].DataType = eDataType.LongInt;
                                 if ((clsDataSample != null) && (_acquisitionTab != null)  && ((_acquisitionTab.NumberOfSamples == -1) || (_acquisitionTab.NumberOfSamples > _acquisitionTab.NumberOfAcquisition)))
                                 {
                                     #region Record                                 
@@ -1567,7 +1570,7 @@ namespace Velociraptor
                                                         }                                                     
                                                         if (counter == _acquisitionTab.NumberOfSamples +1)
                                                         {
-                                                            Thread.Sleep(50);                                                    
+                                                            Thread.Sleep(500);
                                                             _ccsvWriteFiles.WriteList(_cprojectSettings, ReadParameter.MeasureDistance, ReadParameter.ScanningMode);
                                                             _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
                                                             btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
@@ -1603,7 +1606,7 @@ namespace Velociraptor
                                                     }
                                                 }
                                             }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == _acquisitionTab.StartMeasureYPos + 2&& counter_end == 1)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 2)&& counter_end == 1)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1620,7 +1623,7 @@ namespace Velociraptor
                                                     }
                                                 }
                                             }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == _acquisitionTab.StartMeasureYPos + 3 && counter_end == 2)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 3) && counter_end == 2)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1637,7 +1640,7 @@ namespace Velociraptor
                                                     }
                                                 }
                                             }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == _acquisitionTab.StartMeasureYPos + 4 && counter_end == 3)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 4) && counter_end == 3)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -3970,22 +3973,25 @@ namespace Velociraptor
         {
             int zpos = Get_Z_MotorPos();
             int zpos_MaxIntensity = Get_Z_MotorPos();
-            if (0 < zpos && zpos < 100)
+            if (-49000 < zpos && zpos < -48000)
             {
                 for (int i = 0; i < 100; i++)
                 {
                     movePositionRelative(2, -1, 1);
-                    lock (_fifoDataSample)
+                    if (_fifoDataSample != null)
                     {
-                        cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();
-                        if (dataIntensityAverage < clsDataSample.SignalDataList[3].Average(0, true))
+                        lock (_fifoDataSample)
                         {
-                            dataIntensityAverage = clsDataSample.SignalDataList[3].Average(0, true);
-                            zpos = Get_Z_MotorPos();
-                        }
-                        else
-                        {
-                            zpos_MaxIntensity = Get_Z_MotorPos();
+                            cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();
+                            if (dataIntensityAverage < clsDataSample.SignalDataList[3].Average(0, true))
+                            {
+                                dataIntensityAverage = clsDataSample.SignalDataList[3].Average(0, true);
+                                zpos = Get_Z_MotorPos();
+                            }
+                            else
+                            {
+                                zpos_MaxIntensity = Get_Z_MotorPos();
+                            }
                         }
                     }
                 }
@@ -3993,7 +3999,7 @@ namespace Velociraptor
             }
             else
             {
-                movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), 99);
+                movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), -48001);
                 FocusClimbing();
             }
         }
