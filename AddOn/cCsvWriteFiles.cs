@@ -262,11 +262,14 @@ namespace Velociraptor.AddOn
                     MessageBox.Show("請重掃!!");
                     return (false);
                 }
+
                 //if (data1dlist.Count < NumberOfSamples * 387 * 5)
                 //{
                 //    MessageBox.Show("請重掃!!");
                 //    return (false);
                 //}
+
+
                 //for (int n = 0; n < (data1dlist.Count) / 387 / 5; n++)
                 //{
                 //    _streamWriter.Write(string.Format("{0},", data1dlist[n * 387]));
@@ -291,10 +294,12 @@ namespace Velociraptor.AddOn
                 //    _streamWriter.WriteLine("");
                 //}
 
+
                 for (int n = 0; n < (data1dlist.Count) / 386 / 5; n++)
                 {
                     _streamWriter.Write(string.Format("{0},", data1dlist[n * 386]));
                     _streamWriter.Write(string.Format("{0},", data1dlist[1 + n * 386]));
+                    _streamWriter.Write(string.Format("{0},", data1dlist[2 + n * 386]));
                     for (int i = 2; i < 386; i++)
                     {
                         _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
@@ -313,6 +318,7 @@ namespace Velociraptor.AddOn
                     }
                     _streamWriter.WriteLine("");
                 }
+
 
                 //for (int n = 0; n < (data1dlist.Count) / 386; n++)
                 //{

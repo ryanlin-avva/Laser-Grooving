@@ -1562,21 +1562,32 @@ namespace Velociraptor
                                                     lock (_ccsvWriteFiles)
                                                     {
                                                         if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {
-                                                            counter = counter + 1;
-                                                            _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                        {                                                         
+                                                            if (_ccsvWriteFiles.Add(clsDataSample))
+                                                            {
+                                                                counter = counter + 1;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
+                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                            }                
                                                         }                                                     
-                                                        if (counter == _acquisitionTab.NumberOfSamples +1)
+                                                        if (counter == _acquisitionTab.NumberOfSamples )
                                                         {
-                                                            Thread.Sleep(500);
-                                                            _ccsvWriteFiles.WriteList(_cprojectSettings, ReadParameter.MeasureDistance, ReadParameter.ScanningMode);
-                                                            _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
-                                                            btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
-                                                            counter = 0;
-                                                            counter_end = 0;
-                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
+                                                            if (_ccsvWriteFiles.WriteList(_cprojectSettings, ReadParameter.MeasureDistance, ReadParameter.ScanningMode))
+                                                            {
+                                                                _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
+                                                                btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
+                                                                counter = 0;
+                                                                counter_end = 0;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
+                                                            }
+                                                            else
+                                                            {
+                                                                _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
+                                                                btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
+                                                                counter = 0;
+                                                                counter_end = 0;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
+                                                            }
                                                         }
                                                     }                                                 
                                                 }
@@ -1587,7 +1598,7 @@ namespace Velociraptor
                                             //}
                                         }
                                         else
-                                        {                                          
+                                        {
                                             ypos = clsDataSample.SignalDataList[1].DataToDouble;
                                             if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 1)&& counter_end == 0)
                                             {
@@ -1597,11 +1608,14 @@ namespace Velociraptor
                                                     {
                                                         if (counter < _acquisitionTab.NumberOfSamples + 1)
                                                         {
-                                                            counter = counter + 1;
-                                                            _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                            counter_end = 1;
+                                                            if(_ccsvWriteFiles.Add(clsDataSample))
+                                                            {
+                                                                counter = counter + 1;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
+                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                                counter_end = 1;
+                                                            }
+                                                            
                                                         }
                                                     }
                                                 }
@@ -1614,11 +1628,13 @@ namespace Velociraptor
                                                     {
                                                         if (counter < _acquisitionTab.NumberOfSamples + 1)
                                                         {
-                                                            counter = counter + 1;
-                                                            _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                            counter_end = 2;
+                                                            if (_ccsvWriteFiles.Add(clsDataSample))
+                                                            {
+                                                                counter = counter + 1;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
+                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                                counter_end = 2;
+                                                            }                                                           
                                                         }
                                                     }
                                                 }
@@ -1631,11 +1647,13 @@ namespace Velociraptor
                                                     {
                                                         if (counter < _acquisitionTab.NumberOfSamples + 1)
                                                         {
-                                                            counter = counter + 1;
-                                                            _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                            counter_end = 3;
+                                                            if(_ccsvWriteFiles.Add(clsDataSample))
+                                                            {
+                                                                counter = counter + 1;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
+                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                                counter_end = 3;
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1648,11 +1666,13 @@ namespace Velociraptor
                                                     {
                                                         if (counter < _acquisitionTab.NumberOfSamples + 1)
                                                         {
-                                                            counter = counter + 1;
-                                                            _ccsvWriteFiles.Add(clsDataSample);
-                                                            xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                            counter_end = 0;
+                                                            if(_ccsvWriteFiles.Add(clsDataSample))
+                                                            {
+                                                                counter = counter + 1;
+                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
+                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
+                                                                counter_end = 0;
+                                                            }                                                           
                                                         }
                                                     }
                                                 }
@@ -2101,6 +2121,7 @@ namespace Velociraptor
             ntb_x_cur_motorpos.Text = Get_X_MotorPos().ToString();
             ntb_y_cur_motorpos.Text = Get_Y_MotorPos().ToString();
             ntb_z_cur_motorpos.Text = Get_Z_MotorPos().ToString();
+            label45.Text = _client.Threshold.ToString();
         }      
         #endregion
         #region cb_SelectMeasureDistance_SelectedIndexChanged
@@ -3982,15 +4003,18 @@ namespace Velociraptor
                     {
                         lock (_fifoDataSample)
                         {
-                            cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();
-                            if (dataIntensityAverage < clsDataSample.SignalDataList[3].Average(0, true))
+                            while (_fifoDataSample.Count > 0)
                             {
-                                dataIntensityAverage = clsDataSample.SignalDataList[3].Average(0, true);
-                                zpos = Get_Z_MotorPos();
-                            }
-                            else
-                            {
-                                zpos_MaxIntensity = Get_Z_MotorPos();
+                                cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();
+                                if (dataIntensityAverage < clsDataSample.SignalDataList[6].Average(0, true))
+                                {
+                                    dataIntensityAverage = clsDataSample.SignalDataList[6].Average(0, true);
+                                    zpos = Get_Z_MotorPos();
+                                }
+                                else
+                                {
+                                    zpos_MaxIntensity = Get_Z_MotorPos();
+                                }
                             }
                         }
                     }
