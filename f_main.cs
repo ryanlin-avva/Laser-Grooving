@@ -144,6 +144,7 @@ namespace Velociraptor
         int counter = 0;
         int counter_end = 0;
         double dataIntensityAverage = 0;
+        double dataIntensityAverage_Old = 0;
         #region Threads
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
@@ -1130,10 +1131,10 @@ namespace Velociraptor
                                 }
                             }
                             #endregion
-                            if (_threadDataSample != null)
-                            {
-                                _threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].Set();
-                            }
+                            //if (_threadDataSample != null)
+                            //{
+                            //    _threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].Set();
+                            //}
                             if (ReadParameter.ScanningMode == 0)
                             {                               
                                 _threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].Set();
@@ -1570,7 +1571,7 @@ namespace Velociraptor
                                                                 ypos = clsDataSample.SignalDataList[1].DataToDouble;
                                                             }                
                                                         }                                                     
-                                                        if (counter == _acquisitionTab.NumberOfSamples )
+                                                        if (counter == _acquisitionTab.NumberOfSamples+1 )
                                                         {
                                                             if (_ccsvWriteFiles.WriteList(_cprojectSettings, ReadParameter.MeasureDistance, ReadParameter.ScanningMode))
                                                             {
@@ -1680,7 +1681,9 @@ namespace Velociraptor
                                         }
                                     }
                                     #endregion                                
+                                    
                                 }
+                                dataIntensityAverage = clsDataSample.SignalDataList[6].Average(0, true);                              
                             }
                         }
                     }
@@ -2121,7 +2124,7 @@ namespace Velociraptor
             ntb_x_cur_motorpos.Text = Get_X_MotorPos().ToString();
             ntb_y_cur_motorpos.Text = Get_Y_MotorPos().ToString();
             ntb_z_cur_motorpos.Text = Get_Z_MotorPos().ToString();
-            label45.Text = _client.Threshold.ToString();
+            
         }      
         #endregion
         #region cb_SelectMeasureDistance_SelectedIndexChanged
@@ -3994,32 +3997,29 @@ namespace Velociraptor
         {
             int zpos = Get_Z_MotorPos();
             int zpos_MaxIntensity = Get_Z_MotorPos();
-            if (-49000 < zpos && zpos < -48000)
+            
+            if (-49500 < zpos && zpos < -48000)
             {
-                for (int i = 0; i < 100; i++)
-                {
-                    movePositionRelative(2, -1, 1);
-                    if (_fifoDataSample != null)
+              
+                    for (int i = 0; i < 1500; i++)
                     {
-                        lock (_fifoDataSample)
-                        {
-                            while (_fifoDataSample.Count > 0)
-                            {
-                                cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();
-                                if (dataIntensityAverage < clsDataSample.SignalDataList[6].Average(0, true))
+                        movePositionRelative(2, -1, 1);
+ 
+                                if (dataIntensityAverage > dataIntensityAverage_Old)
                                 {
-                                    dataIntensityAverage = clsDataSample.SignalDataList[6].Average(0, true);
+                                    dataIntensityAverage_Old = dataIntensityAverage;
                                     zpos = Get_Z_MotorPos();
                                 }
                                 else
                                 {
                                     zpos_MaxIntensity = Get_Z_MotorPos();
                                 }
-                            }
-                        }
-                    }
+                               
+                          
+                       
+                   
                 }
-                movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_MaxIntensity);
+                //movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_MaxIntensity);
             }
             else
             {

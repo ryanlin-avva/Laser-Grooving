@@ -190,11 +190,11 @@
             this.lbl_number_of_command = new System.Windows.Forms.Label();
             this.lbl_error_unknow_telegram_type = new System.Windows.Forms.Label();
             this.tbp_record = new System.Windows.Forms.TabPage();
-            this.btn_AutoFocus = new System.Windows.Forms.Button();
             this.btn_moveto_lefttop = new System.Windows.Forms.Button();
             this.btn_moveto_leftbottom = new System.Windows.Forms.Button();
             this.btn_moveto_righttop = new System.Windows.Forms.Button();
             this.btn_moveto_rightbottom = new System.Windows.Forms.Button();
+            this.btn_AutoFocus = new System.Windows.Forms.Button();
             this.cb_SelectMeasureDistance = new System.Windows.Forms.ComboBox();
             this.label35 = new System.Windows.Forms.Label();
             this.btn_moveto_WaferCenter_point = new System.Windows.Forms.Button();
@@ -246,7 +246,6 @@
             this.btn_connection = new System.Windows.Forms.Button();
             this.btn_dnld_raw_execute = new System.Windows.Forms.Button();
             this.btn_dark = new System.Windows.Forms.Button();
-            this.label45 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -2414,16 +2413,6 @@
             this.tbp_record.Text = "Record";
             this.tbp_record.UseVisualStyleBackColor = true;
             // 
-            // btn_AutoFocus
-            // 
-            this.btn_AutoFocus.Location = new System.Drawing.Point(862, 141);
-            this.btn_AutoFocus.Name = "btn_AutoFocus";
-            this.btn_AutoFocus.Size = new System.Drawing.Size(75, 23);
-            this.btn_AutoFocus.TabIndex = 169;
-            this.btn_AutoFocus.Text = "自動對焦";
-            this.btn_AutoFocus.UseVisualStyleBackColor = true;
-            this.btn_AutoFocus.Click += new System.EventHandler(this.btn_AutoFocus_Click);
-            // 
             // btn_moveto_lefttop
             // 
             this.btn_moveto_lefttop.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -2467,6 +2456,16 @@
             this.btn_moveto_rightbottom.Text = "移至右下";
             this.btn_moveto_rightbottom.UseVisualStyleBackColor = true;
             this.btn_moveto_rightbottom.Click += new System.EventHandler(this.btn_moveto_rightbottom_Click);
+            // 
+            // btn_AutoFocus
+            // 
+            this.btn_AutoFocus.Location = new System.Drawing.Point(862, 141);
+            this.btn_AutoFocus.Name = "btn_AutoFocus";
+            this.btn_AutoFocus.Size = new System.Drawing.Size(75, 23);
+            this.btn_AutoFocus.TabIndex = 169;
+            this.btn_AutoFocus.Text = "自動對焦";
+            this.btn_AutoFocus.UseVisualStyleBackColor = true;
+            this.btn_AutoFocus.Click += new System.EventHandler(this.btn_AutoFocus_Click);
             // 
             // cb_SelectMeasureDistance
             // 
@@ -2921,7 +2920,6 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.btn_AutoFocus);
-            this.groupBox2.Controls.Add(this.label45);
             this.groupBox2.Controls.Add(this.label44);
             this.groupBox2.Controls.Add(this.label43);
             this.groupBox2.Controls.Add(this.button2);
@@ -3086,15 +3084,6 @@
             this.btn_dark.TabIndex = 98;
             this.btn_dark.UseVisualStyleBackColor = true;
             this.btn_dark.Click += new System.EventHandler(this.btn_dark_Click);
-            // 
-            // label45
-            // 
-            this.label45.AutoSize = true;
-            this.label45.Location = new System.Drawing.Point(880, 110);
-            this.label45.Name = "label45";
-            this.label45.Size = new System.Drawing.Size(41, 13);
-            this.label45.TabIndex = 170;
-            this.label45.Text = "label45";
             // 
             // f_main
             // 
@@ -3363,7 +3352,6 @@
         private System.Windows.Forms.Label label44;
         private System.Windows.Forms.Label label43;
         private System.Windows.Forms.Button btn_AutoFocus;
-        private System.Windows.Forms.Label label45;
     }
 }
 
