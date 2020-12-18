@@ -144,7 +144,7 @@ namespace Velociraptor
         int counter = 0;
         int counter_end = 0;
         double dataIntensityAverage = 0;
-        double dataIntensityAverage_Old = 0;
+        
         #region Threads
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
@@ -1347,7 +1347,15 @@ namespace Velociraptor
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
-                        } 
+                        }
+                        // Deletes the device handle.
+                        rc = CMotionAPI.ymcClearDevice(g_hDevice);
+                        // Error check processing
+                        if (rc != CMotionAPI.MP_SUCCESS)
+                        {
+                            MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                            return;
+                        }
                     }
                     #endregion
                     #region StartMoveSamplePitch1um
@@ -1502,7 +1510,15 @@ namespace Velociraptor
                         {
                             MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                             return;
-                        }                       
+                        }
+                        // Deletes the device handle.
+                        rc = CMotionAPI.ymcClearDevice(g_hDevice);
+                        // Error check processing
+                        if (rc != CMotionAPI.MP_SUCCESS)
+                        {
+                            MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                            return;
+                        }
                     }
                     #endregion
                     #region FifoDataSample
@@ -4048,6 +4064,8 @@ namespace Velociraptor
         #endregion
 
         #endregion
+
+        #region  FocusClimbing
         private void FocusClimbing()
         {
             int zpos = Get_Z_MotorPos();       
@@ -4065,6 +4083,7 @@ namespace Velociraptor
             }
             movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_List[zpos_List.Count/2]);  
         }
+        #endregion
     }
 }
 
