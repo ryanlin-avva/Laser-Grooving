@@ -2680,6 +2680,14 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcMoveHomePositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
         }
         #endregion
         #region btn_origin_return_Click
@@ -2732,7 +2740,7 @@ namespace Velociraptor
                 MotionDataForMove[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
                 MotionDataForMove[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
                 MotionDataForMove[i].DataType = 0;
-                MotionDataForMove[i].MaxVelocity    = 5000; 
+                MotionDataForMove[i].MaxVelocity    = 20000; 
                 MotionDataForMove[i].Acceleration = AccDataForMove[i];
                 MotionDataForMove[i].Deceleration = DecDataForMove[i];
                 MotionDataForMove[i].FilterTime = 10;
@@ -2760,6 +2768,14 @@ namespace Velociraptor
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
         }
@@ -2803,7 +2819,7 @@ namespace Velociraptor
                 MotionDataForMove[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
                 MotionDataForMove[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
                 MotionDataForMove[i].DataType = 0;
-                MotionDataForMove[i].MaxVelocity    = 5000; 
+                MotionDataForMove[i].MaxVelocity    = 20000; 
                 MotionDataForMove[i].Acceleration = AccDataForMove[i];
                 MotionDataForMove[i].Deceleration = DecDataForMove[i];
                 MotionDataForMove[i].FilterTime = 10;
@@ -2831,6 +2847,14 @@ namespace Velociraptor
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
         }
@@ -2878,7 +2902,14 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcStopMotion \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
-
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
         }
         #endregion
         #region btn_moveto_WaferCenter_point_Click
@@ -2970,6 +3001,14 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcMoveJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
         }
         #endregion
         #region btn_JOG_Negative_Start_Click
@@ -3019,6 +3058,14 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcMoveJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
         }
         #endregion
         #region btn_JOG_Stop_Click
@@ -3049,6 +3096,14 @@ namespace Velociraptor
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 MessageBox.Show(String.Format("Error ymcStopJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X")));
+                return;
+            }
+            // Deletes the device handle.
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            // Error check processing
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
         }
@@ -3995,37 +4050,20 @@ namespace Velociraptor
         #endregion
         private void FocusClimbing()
         {
-            int zpos = Get_Z_MotorPos();
-            int zpos_MaxIntensity = Get_Z_MotorPos();
-            
-            if (-49500 < zpos && zpos < -48000)
+            int zpos = Get_Z_MotorPos();       
+            List<int> zpos_List = new List<int>();
+            movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), -48000);                       
+            for (int i = 0; i < 1500; i++)
             {
-              
-                    for (int i = 0; i < 1500; i++)
-                    {
-                        movePositionRelative(2, -1, 1);
- 
-                                if (dataIntensityAverage > dataIntensityAverage_Old)
-                                {
-                                    dataIntensityAverage_Old = dataIntensityAverage;
-                                    zpos = Get_Z_MotorPos();
-                                }
-                                else
-                                {
-                                    zpos_MaxIntensity = Get_Z_MotorPos();
-                                }
-                               
-                          
-                       
-                   
-                }
-                //movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_MaxIntensity);
+                movePositionRelative(2, -1, 1);
+                zpos = Get_Z_MotorPos();
+                if (dataIntensityAverage != 0 )
+                {
+                    zpos = Get_Z_MotorPos();
+                    zpos_List.Add(zpos);                       
+                } 
             }
-            else
-            {
-                movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), -48001);
-                FocusClimbing();
-            }
+            movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_List[zpos_List.Count/2]);  
         }
     }
 }
