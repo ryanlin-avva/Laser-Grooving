@@ -2121,7 +2121,7 @@ namespace Velociraptor
             ntb_x_cur_motorpos.Text = Get_X_MotorPos().ToString();
             ntb_y_cur_motorpos.Text = Get_Y_MotorPos().ToString();
             ntb_z_cur_motorpos.Text = Get_Z_MotorPos().ToString();
-            label45.Text = _client.Threshold.ToString();
+            
         }      
         #endregion
         #region cb_SelectMeasureDistance_SelectedIndexChanged
