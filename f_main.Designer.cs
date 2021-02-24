@@ -744,7 +744,7 @@
             // btn_origin_return
             // 
             this.btn_origin_return.Font = new System.Drawing.Font("微軟正黑體", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_origin_return.Location = new System.Drawing.Point(734, 19);
+            this.btn_origin_return.Location = new System.Drawing.Point(878, 30);
             this.btn_origin_return.Name = "btn_origin_return";
             this.btn_origin_return.Size = new System.Drawing.Size(52, 57);
             this.btn_origin_return.TabIndex = 84;
@@ -768,14 +768,14 @@
             this.groupBox3.Controls.Add(this.label7);
             this.groupBox3.Controls.Add(this.label6);
             this.groupBox3.Controls.Add(this.label5);
-            this.groupBox3.Controls.Add(this.ntb_z_cur_motorpos);
-            this.groupBox3.Controls.Add(this.ntb_y_cur_motorpos);
-            this.groupBox3.Controls.Add(this.ntb_x_cur_motorpos);
             this.groupBox3.Controls.Add(this.ctrl_ip_address);
             this.groupBox3.Controls.Add(this.label_ipaddress);
             this.groupBox3.Controls.Add(this.ipAddressControl1);
             this.groupBox3.Controls.Add(this.label3);
             this.groupBox3.Controls.Add(this.ntb_dnld_first_channel);
+            this.groupBox3.Controls.Add(this.ntb_x_cur_pos);
+            this.groupBox3.Controls.Add(this.ntb_z_cur_pos);
+            this.groupBox3.Controls.Add(this.ntb_y_cur_pos);
             this.groupBox3.Controls.Add(this.label_numberofchannels);
             this.groupBox3.Controls.Add(this.ntb_dnld_number_of_channels);
             this.groupBox3.Controls.Add(this.label_first_channel);
@@ -802,7 +802,7 @@
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(77, 13);
             this.label7.TabIndex = 121;
-            this.label7.Text = "z軸馬達位置";
+            this.label7.Text = "z軸相機位置";
             // 
             // label6
             // 
@@ -811,7 +811,7 @@
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(78, 13);
             this.label6.TabIndex = 121;
-            this.label6.Text = "y軸馬達位置";
+            this.label6.Text = "y軸相機位置";
             // 
             // label5
             // 
@@ -820,14 +820,14 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(78, 13);
             this.label5.TabIndex = 120;
-            this.label5.Text = "x軸馬達位置";
+            this.label5.Text = "x軸相機位置";
             // 
             // ntb_z_cur_motorpos
             // 
             this.ntb_z_cur_motorpos.BackColor = System.Drawing.Color.White;
             this.ntb_z_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_z_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_z_cur_motorpos.Location = new System.Drawing.Point(321, 70);
+            this.ntb_z_cur_motorpos.Location = new System.Drawing.Point(264, 152);
             this.ntb_z_cur_motorpos.Name = "ntb_z_cur_motorpos";
             this.ntb_z_cur_motorpos.Size = new System.Drawing.Size(69, 20);
             this.ntb_z_cur_motorpos.TabIndex = 118;
@@ -838,7 +838,7 @@
             this.ntb_y_cur_motorpos.BackColor = System.Drawing.Color.White;
             this.ntb_y_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_y_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_y_cur_motorpos.Location = new System.Drawing.Point(321, 44);
+            this.ntb_y_cur_motorpos.Location = new System.Drawing.Point(264, 97);
             this.ntb_y_cur_motorpos.Name = "ntb_y_cur_motorpos";
             this.ntb_y_cur_motorpos.Size = new System.Drawing.Size(69, 20);
             this.ntb_y_cur_motorpos.TabIndex = 117;
@@ -849,7 +849,7 @@
             this.ntb_x_cur_motorpos.BackColor = System.Drawing.Color.White;
             this.ntb_x_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_x_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_x_cur_motorpos.Location = new System.Drawing.Point(321, 19);
+            this.ntb_x_cur_motorpos.Location = new System.Drawing.Point(264, 47);
             this.ntb_x_cur_motorpos.Name = "ntb_x_cur_motorpos";
             this.ntb_x_cur_motorpos.Size = new System.Drawing.Size(69, 20);
             this.ntb_x_cur_motorpos.TabIndex = 116;
@@ -1088,7 +1088,7 @@
             this.ntb_x_cur_pos.BackColor = System.Drawing.Color.White;
             this.ntb_x_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_x_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_x_cur_pos.Location = new System.Drawing.Point(263, 47);
+            this.ntb_x_cur_pos.Location = new System.Drawing.Point(318, 18);
             this.ntb_x_cur_pos.Name = "ntb_x_cur_pos";
             this.ntb_x_cur_pos.Size = new System.Drawing.Size(69, 20);
             this.ntb_x_cur_pos.TabIndex = 113;
@@ -1099,7 +1099,7 @@
             this.ntb_y_cur_pos.BackColor = System.Drawing.Color.White;
             this.ntb_y_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_y_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_y_cur_pos.Location = new System.Drawing.Point(263, 96);
+            this.ntb_y_cur_pos.Location = new System.Drawing.Point(318, 47);
             this.ntb_y_cur_pos.Name = "ntb_y_cur_pos";
             this.ntb_y_cur_pos.Size = new System.Drawing.Size(69, 20);
             this.ntb_y_cur_pos.TabIndex = 114;
@@ -1110,7 +1110,7 @@
             this.ntb_z_cur_pos.BackColor = System.Drawing.Color.White;
             this.ntb_z_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_z_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_z_cur_pos.Location = new System.Drawing.Point(263, 149);
+            this.ntb_z_cur_pos.Location = new System.Drawing.Point(318, 77);
             this.ntb_z_cur_pos.Name = "ntb_z_cur_pos";
             this.ntb_z_cur_pos.Size = new System.Drawing.Size(69, 20);
             this.ntb_z_cur_pos.TabIndex = 115;
@@ -2396,7 +2396,6 @@
             // 
             this.tbp_record.Controls.Add(this.groupBox3);
             this.tbp_record.Controls.Add(this.btn_JOG_Positive_Start);
-            this.tbp_record.Controls.Add(this.btn_origin_return);
             this.tbp_record.Controls.Add(this.btn_JOG_Stop);
             this.tbp_record.Controls.Add(this.btn_JOG_Negative_Start);
             this.tbp_record.Controls.Add(this.btn_moveto_lefttop);
@@ -2921,17 +2920,18 @@
             // 
             this.groupBox2.Controls.Add(this.btn_AutoFocus);
             this.groupBox2.Controls.Add(this.label44);
+            this.groupBox2.Controls.Add(this.btn_origin_return);
+            this.groupBox2.Controls.Add(this.ntb_z_cur_motorpos);
             this.groupBox2.Controls.Add(this.label43);
+            this.groupBox2.Controls.Add(this.ntb_y_cur_motorpos);
             this.groupBox2.Controls.Add(this.button2);
+            this.groupBox2.Controls.Add(this.ntb_x_cur_motorpos);
             this.groupBox2.Controls.Add(this.button1);
             this.groupBox2.Controls.Add(this.label42);
             this.groupBox2.Controls.Add(this.label41);
-            this.groupBox2.Controls.Add(this.ntb_x_cur_pos);
             this.groupBox2.Controls.Add(this.gb_showdata);
             this.groupBox2.Controls.Add(this.btn_moveto_WaferCenter_point);
-            this.groupBox2.Controls.Add(this.ntb_y_cur_pos);
             this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Controls.Add(this.ntb_z_cur_pos);
             this.groupBox2.Controls.Add(this.btn_record_wafer_center_point);
             this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.label_zaxis);
@@ -3034,13 +3034,13 @@
             this.rb_showdata_y.Name = "rb_showdata_y";
             this.rb_showdata_y.Size = new System.Drawing.Size(86, 25);
             this.rb_showdata_y.TabIndex = 1;
-            this.rb_showdata_y.TabStop = true;
             this.rb_showdata_y.Text = "Y軸方向";
             this.rb_showdata_y.UseVisualStyleBackColor = true;
             // 
             // rb_showdata_x
             // 
             this.rb_showdata_x.AutoSize = true;
+            this.rb_showdata_x.Checked = true;
             this.rb_showdata_x.Location = new System.Drawing.Point(12, 23);
             this.rb_showdata_x.Name = "rb_showdata_x";
             this.rb_showdata_x.Size = new System.Drawing.Size(87, 25);
