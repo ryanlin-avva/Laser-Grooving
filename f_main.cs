@@ -144,9 +144,7 @@ namespace Velociraptor
         int counter = 0;
         int counter_end = 0;
         double dataIntensityAverage = 0;
-        //按下按鍵狀態標示
-        private bool btnState_movexp;
-
+        
         #region Threads
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
@@ -543,9 +541,9 @@ namespace Velociraptor
             tabControlMain.TabPages.Remove(tbp_sodx); //Remove a tab page
             tabControlMain.TabPages.Remove(tbp_status); //Remove a tab page
             tabControlMain.TabPages.Remove(tbp_record); //Remove a tab page
-            cb_SelectMeasureDistance.SelectedIndex = 1;
-            //#region 跳出初始視窗執行初始化
 
+            //#region 跳出初始視窗執行初始化
+           
             //HomePosition(ReadParameter.OriginReturnVelocity, ReadParameter.OriginReturnApproachVelocity, ReadParameter.OriginReturnCreepVelocity, 0);
             //#region darkform
             //    f_dark darkform = new f_dark();
@@ -589,7 +587,7 @@ namespace Velociraptor
             //    }
             //#endregion
 
-
+           
             //#endregion
 
 
@@ -630,7 +628,7 @@ namespace Velociraptor
                 }
             }
             #endregion
-            timer.Enabled = false; //定時器停止
+
             UInt32 rc;    // Motion API return value
 
 
@@ -1701,7 +1699,7 @@ namespace Velociraptor
                                     #endregion                                
                                     
                                 }
-                                dataIntensityAverage = clsDataSample.SignalDataList[5].Average(0, true);                              
+                                dataIntensityAverage = clsDataSample.SignalDataList[6].Average(0, true);                              
                             }
                         }
                     }
@@ -2100,7 +2098,7 @@ namespace Velociraptor
             if (_keyboardForm.ShowDialog() == DialogResult.OK)
             {
                 move_distance = int.Parse(_keyboardForm.T.Text);
-                btn_move_distance_z.Text = _keyboardForm.T.Text;
+                btn_move_distance.Text = _keyboardForm.T.Text;
             }
             else
             {
@@ -2867,14 +2865,6 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
-            // Deletes the device handle.
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            // Error check processing
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
         }
         #endregion
         #region btn_PosingStop_Click
@@ -2920,14 +2910,7 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcStopMotion \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
-            // Deletes the device handle.
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            // Error check processing
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
+
         }
         #endregion
         #region btn_moveto_WaferCenter_point_Click
@@ -2939,16 +2922,6 @@ namespace Velociraptor
         #region btn_movex_positive_Click
         private void btn_movex_positive_Click(object sender, EventArgs e)
         {
-            //if (btnState_movexp == false)
-            //{
-            //    this.btn_movex_positive.Checked = true;
-            //    btnState_movexp = true;
-            //}
-            //else
-            //{
-            //    this.radioButton1.Checked = false;
-            //    btnState_movexp = false;
-            //}
             movePositionRelative(0, 1, move_distance);
         }
         #endregion
@@ -3029,14 +3002,6 @@ namespace Velociraptor
                 MessageBox.Show(String.Format("Error ymcMoveJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
-            // Deletes the device handle.
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            // Error check processing
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
         }
         #endregion
         #region btn_JOG_Negative_Start_Click
@@ -3084,14 +3049,6 @@ namespace Velociraptor
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 MessageBox.Show(String.Format("Error ymcMoveJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            // Deletes the device handle.
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            // Error check processing
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 return;
             }
         }
