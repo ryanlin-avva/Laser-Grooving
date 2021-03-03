@@ -2,4 +2,5 @@ packages/
 Debug/
 Release/
 Obj/
+.vs/
 *.bak
