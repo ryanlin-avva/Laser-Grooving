@@ -11,7 +11,7 @@ using Velociraptor.AddOn;
 
 namespace Velociraptor
 {
-    public partial class DieSizeForm : Form
+    public partial class DieSizeForm : System.Windows.Forms.Form
     {
         public DieSizeForm()
         {

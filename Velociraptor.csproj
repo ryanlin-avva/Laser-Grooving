@@ -66,6 +66,9 @@
     <Reference Include="DevComponents.Instrumentation">
       <HintPath>..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.Instrumentation.dll</HintPath>
     </Reference>
+    <Reference Include="halcondotnet">
+      <HintPath>..\..\..\..\..\Program Files\MVTec\HALCON-12.0\bin\dotnet35\halcondotnet.dll</HintPath>
+    </Reference>
     <Reference Include="MagicCommonLibrary">
       <HintPath>..\..\..\SDK\MagicCommonLibrary.dll</HintPath>
     </Reference>
@@ -111,6 +114,18 @@
     </Compile>
     <Compile Include="AddOn\f_selected_sodx.Designer.cs">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form\auto_form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\auto_form.designer.cs">
+      <DependentUpon>auto_form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form\AutoParams.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\AutoParams.Designer.cs">
+      <DependentUpon>AutoParams.cs</DependentUpon>
     </Compile>
     <Compile Include="Form\KeyBoardForm.cs">
       <SubType>Form</SubType>
@@ -169,6 +184,12 @@
     </Compile>
     <EmbeddedResource Include="AddOn\f_selected_sodx.resx">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form\AutoParams.resx">
+      <DependentUpon>AutoParams.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form\auto_form.resx">
+      <DependentUpon>auto_form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form\KeyBoardForm.resx">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>

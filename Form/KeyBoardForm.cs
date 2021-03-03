@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Velociraptor.AddOn
 {
-    public partial class KeyBoardForm : Form
+    public partial class KeyBoardForm : System.Windows.Forms.Form
     {
         public KeyBoardForm()
         {
