@@ -34,7 +34,7 @@ namespace Velociraptor
         #endregion
         public bool Init(string filename, ref string msg)
         {
-            AVVAMotionParameters paraReader = new AVVAMotionParameters(filename);
+            MotionParamReader paraReader = new MotionParamReader(filename);
             isSimulate = paraReader.IsSimulate();
             if (isSimulate) return true;
             _axis_num = paraReader.SetAxes(ref axis_map);

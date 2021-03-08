@@ -114,8 +114,8 @@
     <Compile Include="AddOn\f_selected_sodx.Designer.cs">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </Compile>
-    <Compile Include="AvvaMeasureParameters.cs" />
-    <Compile Include="AVVAMotionParameters.cs" />
+    <Compile Include="MeasureParamReader.cs" />
+    <Compile Include="MotionParamReader.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="MeasureInstrument.cs" />
     <Compile Include="Motions.cs" />

@@ -242,7 +242,7 @@ namespace Velociraptor
         bool _isCursorV2IndexChange = false;
         bool _isCursorH1IndexChange = false;
 
-        AvvaMeasureParameters ReadParameter = new AvvaMeasureParameters(Constants.paraFilename);
+        MeasureParamReader ReadParameter = new MeasureParamReader(Constants.paraFilename);
 
         delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
         InitDisplayDelegateHandler InitDisplayDelegate;
@@ -1384,8 +1384,8 @@ namespace Velociraptor
 
             if (cb_SelectMeasureDistance.SelectedIndex == 0)
             {
-                ReadParameter.MeasureDistance = 100;
-                if(ReadParameter.ScanningMode == 0)
+                _measure_distance = 100;
+                if(_motion.ScanMode() == 0)
                 {
                     _acquisitionTab.NumberOfSamples = 100;
                 }
@@ -1396,8 +1396,8 @@ namespace Velociraptor
             }
             else if (cb_SelectMeasureDistance.SelectedIndex == 1)
             {
-                ReadParameter.MeasureDistance = 200;
-                if (ReadParameter.ScanningMode == 0)
+                _measure_distance = 200;
+                if (_motion.ScanMode() == 0)
                 {
                     _acquisitionTab.NumberOfSamples = 200;
                 }

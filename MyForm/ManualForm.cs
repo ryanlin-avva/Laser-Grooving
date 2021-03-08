@@ -269,7 +269,7 @@ namespace Velociraptor
         bool _isCursorH1IndexChange = false;
 
 
-        AVVAMotionParameters ReadParameter = new AVVAMotionParameters("C:/Users/User/Desktop/Velociraptor/AVVAParameter.ini");
+        MotionParamReader ReadParameter = new MotionParamReader("C:/Users/User/Desktop/Velociraptor/AVVAParameter.ini");
 
 
         delegate void InitDisplayDelegateHandler(Form form);

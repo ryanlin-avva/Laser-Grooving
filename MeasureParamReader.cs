@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Velociraptor
 {
-    class AvvaMeasureParameters
+    class MeasureParamReader
     {
         private string filePath;
         private StringBuilder lpReturnedString;
@@ -26,7 +26,7 @@ namespace Velociraptor
         [DllImport("kernel32")]
         private static extern int GetPrivateProfileString(string section, string key, string lpDefault, StringBuilder lpReturnedString, int nSize, string lpFileName);
 
-        public AvvaMeasureParameters(string iniPath)
+        public MeasureParamReader(string iniPath)
         {
             filePath = iniPath;
             bufferSize = 512;

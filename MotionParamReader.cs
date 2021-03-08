@@ -7,7 +7,7 @@ using MotionAPI;
 namespace Velociraptor
 {
     
-    public class AVVAMotionParameters
+    public class MotionParamReader
     {
         private string filePath;
         private StringBuilder lpReturnedString;
@@ -62,7 +62,7 @@ namespace Velociraptor
         [DllImport("kernel32")]
         private static extern int GetPrivateProfileString(string section, string key, string lpDefault, StringBuilder lpReturnedString, int nSize, string lpFileName);
 
-        public AVVAMotionParameters(string iniPath)
+        public MotionParamReader(string iniPath)
         {
             filePath = iniPath;
             bufferSize = 512;

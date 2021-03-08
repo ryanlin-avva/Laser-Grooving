@@ -33,7 +33,7 @@ namespace Velociraptor
         #endregion
         public bool Init(string filename)
         {
-            AvvaMeasureParameters paraReader = new AvvaMeasureParameters(filename);
+            MeasureParamReader paraReader = new MeasureParamReader(filename);
             isSimulate = paraReader.IsSimulate();
             if (isSimulate) return true;
 
@@ -65,7 +65,7 @@ namespace Velociraptor
             }
         }
 
-        private void TriggerInit(AvvaMeasureParameters para)
+        private void TriggerInit(MeasureParamReader para)
         {
             UInt32[] Re_LongData = new UInt32[3];   // L size register data storage variable
             _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, Re_LongData[0]);
