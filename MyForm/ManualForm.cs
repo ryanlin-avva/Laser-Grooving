@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Windows.Forms;
 using System.Reflection;
 using System.Diagnostics;
@@ -31,7 +24,7 @@ using CHRDLLDemoNS;
 namespace Velociraptor
 {
     //-------------------------------------------------------------------------------------------
-    public partial class auto_form : Form
+    public partial class auto_form : System.Windows.Forms.Form
     {
         #region eThreadAction
         public enum eThreadAction
@@ -276,7 +269,7 @@ namespace Velociraptor
         bool _isCursorH1IndexChange = false;
 
 
-        AVVAParameter ReadParameter = new AVVAParameter("C:/Users/User/Desktop/Velociraptor/AVVAParameter.ini");
+        AVVAMotionParameters ReadParameter = new AVVAMotionParameters("C:/Users/User/Desktop/Velociraptor/AVVAParameter.ini");
 
 
         delegate void InitDisplayDelegateHandler(Form form);
@@ -1099,10 +1092,6 @@ namespace Velociraptor
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, ReadParameter.SelectEncoderTriggerSource);
                             #endregion
 
-
-                            //_client.TriggerEach();
-
-
                             #region Cls_0 
                             _ccsvWriteFiles = new cCsvWriteFiles();
                             if ((_client.ClientIsConnected) && (_client.ClientIsConfigured))
@@ -1166,29 +1155,13 @@ namespace Velociraptor
                     {
                         if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
                         {
-                            /*
-                            #region Acquisition Tab
-                            if (_acquisitionTab != null)
-                            {
-                                lock (_acquisitionTab)
-                                {
-                                    _acquisitionTab.Recording = false;
-                                        _acquisitionTab = null;
-                                        if (_threadActionProcess != null)
-                                        {
-                                            _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
-                                        }
-                                    
-                                }
-                            }
-                            #endregion*/
+
                             #region Stop Trigger
                             if ((_client.ClientIsConnected) && (_client.ClientIsConfigured))
                             {
                                 _client.TriggerStop();
                             }
                             #endregion
-                            //Thread.Sleep(5000);
                             #region Close Files
                             if (_ccsvWriteFiles != null)
                             {
@@ -1197,78 +1170,7 @@ namespace Velociraptor
                                 _ccsvWriteFiles = null;
                             }
                             #endregion
-                            #region show data
-                            if (rb_showdata_x.Checked)
-                            {
-                                ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                                Info2.Arguments = string.Format(@"{0} 1 0", _cprojectSettings.Project.DataDirectoryFilename);
-
-                                Process.Start(Info2);
-
-                                if (ck_multi_point_mea.Checked)
-                                {
-                                    CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
-                                    _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
-                                    if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
-                                    {
-                                        _acquisitionTab.DoNextMeasure = true;
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("結束多點測量!!");
-                                        _acquisitionTab.DoNextMeasure = true;
-                                        _acquisitionTab.Recording = false;
-                                    }
-                                }
-                                else
-                                {
-
-                                }
-                                sw.Stop();//碼錶停止
-
-                                //印出所花費的總豪秒數
-
-                                string result1 = sw.Elapsed.TotalMilliseconds.ToString();
-                            }
-                            if (rb_showdata_y.Checked)
-                            {
-                                ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                                Info2.Arguments = string.Format(@"{0} 1 1", _cprojectSettings.Project.DataDirectoryFilename);
-
-                                Process.Start(Info2);
-
-                                if (ck_multi_point_mea.Checked)
-                                {
-                                    CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
-                                    _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
-                                    if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
-                                    {
-                                        _acquisitionTab.DoNextMeasure = true;
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("結束多點測量!!");
-                                        _acquisitionTab.DoNextMeasure = true;
-                                        _acquisitionTab.Recording = false;
-                                    }
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                            #endregion
-
+                            ShowMeasureData(rb_showdata_x.Checked);
                         }
                     }
                     #endregion
@@ -1535,10 +1437,6 @@ namespace Velociraptor
             {
                 MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            //finally
-            //{
-            //this.Invoke(this.CloseForm, null, null);
-            //}
         }
         #endregion
         #region ThreadDataSample_0
@@ -2323,6 +2221,48 @@ namespace Velociraptor
                 {
                     MessageBox.Show("密碼錯誤!!");
                     e.Cancel = true;
+                }
+            }
+        }
+        #endregion
+        #region show measure data
+        void ShowMeasureData(bool measure_x)
+        {
+            if (measure_x)
+            {
+                ProcessStartInfo Info2 = new ProcessStartInfo();
+
+                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+
+                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
+
+                Info2.Arguments = (measure_x) ?
+
+                            ? string.Format(@"{0} 1 0", _cprojectSettings.Project.DataDirectoryFilename)
+                            : string.Format(@"{0} 1 1", _cprojectSettings.Project.DataDirectoryFilename);
+
+                Process.Start(Info2);
+
+                if (ck_multi_point_mea.Checked)
+                {
+                    CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
+                    _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
+                    if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
+                    {
+                        _acquisitionTab.DoNextMeasure = true;
+                    }
+                    else
+                    {
+                        MessageBox.Show("結束多點測量!!");
+                        _acquisitionTab.DoNextMeasure = true;
+                        _acquisitionTab.Recording = false;
+                    }
+                }
+                if (measure_x)
+                {
+                    sw.Stop();//碼錶停止
+                    //印出所花費的總豪秒數
+                    string result1 = sw.Elapsed.TotalMilliseconds.ToString();
                 }
             }
         }
@@ -3316,10 +3256,8 @@ namespace Velociraptor
         {
             return (d == (int)d);
         }
-        #endregion
-        #endregion
-
-
+#endregion
+#endregion
 
         #region OnInitDisplay
         private void OnInitDisplay(Form form)
@@ -4034,25 +3972,6 @@ namespace Velociraptor
 
         #endregion
 
-        #region  FocusClimbing
-        private void FocusClimbing()
-        {
-            int zpos = Get_Z_MotorPos();       
-            List<int> zpos_List = new List<int>();
-            movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), -48000);                       
-            for (int i = 0; i < 1500; i++)
-            {
-                movePositionRelative(2, -1, 1);
-                zpos = Get_Z_MotorPos();
-                if (dataIntensityAverage != 0 )
-                {
-                    zpos = Get_Z_MotorPos();
-                    zpos_List.Add(zpos);                       
-                } 
-            }
-            movePositionAbsolute(Get_X_MotorPos(), Get_Y_MotorPos(), zpos_List[zpos_List.Count/2]);  
-        }
-        #endregion
     }
 }
 

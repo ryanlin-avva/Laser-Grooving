@@ -93,7 +93,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddOn\AVVAParameter.cs" />
     <Compile Include="AddOn\cClientIhm.cs" />
     <Compile Include="AddOn\cCsvWriteFiles.cs" />
     <Compile Include="AddOn\cDisplayDataSodx.cs" />
@@ -115,22 +114,27 @@
     <Compile Include="AddOn\f_selected_sodx.Designer.cs">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\auto_form.cs">
+    <Compile Include="AvvaMeasureParameters.cs" />
+    <Compile Include="AVVAMotionParameters.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="MeasureInstrument.cs" />
+    <Compile Include="Motions.cs" />
+    <Compile Include="MyForm\ManualForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\auto_form.designer.cs">
-      <DependentUpon>auto_form.cs</DependentUpon>
+    <Compile Include="MyForm\ManualForm.designer.cs">
+      <DependentUpon>ManualForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\AutoParams.cs">
+    <Compile Include="MyForm\AutoParams.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\AutoParams.Designer.cs">
+    <Compile Include="MyForm\AutoParams.Designer.cs">
       <DependentUpon>AutoParams.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\KeyBoardForm.cs">
+    <Compile Include="MyForm\KeyBoardForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\KeyBoardForm.Designer.cs">
+    <Compile Include="MyForm\KeyBoardForm.Designer.cs">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>
     </Compile>
     <Compile Include="AddOn\sAcquisition.cs" />
@@ -139,22 +143,22 @@
     </Compile>
     <Compile Include="AddOn\Splash\f_splash.designer.cs" />
     <Compile Include="AddOn\sProjectSettings.cs" />
-    <Compile Include="Form\CheckDoNextPosMeasure.cs">
+    <Compile Include="MyForm\CheckDoNextPosMeasure.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\CheckDoNextPosMeasure.Designer.cs">
+    <Compile Include="MyForm\CheckDoNextPosMeasure.Designer.cs">
       <DependentUpon>CheckDoNextPosMeasure.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\DieSizeForm.cs">
+    <Compile Include="MyForm\DieSizeForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\DieSizeForm.Designer.cs">
+    <Compile Include="MyForm\DieSizeForm.Designer.cs">
       <DependentUpon>DieSizeForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\PasswordEngineer.cs">
+    <Compile Include="MyForm\PasswordEngineer.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\PasswordEngineer.Designer.cs">
+    <Compile Include="MyForm\PasswordEngineer.Designer.cs">
       <DependentUpon>PasswordEngineer.cs</DependentUpon>
     </Compile>
     <Compile Include="AddOn\sSelectingFilter.cs" />
@@ -164,10 +168,10 @@
     <Compile Include="f_main.Designer.cs">
       <DependentUpon>f_main.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form\PasswordBox.cs">
+    <Compile Include="MyForm\PasswordBox.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\PasswordBox.Designer.cs">
+    <Compile Include="MyForm\PasswordBox.Designer.cs">
       <DependentUpon>PasswordBox.cs</DependentUpon>
     </Compile>
     <Compile Include="PCAPI\ymcErrorCode.cs" />
@@ -176,37 +180,38 @@
     <Compile Include="PCAPI\ymcPCStruct.cs" />
     <Compile Include="AddOn\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Form\WaferCenterPointForm.cs">
+    <Compile Include="MyForm\WaferCenterPointForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form\WaferCenterPointForm.Designer.cs">
+    <Compile Include="MyForm\WaferCenterPointForm.Designer.cs">
       <DependentUpon>WaferCenterPointForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SynOperation.cs" />
     <EmbeddedResource Include="AddOn\f_selected_sodx.resx">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\AutoParams.resx">
+    <EmbeddedResource Include="MyForm\AutoParams.resx">
       <DependentUpon>AutoParams.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\auto_form.resx">
-      <DependentUpon>auto_form.cs</DependentUpon>
+    <EmbeddedResource Include="MyForm\ManualForm.resx">
+      <DependentUpon>ManualForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\KeyBoardForm.resx">
+    <EmbeddedResource Include="MyForm\KeyBoardForm.resx">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\CheckDoNextPosMeasure.resx">
+    <EmbeddedResource Include="MyForm\CheckDoNextPosMeasure.resx">
       <DependentUpon>CheckDoNextPosMeasure.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\DieSizeForm.resx">
+    <EmbeddedResource Include="MyForm\DieSizeForm.resx">
       <DependentUpon>DieSizeForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="f_main.resx">
       <DependentUpon>f_main.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\PasswordBox.resx">
+    <EmbeddedResource Include="MyForm\PasswordBox.resx">
       <DependentUpon>PasswordBox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form\PasswordEngineer.resx">
+    <EmbeddedResource Include="MyForm\PasswordEngineer.resx">
       <DependentUpon>PasswordEngineer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -219,7 +224,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="Form\WaferCenterPointForm.resx">
+    <EmbeddedResource Include="MyForm\WaferCenterPointForm.resx">
       <DependentUpon>WaferCenterPointForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />

@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Windows.Forms;
 using System.Reflection;
 using System.Diagnostics;
@@ -21,17 +15,11 @@ using MagicAddOn;
 using AddOn;
 using Velociraptor.AddOn;
 using MotionAPI;
-using CHRDLLDemoNS;
-
-
-
-
-
 
 namespace Velociraptor
 {
     //-------------------------------------------------------------------------------------------
-    public partial class f_main : Form
+    public partial class f_main : System.Windows.Forms.Form
     {
         #region eThreadAction
         public enum eThreadAction
@@ -144,6 +132,8 @@ namespace Velociraptor
         int counter = 0;
         int counter_end = 0;
         double dataIntensityAverage = 0;
+        Motions _motion = new Motions();
+
         
         #region Threads
         /// <summary>thread action process</summary>
@@ -207,7 +197,7 @@ namespace Velociraptor
         cSelectingFilters _selectingFilters = null;
         cSaveFilteredData _saveFilteredData = null;
         cDisplayDataSodx _displayDataSodx = null;
-        //control update
+
         #region Control Update
         cControlUpdateEx _controlUpdate = null;
         sControlUpdateEx _clu_led_intensity = null;
@@ -219,31 +209,7 @@ namespace Velociraptor
         cControlUpdateEx.OnEventHandler _eventControlUpdateValueToText = null;
         cControlUpdateEx.OnEventHandler _eventcontrolUpdateTextToValue = null;
         #endregion
-        #region YASKAWA servor parameter control
-        UInt32 g_hController = 0;				 // Controller handle				
-        UInt32 g_hDevice;  // Device handle
 
-
-
-
-        CMotionAPI.MOTION_DATA[] MotionDataForMove = new CMotionAPI.MOTION_DATA[3]; // MOTION_DATA structure宣告3個含有1個陣列元素的陣列
-        CMotionAPI.POSITION_DATA[] PosForMove = new CMotionAPI.POSITION_DATA[3];    // POSITION_DATA structure
-        CMotionAPI.MOTION_DATA[] MotionDataForMea = new CMotionAPI.MOTION_DATA[3]; // MOTION_DATA structure宣告3個含有1個陣列元素的陣列
-        CMotionAPI.POSITION_DATA[] PosForMea = new CMotionAPI.POSITION_DATA[3];    // POSITION_DATA structure
-        CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = new CMotionAPI.POSITION_DATA[3];    // POSITION_DATA structure
-        CMotionAPI.POSITION_DATA[] PosForMeaMoveForwardX = new CMotionAPI.POSITION_DATA[3];    // POSITION_DATA structure
-        CMotionAPI.POSITION_DATA[] PosForMeaMoveBackX = new CMotionAPI.POSITION_DATA[3];    // POSITION_DATA structure
-        UInt16[] HomeMethod = new UInt16[3];                                 // Zero point return method
-        UInt16[] Direction = new UInt16[3];                                  // Moving direction
-        UInt16[] WaitForCompletion = new UInt16[3];                          // Completion attribute storage variable
-        UInt32 rc;                                                           // Motion API return value
-
-        CMotionAPI.COM_DEVICE ComDevice;              // The ymcOpenController setting structure
-        String AxisName;               // Axis name
-        UInt32[] hAxis = new UInt32[3];  // Axis handle
-        //UInt32[] hAxis = new UInt32[1];
-        Int16 i;                      // Index of number of axes
-        //
         UInt32 RegisterDataNumber;             // Number of read-in registers
         UInt32 ReadDataNumber = 00000000;                 // Number of obtained registers
         UInt16[] Reg_ShortData = new UInt16[3];  // W or B size register data storage variable
@@ -264,7 +230,8 @@ namespace Velociraptor
 
         public List<int> xposList = new List<int>();
         public List<int> yposList = new List<int>();
-        #endregion
+        private int _measure_distance;
+
         cCurve _curve_v1 = null;
         cCurve _curve_v2 = null;
         cCurve _curve_v3 = null;
@@ -275,17 +242,15 @@ namespace Velociraptor
         bool _isCursorV2IndexChange = false;
         bool _isCursorH1IndexChange = false;
 
+        AvvaMeasureParameters ReadParameter = new AvvaMeasureParameters(Constants.paraFilename);
 
-        AVVAParameter ReadParameter = new AVVAParameter("C:/Users/User/Desktop/Velociraptor/AVVAParameter.ini");
-
-
-        delegate void InitDisplayDelegateHandler(Form form);
+        delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
         InitDisplayDelegateHandler InitDisplayDelegate;
 
-        delegate void UpdateInitDisplayDelegateHandler(Form form);
+        delegate void UpdateInitDisplayDelegateHandler(System.Windows.Forms.Form form);
         UpdateInitDisplayDelegateHandler UpdateInitDisplayDelegate;
 
-        delegate void InitDownloadDisplayDelegateHandler(Form form);
+        delegate void InitDownloadDisplayDelegateHandler(System.Windows.Forms.Form form);
         InitDownloadDisplayDelegateHandler InitDownloadDisplayDelegate;
 
         delegate void DisplayConnectionStateDelegateHandler(cClientCommunication client);
@@ -306,7 +271,7 @@ namespace Velociraptor
         delegate void DisplayStatisticsDelegateHandler(List<cClientStatistics> clientStatisticsList);
         DisplayStatisticsDelegateHandler DisplayStatisticsDelegate;
 
-        delegate void DisplaySodxAcquisitionDelegateHandler(Form form);
+        delegate void DisplaySodxAcquisitionDelegateHandler(System.Windows.Forms.Form form);
         DisplaySodxAcquisitionDelegateHandler DisplaySodxAcquisitionDelegate;
 
         delegate void CloseFormDelegate(object sender, EventArgs e);
@@ -340,6 +305,13 @@ namespace Velociraptor
             _generalSettings = new cGeneralSettings(null, null);
             _generalSettings.Load();
 
+            string err_msg = "";
+            if (!_motion.Init(Constants.paraFilename, ref err_msg))
+            {
+                MessageBox.Show(err_msg);
+                return;
+
+            }
 
 
 
@@ -439,18 +411,7 @@ namespace Velociraptor
 
             ctrl_ip_address.Text = _generalSettings.General.IpAddress;
             #endregion
-            #region Sets the ymcOpenController parameters                             
-            ComDevice.ComDeviceType = (UInt16)CMotionAPI.ApiDefs.COMDEVICETYPE_PCIe_MODE;
-            ComDevice.PortNumber = 1;
-            ComDevice.CpuNumber = 1;    //cpuno;
-            ComDevice.NetworkNumber = 0;
-            ComDevice.StationNumber = 0;
-            ComDevice.UnitNumber = 0;
-            ComDevice.IPAddress = "";    //ctrl_ip_address.Text
-            ComDevice.Timeout = 10000;
-            #endregion
-
-         
+        
             #region start thread
             //start process thread 
             _threadActionProcess = new cThreadProcess(Enum.GetValues(typeof(eThreadAction)).Length);
@@ -472,67 +433,6 @@ namespace Velociraptor
 
             #endregion
 
-
-            gb_multi_point.Enabled = false;
-            #region YASKAWA servor setting
-            #region ymcOpenController
-            //在執行任何其他API之前，必須執行此API
-            rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #region Sets the motion API timeout                               
-            // Sets the motion API timeout.			
-            rc = CMotionAPI.ymcSetAPITimeoutValue(50000);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error SetAPITimeoutValue \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #region Deletes the axis handle that is held by the Machine Controller   
-            // Deletes the axis handle that is held by the Machine Controller.
-            rc = CMotionAPI.ymcClearAllAxes();
-            //rc = CMotionAPI.ymcClearAxis(hAxis[0]);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ClearAllAxes \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #region Creates the axis handle      
-            for (i = 0; i < 3; i++)
-            {
-                AxisName = "Axis-" + (i + 1);
-                rc = CMotionAPI.ymcDeclareAxis(1, 0, 3, (UInt16)(i + 1), (UInt16)(i + 1), (UInt16)CMotionAPI.ApiDefs.REAL_AXIS, AxisName, ref hAxis[i]);
-                if (rc != CMotionAPI.MP_SUCCESS)
-                {
-                    MessageBox.Show(String.Format("Error ymcDeclareAxis \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                    return;
-                }
-            }
-            #endregion
-            #region Gets the device handle
-            rc = CMotionAPI.ymcDeclareDevice(3, hAxis, ref g_hDevice);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #region Executes servo ON
-            //打開由設備手柄指定軸的伺服
-            rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_ON, 5000);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcServoControl \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #endregion
             timer = new System.Timers.Timer(1);//定時週期0.001秒
             timer.Elapsed += ntb_cur_pos;//定時時間到的時候的回撥函式
             timer.AutoReset = true; //是否不斷重複定時器操作
@@ -541,55 +441,6 @@ namespace Velociraptor
             tabControlMain.TabPages.Remove(tbp_sodx); //Remove a tab page
             tabControlMain.TabPages.Remove(tbp_status); //Remove a tab page
             tabControlMain.TabPages.Remove(tbp_record); //Remove a tab page
-
-            //#region 跳出初始視窗執行初始化
-           
-            //HomePosition(ReadParameter.OriginReturnVelocity, ReadParameter.OriginReturnApproachVelocity, ReadParameter.OriginReturnCreepVelocity, 0);
-            //#region darkform
-            //    f_dark darkform = new f_dark();
-            //    darkform.StartPosition = FormStartPosition.CenterScreen;
-            //    if (darkform.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            //    {
-            //        _client.Dark();
-            //        #region diesizeform
-            //        DieSizeForm diesizeform = new DieSizeForm();
-            //        diesizeform.StartPosition = FormStartPosition.CenterScreen;
-
-            //        if (diesizeform.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            //        {
-            //            _acquisitionTab.DieWidth = Int32.Parse(diesizeform.die_x_length.Text);
-            //            _acquisitionTab.DieHeight = Int32.Parse(diesizeform.die_y_length.Text);
-            //            #region WaferCenterPointform
-            //            WaferCenterPointForm wafercenterpointform = new WaferCenterPointForm();
-            //            wafercenterpointform.StartPosition = FormStartPosition.CenterScreen;
-            //            if (wafercenterpointform.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            //            {
-            //                movePositionAbsolute(ReadParameter.moveToWaferCenterPointXDistance, ReadParameter.moveToWaferCenterPointYDistance, ReadParameter.moveToWaferCenterPointZDistance);
-            //            }
-            //            else
-            //            {
-            //                MessageBox.Show("請移至中心對焦!!");
-            //                System.Environment.Exit(0);
-            //            }
-            //            #endregion
-            //        }
-            //        else
-            //        {
-            //            MessageBox.Show("請輸入die尺寸!!");
-            //            System.Environment.Exit(0);
-            //        }
-            //        #endregion
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show("請執行噪聲去除!!");
-            //        System.Environment.Exit(0);
-            //    }
-            //#endregion
-
-           
-            //#endregion
-
 
             ctrl_zgc_sodx.ResourceLanguage = _generalSettings.General.ResourceLanguage;
             Text = string.Format("Sample 2 Version : {0}", Assembly.GetExecutingAssembly().GetName().Version);
@@ -629,33 +480,7 @@ namespace Velociraptor
             }
             #endregion
 
-            UInt32 rc;    // Motion API return value
-
-
-            #region Executes servo OFF.
-            rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_OFF, 5000);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcServoControl OFF \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #region Deletes the device handle created in this thread. 
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
-            #region Close the Controller.
-            rc = CMotionAPI.ymcCloseController(g_hController);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                MessageBox.Show(String.Format("Error ymcCloseController \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                return;
-            }
-            #endregion
+            _motion.MotorOff();
 
             #region Settings
             _cprojectSettings.Save();
@@ -992,7 +817,7 @@ namespace Velociraptor
             cTimeout timeout = new cTimeout(true, cTimeMeasurement.enTimeStepType.MILLISECOND);
             int timeoutValue = 10;
             timeout.TimeoutValue = 200; //200ms.
-
+            string err_msg = "";
             try
             {
                 while (_threadActionProcess.EventExitProcessThread.WaitOne(timeoutValue) == false)
@@ -1093,35 +918,12 @@ namespace Velociraptor
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, ReadParameter.EnableTriggerDuringReturnMovement);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, ReadParameter.ChooseAxis);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, ReadParameter.EndlessRountripTrigger);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, ReadParameter.SetStartPosition + ReadParameter.MeasureDistance);
+                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, ReadParameter.SetStartPosition + _measure_distance);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, ReadParameter.SetTriggerInterval);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, ReadParameter.SetStartPosition);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, ReadParameter.SelectEncoderTriggerSource);
                             #endregion
 
-
-                            //_client.TriggerEach();
-
-
-                            #region Cls_0 
-                            _ccsvWriteFiles = new cCsvWriteFiles();
-                            if ((_client.ClientIsConnected) && (_client.ClientIsConfigured))
-                            {
-                                if(rb_showdata_x.Checked)
-                                {
-                                    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, ReadParameter.MeasureDistance, ReadParameter.ScanningMode,0, _acquisitionTab.StartMeasureZPos);
-                                }
-                                if(rb_showdata_y.Checked)
-                                {
-                                    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, ReadParameter.MeasureDistance, ReadParameter.ScanningMode,1, _acquisitionTab.StartMeasureZPos);
-                                }
-
-                            }
-                            else
-                            {
-                                _acquisitionTab = null;
-                            }
-                            #endregion
                             #region Clear Fifo
                             if (_fifoDataSample != null)
                             {
@@ -1131,11 +933,7 @@ namespace Velociraptor
                                 }
                             }
                             #endregion
-                            //if (_threadDataSample != null)
-                            //{
-                            //    _threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].Set();
-                            //}
-                            if (ReadParameter.ScanningMode == 0)
+                            if (_motion.ScanMode() == 0)
                             {                               
                                 _threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].Set();
                                 
@@ -1166,29 +964,12 @@ namespace Velociraptor
                     {
                         if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
                         {
-                            /*
-                            #region Acquisition Tab
-                            if (_acquisitionTab != null)
-                            {
-                                lock (_acquisitionTab)
-                                {
-                                    _acquisitionTab.Recording = false;
-                                        _acquisitionTab = null;
-                                        if (_threadActionProcess != null)
-                                        {
-                                            _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
-                                        }
-                                    
-                                }
-                            }
-                            #endregion*/
                             #region Stop Trigger
                             if ((_client.ClientIsConnected) && (_client.ClientIsConfigured))
                             {
                                 _client.TriggerStop();
                             }
                             #endregion
-                            //Thread.Sleep(5000);
                             #region Close Files
                             if (_ccsvWriteFiles != null)
                             {
@@ -1197,328 +978,19 @@ namespace Velociraptor
                                 _ccsvWriteFiles = null;
                             }
                             #endregion
-                            #region show data
-                            if (rb_showdata_x.Checked)
-                            {
-                                ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                                Info2.Arguments = string.Format(@"{0} 1 0", _cprojectSettings.Project.DataDirectoryFilename);
-
-                                Process.Start(Info2);
-
-                                if (ck_multi_point_mea.Checked)
-                                {
-                                    CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
-                                    _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
-                                    if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
-                                    {
-                                        _acquisitionTab.DoNextMeasure = true;
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("結束多點測量!!");
-                                        _acquisitionTab.DoNextMeasure = true;
-                                        _acquisitionTab.Recording = false;
-                                    }
-                                }
-                                else
-                                {
-
-                                }
-                                sw.Stop();//碼錶停止
-
-                                //印出所花費的總豪秒數
-
-                                string result1 = sw.Elapsed.TotalMilliseconds.ToString();
-                            }
-                            if (rb_showdata_y.Checked)
-                            {
-                                ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                                Info2.Arguments = string.Format(@"{0} 1 1", _cprojectSettings.Project.DataDirectoryFilename);
-
-                                Process.Start(Info2);
-
-                                if (ck_multi_point_mea.Checked)
-                                {
-                                    CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
-                                    _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
-                                    if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
-                                    {
-                                        _acquisitionTab.DoNextMeasure = true;
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("結束多點測量!!");
-                                        _acquisitionTab.DoNextMeasure = true;
-                                        _acquisitionTab.Recording = false;
-                                    }
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                            #endregion
-
                         }
                     }
                     #endregion
                     #region StartMoveSamplePitch5um
                     if (_threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].WaitOne(0))
                     {
-                        #region sets the positioning parameter
-                        // Sets the positioning parameter.
-                        Int32[] VelDataForMea = new Int32[3];                     // Speed storage variable (for 3 axes)
-                        Int32[] PosDataForMea = new Int32[3];                     // Target position storage variable (for 3 axes)
-                        Int32[] AccDataForMea = new Int32[3];                     // Acceleration storage variable (for 3 axes)
-                        Int32[] DecDataForMea = new Int32[3];                     // Deceleration storage variable (for 3 axes)
-                        i = 0;
-                        VelDataForMea[i] = ReadParameter.measAxis0VelData;
-                        AccDataForMea[i] = ReadParameter.measAxis0AccData;
-                        DecDataForMea[i] = ReadParameter.measAxis0DecData;
-                        PosDataForMea[i] = (int)ReadParameter.MeasureDistance;
-                        i = 1;
-                        VelDataForMea[i] = ReadParameter.measAxis1VelData;
-                        AccDataForMea[i] = ReadParameter.measAxis1AccData;
-                        DecDataForMea[i] = ReadParameter.measAxis1DecData;
-                        PosDataForMea[i] = ReadParameter.measAxis1PosData;
-                        i = 2;
-                        VelDataForMea[i] = ReadParameter.measAxis2VelData;
-                        AccDataForMea[i] = ReadParameter.measAxis2AccData;
-                        DecDataForMea[i] = ReadParameter.measAxis2DecData;
-                        #endregion
-                        #region sets the motiondata position waitforcompletion
-                        // Loops as many times as the number of the connected axes in the window and sets as many parameters as the number of axes.
-                        // Performs positioning (ymcMoveDriverPositioning) after setting the data.
-                        // Motion data setting 
-                        Int16[] Direction = new Int16[3];                   // JOG direction specified (for 3 axes)
-                        UInt16[] Timeout = new UInt16[3];                    // Timeout time (for 3 axes)
-                        for (i = 0; i < 3; i++)
-                        {
-                            // Motion data setting
-                            MotionDataForMea[i].CoordinateSystem = (Int16)CMotionAPI.ApiDefs.WORK_SYSTEM;
-                            MotionDataForMea[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
-                            MotionDataForMea[i].VelocityType = (Int16)CMotionAPI.ApiDefs.VTYPE_UNIT_PAR;
-                            MotionDataForMea[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
-                            MotionDataForMea[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
-                            MotionDataForMea[i].DataType = 0;
-                            //MotionData[i].MaxVelocity    = 10000; 
-                            MotionDataForMea[i].Acceleration = AccDataForMea[i];
-                            MotionDataForMea[i].Deceleration = DecDataForMea[i];
-                            MotionDataForMea[i].FilterTime = 10;
-                            MotionDataForMea[i].Velocity = VelDataForMea[i];
-                            /* Not Use MotionData[i].ApproachVelocity = NULL; */
-                            /* Not Use MotionData[i].CreepVelocity    = NULL; */
-
-                            // Position data setting
-                            PosForMea[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
-                            PosForMea[i].PositionData = PosDataForMea[i];
-                            // By setting the completion attribute to "COMMAND_STARTED (starting the command)," 
-                            // the control returns to the application immediately after positioning command execution.
-                            WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.POSITIONING_COMPLETED;
-                            Direction[i] = (Int16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE;
-                            Timeout[i] = 0;
-                        }
-
-                        #endregion
-                        rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        rc = CMotionAPI.ymcDeclareDevice(3, hAxis, ref g_hDevice);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMea, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        // Deletes the device handle.
-                        rc = CMotionAPI.ymcClearDevice(g_hDevice);
-                        // Error check processing
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
+                        _motion.Move1um(_measure_distance, ref err_msg);
                     }
                     #endregion
                     #region StartMoveSamplePitch1um
                     if (_threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch1um].WaitOne(0))
                     {
-                        #region sets the positioning parameter
-                        // Sets the positioning parameter.
-                        Int32[] VelDataForMea = new Int32[3];                     // Speed storage variable (for 3 axes)
-                        Int32[] PosDataForMea = new Int32[3];                     // Target position storage variable (for 3 axes)
-                        Int32[] PosDataForMeaMoveDownY = new Int32[3];                     // Target position storage variable (for 3 axes)
-                        Int32[] PosDataForMeaMoveForwardX = new Int32[3];
-                        Int32[] PosDataForMeaMoveBackX = new Int32[3];                     // Target position storage variable (for 3 axes)
-                        Int32[] AccDataForMea = new Int32[3];                     // Acceleration storage variable (for 3 axes)
-                        Int32[] DecDataForMea = new Int32[3];                     // Deceleration storage variable (for 3 axes)
-                        i = 0;
-                        VelDataForMea[i] = ReadParameter.measAxis0VelData;
-                        AccDataForMea[i] = ReadParameter.measAxis0AccData;
-                        DecDataForMea[i] = ReadParameter.measAxis0DecData;
-                        PosDataForMea[i] = (int)ReadParameter.MeasureDistance;
-                        PosDataForMeaMoveForwardX[i] = (int)ReadParameter.MeasureDistance-1;
-                        PosDataForMeaMoveDownY[i] = 0;
-                        PosDataForMeaMoveBackX[i] = -(int)ReadParameter.MeasureDistance+1;
-                        i = 1;
-                        VelDataForMea[i] = ReadParameter.measAxis1VelData;
-                        AccDataForMea[i] = ReadParameter.measAxis1AccData;
-                        DecDataForMea[i] = ReadParameter.measAxis1DecData;
-                        PosDataForMea[i] = ReadParameter.measAxis1PosData;
-                        PosDataForMeaMoveForwardX[i] = 0;
-                        PosDataForMeaMoveDownY[i] = 1;
-                        PosDataForMeaMoveBackX[i] = ReadParameter.measAxis1PosData;
-                        i = 2;
-                        VelDataForMea[i] = ReadParameter.measAxis2VelData;
-                        AccDataForMea[i] = ReadParameter.measAxis2AccData;
-                        DecDataForMea[i] = ReadParameter.measAxis2DecData;
-                        PosDataForMeaMoveForwardX[i] = 0;
-                        PosDataForMeaMoveDownY[i] = ReadParameter.measAxis2PosData;
-                        PosDataForMeaMoveBackX[i] = ReadParameter.measAxis2PosData;
-
-
-                        #endregion
-                        #region sets the motiondata position waitforcompletion
-                        // Loops as many times as the number of the connected axes in the window and sets as many parameters as the number of axes.
-                        // Performs positioning (ymcMoveDriverPositioning) after setting the data.
-                        // Motion data setting 
-                        Int16[] Direction = new Int16[3];                   // JOG direction specified (for 3 axes)
-                        UInt16[] Timeout = new UInt16[3];                    // Timeout time (for 3 axes)
-                        for (i = 0; i < 3; i++)
-                        {
-                            // Motion data setting
-                            MotionDataForMea[i].CoordinateSystem = (Int16)CMotionAPI.ApiDefs.WORK_SYSTEM;
-                            MotionDataForMea[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
-                            MotionDataForMea[i].VelocityType = (Int16)CMotionAPI.ApiDefs.VTYPE_UNIT_PAR;
-                            MotionDataForMea[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_UNIT_PAR;
-                            MotionDataForMea[i].FilterType = (Int16)CMotionAPI.ApiDefs.FTYPE_S_CURVE;
-                            MotionDataForMea[i].DataType = 0;
-                            MotionDataForMea[i].MaxVelocity    = 2000; 
-                            MotionDataForMea[i].Acceleration = AccDataForMea[i];
-                            MotionDataForMea[i].Deceleration = DecDataForMea[i];
-                            MotionDataForMea[i].FilterTime = 10;
-                            MotionDataForMea[i].Velocity = VelDataForMea[i];
-                            /* Not Use MotionData[i].ApproachVelocity = NULL; */
-                            /* Not Use MotionData[i].CreepVelocity    = NULL; */
-
-                            // Position data setting
-                            PosForMea[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
-                            PosForMea[i].PositionData = PosDataForMea[i];
-                            PosForMeaMoveDownY[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
-                            PosForMeaMoveDownY[i].PositionData = PosDataForMeaMoveDownY[i];
-                            PosForMeaMoveForwardX[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
-                            PosForMeaMoveForwardX[i].PositionData = PosDataForMeaMoveForwardX[i];
-                            PosForMeaMoveBackX[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
-                            PosForMeaMoveBackX[i].PositionData = PosDataForMeaMoveBackX[i];
-                            // By setting the completion attribute to "COMMAND_STARTED (starting the command)," 
-                            // the control returns to the application immediately after positioning command execution.
-                            WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.LATCH_COMPLETED;
-                            Direction[i] = (Int16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE;
-                            Timeout[i] = 0;
-                        }
-
-                        #endregion
-                        rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        rc = CMotionAPI.ymcDeclareDevice(3, hAxis, ref g_hDevice);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        Thread.Sleep(80);
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMea, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                       
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        Thread.Sleep(80);
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveBackX, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        Thread.Sleep(80);
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveForwardX, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        Thread.Sleep(80);
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveBackX, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        Thread.Sleep(80);
-                        rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveForwardX, 0, "Start", WaitForCompletion, 0);
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
-                        // Deletes the device handle.
-                        rc = CMotionAPI.ymcClearDevice(g_hDevice);
-                        // Error check processing
-                        if (rc != CMotionAPI.MP_SUCCESS)
-                        {
-                            MessageBox.Show(String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
-                            return;
-                        }
+                        _motion.Move5um(_measure_distance, ref err_msg);
                     }
                     #endregion
                     #region FifoDataSample
@@ -1572,8 +1044,6 @@ namespace Velociraptor
                                             {
                                                 ypos = _acquisitionTab.StartMeasureYPos;
                                             }
-                                            //if (ypos == clsDataSample.SignalDataList[1].DataToDouble)
-                                            //{
                                             if (_ccsvWriteFiles != null)
                                                 {
                                                     lock (_ccsvWriteFiles)
@@ -1589,18 +1059,14 @@ namespace Velociraptor
                                                         }                                                     
                                                         if (counter == _acquisitionTab.NumberOfSamples+1 )
                                                         {
-                                                            if (_ccsvWriteFiles.WriteList(_cprojectSettings, ReadParameter.MeasureDistance, ReadParameter.ScanningMode))
+                                                            if (_ccsvWriteFiles.WriteList(_cprojectSettings, _measure_distance, _motion.ScanMode()))
                                                             {
-                                                                _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
-                                                                btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
                                                                 counter = 0;
                                                                 counter_end = 0;
                                                                 xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
                                                             }
                                                             else
                                                             {
-                                                                _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
-                                                                btn_dnld_raw_execute.Image = Properties.Resources.FUNC_STOP;
                                                                 counter = 0;
                                                                 counter_end = 0;
                                                                 xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
@@ -1617,7 +1083,7 @@ namespace Velociraptor
                                         else
                                         {
                                             ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 1)&& counter_end == 0)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + _measure_distance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 1)&& counter_end == 0)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1656,7 +1122,7 @@ namespace Velociraptor
                                                     }
                                                 }
                                             }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + ReadParameter.MeasureDistance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 3) && counter_end == 2)
+                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + _measure_distance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 3) && counter_end == 2)
                                             {
                                                 if ((_ccsvWriteFiles != null))
                                                 {
@@ -1733,162 +1199,9 @@ namespace Velociraptor
                     }
                 }
             }
-
-
         }
         #endregion
-        #region Raw Execute Click
-        private void btn_dnld_raw_execute_Click(object sender, EventArgs e)
-        {
 
-            try
-            {
-                if (_client.ClientIsConnected)
-                {
-
-                    SaveFileDialog sfd_upload = new SaveFileDialog();
-                    sfd_upload.Filter = "DATA file|*.data|TXT file|*.txt|所有檔案|*.*";
-                    sfd_upload.Title = "Save a File";
-                    sfd_upload.InitialDirectory = Application.StartupPath;
-                    sfd_upload.RestoreDirectory = true;
-                    DateTime dt = DateTime.Now;
-                    string dateTimeFileName = string.Format("_{0:yy_MM_dd_HH_mm_ss}", dt);
-                    sfd_upload.FileName = String.Format("{0}", dateTimeFileName);
-                    sfd_upload.DefaultExt = "data";
-                    if ((_client != null) && (_client.DnldCommand != null))
-                    {
-                        if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
-                        {
-                            if (sfd_upload.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            {
-                                btn_dnld_raw_execute.Image = Properties.Resources.FUNC_RUN;
-
-                                string strFilePath = sfd_upload.FileName.ToString();
-                                _cprojectSettings.Project.DataDirectoryFilename = strFilePath;
-                                _cprojectSettings.Project.DataDirectory = strFilePath.Substring(0, strFilePath.LastIndexOf("\\"));
-                                _cprojectSettings.Project.Filename = strFilePath.Substring(strFilePath.LastIndexOf("\\") + 1);
-
-                                if (ck_multi_point_mea.Checked)
-                                {
-                                    _acquisitionTab.DoNextMeasure = true;
-                                    for (int i = 0; i < lb_multi_measure_point.Items.Count; i++)
-                                    {
-                                        
-                                        
-                                        if (_acquisitionTab.DoNextMeasure)
-                                        {
-                                            movePositionAbsolute(Int32.Parse(MultiPointList[i][0]), Int32.Parse(MultiPointList[i][1]), Int32.Parse(MultiPointList[i][2]));
-                                            _acquisitionTab.DoNextMeasure = false;
-                                            Thread.Sleep(3000);
-                                            if (Int32.Parse(ntb_x_cur_motorpos.Text) == Int32.Parse(MultiPointList[i][0]) &&
-                                                Int32.Parse(ntb_y_cur_motorpos.Text) == Int32.Parse(MultiPointList[i][1]) &&
-                                                Int32.Parse(ntb_z_cur_motorpos.Text) == Int32.Parse(MultiPointList[i][2]))
-                                            {
-                                                _cprojectSettings.Project.Filename = string.Format("{0}__{1}", i + 1, strFilePath.Substring(strFilePath.LastIndexOf("\\") + 1));
-                                                _cprojectSettings.Project.DataDirectoryFilename = string.Format("{0}\\{1}", _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename);
-                                                _threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample].Set();
-                                                
-                                                
-                                            }
-                                        }
-                                        else
-                                        {
-                                            return;
-                                        }
-                                        while (!_acquisitionTab.DoNextMeasure)
-                                        {
-                                            
-                                        }
-                                        if (!_acquisitionTab.Recording)
-                                        {
-                                            return;
-                                        }
-                                    }
-
-                                }
-                                else
-                                {
-                                    _threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample].Set();
-
-                                    sw.Reset();//碼表歸零
-                                    sw.Start();//碼表開始計時
-                                }
-
-                            }
-                        }
-
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        #endregion
-        #region btn_engineer_Click
-        /*
-        private void btn_engineer_Click(object sender, EventArgs e)
-        {
-            
-            
-            //f_engineer_settings form = new f_engineer_settings();
-            PasswordBox psForm = new PasswordBox();
-            //form.EngineerSettings = _generalSettings.General;
-            if (psForm.ShowDialog() == DialogResult.OK)
-            {
-                //if (form.ShowDialog() == DialogResult.OK)
-                //{
-                f_engineer_settings form = new f_engineer_settings();
-                form.ShowDialog(this);
-                //_generalSettings.General = form.EngineerSettings;
-                //_generalSettings.Save();
-                    
-                //}
-            }
-            else
-            {
-                MessageBox.Show("密碼錯誤!!");
-                //e.Cancel = true;
-            }
-        }*/
-        #endregion
-        #region btn_show_data_Click
-        private void btn_show_data_Click(object sender, EventArgs e)
-        {
-
-            if (rb_showdata_x.Checked)
-            {
-                ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                Info2.Arguments = string.Format(@"{0} 1 0", _cprojectSettings.Project.DataDirectoryFilename);
-
-                Process.Start(Info2);
-            }
-            else if (rb_showdata_y.Checked)
-            {
-                ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                Info2.Arguments = string.Format(@"{0} 1 1", _cprojectSettings.Project.DataDirectoryFilename);
-
-                Process.Start(Info2);
-            }
-            else
-            {
-                MessageBox.Show("請選擇切割道方向!!");
-            }
-
-        }
-        #endregion
         #region btn_dark_Click
         private void btn_dark_Click(object sender, EventArgs e)
         {
@@ -1937,61 +1250,6 @@ namespace Velociraptor
             groupBox1.Visible = false;
             groupBox3.Visible = false;
             btn_dark.Visible = false;
-            btn_ClearAlarm.Visible = false;
-        }
-        #endregion
-        #region btn_advanced_mode_Click
-        private void btn_advanced_mode_Click(object sender, EventArgs e)
-        {
-            PasswordBox psForm = new PasswordBox();
-
-            if (psForm.ShowDialog() == DialogResult.OK)
-            {
-                timer = new System.Timers.Timer(300000);//定時週期300秒
-                timer.Elapsed += btn_general_mode_Click;//定時時間到的時候的回撥函式
-                timer.AutoReset = false; //是否不斷重複定時器操作
-                timer.Enabled = true; //定時器啟動
-                Control.CheckForIllegalCrossThreadCalls = false;
-
-                
-                tabControlMain.TabPages.Add(tbp_sodx); //Add a tab page
-                tabControlMain.TabPages.Add(tbp_status); //Add a tab page
-                tabControlMain.TabPages.Add(tbp_record); //Add a tab page
-
-                label_cursor_v1.Visible = true;
-                chk_cursor_v1.Visible = true;
-                nud_cursor_v1.Visible = true;
-                label_cursor_v2.Visible = true;
-                chk_cursor_v2.Visible = true;
-                nud_cursor_v2.Visible = true;
-                label_cursor_v3.Visible = true;
-                chk_cursor_v3.Visible = true;
-                nud_cursor_v3.Visible = true;
-                label_noise_offset.Visible = true;
-                hsb_noise_offset.Visible = true;
-                label_dynamic.Visible = true;
-                nud_dynamic.Visible = true;
-
-                cbx_high_speed_mode.Visible = true;
-                cbx_high_speed.Visible = true;
-                label_hz.Visible = true;
-                label_Scale.Visible = true;
-                ntb_scale.Visible = true;
-                label_ipaddress.Visible = true;
-                ctrl_ip_address.Visible = true;
-                label_first_channel.Visible = true;
-                label_numberofchannels.Visible = true;
-                ntb_dnld_first_channel.Visible = true;
-                ntb_dnld_number_of_channels.Visible = true;
-                groupBox1.Visible = true;
-                groupBox3.Visible = true;
-                btn_dark.Visible = true;
-                btn_ClearAlarm.Visible = true;
-            }
-            else
-            {
-                MessageBox.Show("密碼錯誤!!");
-            }
         }
         #endregion
         #region btn_sodx_Click 
@@ -2025,19 +1283,6 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region btn_settings_Click 
-        /*
-        private void btn_settings_Click(object sender, EventArgs e)
-        {
-            f_settings form = new f_settings();
-            form.Settings = _generalSettings.General;
-            if (form.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                _generalSettings.General = form.Settings;
-                _generalSettings.Save();
-            }
-        }*/
-        #endregion
         #region btn_sodx_pause_Click
         private void btn_sodx_pause_Click(object sender, EventArgs e)
         {
@@ -2064,14 +1309,6 @@ namespace Velociraptor
         }
 
         #endregion
-        #region btn_record_wafer_center_point_Click
-        private void btn_record_wafer_center_point_Click(object sender, EventArgs e)
-        {
-            ReadParameter.moveToWaferCenterPointXDistance = Int32.Parse(ntb_x_cur_motorpos.Text);
-            ReadParameter.moveToWaferCenterPointYDistance = Int32.Parse(ntb_y_cur_motorpos.Text);
-            ReadParameter.moveToWaferCenterPointZDistance = Int32.Parse(ntb_z_cur_motorpos.Text);
-        }
-        #endregion
         #region btn_move_distance_Click
         private void btn_move_distance_Click(object sender, EventArgs e)
         {
@@ -2084,10 +1321,8 @@ namespace Velociraptor
             }
             else
             {
-                MessageBox.Show("請輸入移動距離!!");
-                
+                MessageBox.Show("請輸入移動距離!!");                
             }
-
         }
         #endregion
         #region btn_move_distance_z_Click
@@ -2380,7 +1615,7 @@ namespace Velociraptor
 
         #region 即時顯示圖事件
         #region _OnUpdateInitDownloadDisplay
-        private void _OnUpdateInitDownloadDisplay(Form form)
+        private void _OnUpdateInitDownloadDisplay(System.Windows.Forms.Form form)
         {
             double Zoom = 2;
 
@@ -2605,47 +1840,6 @@ namespace Velociraptor
                         break;
                 }
             }
-        }
-        #endregion
-
-        #endregion
-
-        #region 多點測量
-        #region btn_add_measure_point_Click
-        private void btn_add_measure_point_Click(object sender, EventArgs e)
-        {
-            MultiPointList.Add(new string[] { ntb_x_cur_motorpos.Text, ntb_y_cur_motorpos.Text, ntb_z_cur_motorpos.Text });
-            lb_multi_measure_point.Items.Add(String.Format("{0},{1},{2}", ntb_x_cur_pos.Text, ntb_y_cur_pos.Text, ntb_z_cur_pos.Text));
-
-        }
-        #endregion
-
-        #region  btn_remove_measure_point_Click
-        private void btn_remove_measure_point_Click(object sender, EventArgs e)
-        {
-            MultiPointList.RemoveAt(lb_multi_measure_point.SelectedIndex);
-            while (lb_multi_measure_point.SelectedItem != null)
-            {
-                lb_multi_measure_point.Items.Remove(lb_multi_measure_point.SelectedItem);
-            }
-        }
-        #endregion
-
-        #region btn_moveto_select_measure_point_Click
-        private void btn_moveto_select_measure_point_Click(object sender, EventArgs e)
-        {
-            if (lb_multi_measure_point.SelectedItem != null)
-            {
-                movePositionAbsolute(Int32.Parse(MultiPointList[lb_multi_measure_point.SelectedIndex][0]), Int32.Parse(MultiPointList[lb_multi_measure_point.SelectedIndex][1]), Int32.Parse(MultiPointList[lb_multi_measure_point.SelectedIndex][2]));
-            }
-        }
-        #endregion
-
-        #region btn_clear_measure_point_list_Click
-        private void btn_clear_measure_point_list_Click(object sender, EventArgs e)
-        {
-            MultiPointList.Clear();
-            lb_multi_measure_point.Items.Clear();
         }
         #endregion
 
@@ -2916,6 +2110,8 @@ namespace Velociraptor
         #region btn_moveto_WaferCenter_point_Click
         private void btn_moveto_WaferCenter_point_Click(object sender, EventArgs e)
         {
+            _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].Set();
+
             movePositionAbsolute(ReadParameter.moveToWaferCenterPointXDistance, ReadParameter.moveToWaferCenterPointYDistance, ReadParameter.moveToWaferCenterPointZDistance);
         }
         #endregion
@@ -3322,7 +2518,7 @@ namespace Velociraptor
 
 
         #region OnInitDisplay
-        private void OnInitDisplay(Form form)
+        private void OnInitDisplay(System.Windows.Forms.Form form)
         {
             _eventControlUpdateValueToText = new cControlUpdateEx.OnEventHandler(OnControlUpdateValueToText);
             _eventcontrolUpdateTextToValue = new cControlUpdateEx.OnEventHandler(OnControlUpdateTextToValue);
@@ -3343,7 +2539,7 @@ namespace Velociraptor
         }
         #endregion   
         #region _OnUpdateInitDisplay
-        private void _OnUpdateInitDisplay(Form form)
+        private void _OnUpdateInitDisplay(System.Windows.Forms.Form form)
         {
             //SODX graphic-----------------------------------------------------------------
             ctrl_zgc_sodx.DisplayInit();
@@ -3832,7 +3028,7 @@ namespace Velociraptor
         }
         #endregion      
         #region DisplaySodxAcquisition
-        private void DisplaySodxAcquisition(Form form)
+        private void DisplaySodxAcquisition(System.Windows.Forms.Form form)
         {
             btn_sodx_execute.Image = (_threadAcquisition == eThreadAcquisition.eRun) ? cResources.GetImageRunOn : cResources.GetImageRunOff;
             btn_sodx.Enabled = (_threadAcquisition == eThreadAcquisition.eRun) ? false : true;
