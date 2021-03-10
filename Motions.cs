@@ -6,71 +6,78 @@ using System.Threading;
 
 namespace Velociraptor
 {
-    class Motions
+    /************************************************
+     * For all public motion functions
+     * ADD SIMULATION ASSERTION
+     * *********************************************/
+
+    public class Motions
     {
         private bool isSimulate;
         private Dictionary<char, int> axis_map = new Dictionary<char, int>();
         private int _axis_num;
         private int _scan_mode;
+        private MotionParamReader _paraReader;
+        private string err_msg = "";
         #region YASKAWA servor parameter control
-        UInt32 g_hController = 0;				 // Controller handle				
+        UInt32 g_hController = 0; // Controller handle				
         UInt32 g_hDevice;  // Device handle
         private CMotionAPI.MOTION_DATA[] MotionDataForMove = null;
-        private CMotionAPI.POSITION_DATA[] PosForMove = null;
-        private CMotionAPI.MOTION_DATA[] MotionDataForJog = null;
-        private CMotionAPI.POSITION_DATA[] PosForJog = null;
+        private CMotionAPI.MOTION_DATA[] MotionDataForJogY = null;
         private CMotionAPI.MOTION_DATA[] MotionDataForMea = null;
-        private CMotionAPI.POSITION_DATA[] PosForMea = null;
-        private CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = null;
-        private CMotionAPI.POSITION_DATA[] PosForMeaMoveForwardX = null;
-        private CMotionAPI.POSITION_DATA[] PosForMeaMoveBackX = null;
-        private Int16[] Direction = null;                                  // Moving direction
+        private CMotionAPI.MOTION_DATA[] MotionDataForHome = null;
+        private CMotionAPI.POSITION_DATA[] PosForMove = null;
+        private String[] _registerName = { "IL8010", "IL8090", "IL8110" };
+        private UInt16[] Direction = null; // Moving direction
         private UInt16[] WaitForCompletion = null;
-        private UInt16[] Timeout = null;
-        private UInt16[] TimeoutMove = null;
-        private UInt16[] HomeMethod = null;
+        private UInt16[] WaitForStart = null;
         private UInt32[] hAxis = null;  // Axis handle
-        private UInt32 rc;                                                           // Motion API return value
+        private UInt32 rc; // Motion API return value
         #endregion
-        public bool Init(string filename, ref string msg)
+        public bool Init(string filename)
         {
-            MotionParamReader paraReader = new MotionParamReader(filename);
-            isSimulate = paraReader.IsSimulate();
+            string cur_path = AppDomain.CurrentDomain.BaseDirectory;
+            _paraReader = new MotionParamReader(cur_path+filename);
+            isSimulate = _paraReader.IsSimulate();
             if (isSimulate) return true;
-            _axis_num = paraReader.SetAxes(ref axis_map);
-            _scan_mode = paraReader.ScanningMode;
+            _axis_num = _paraReader.SetAxes(ref axis_map);
+            _scan_mode = _paraReader.ScanningMode;
             #region Variables allocation
             MotionDataForMea = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
-            PosForMea = new CMotionAPI.POSITION_DATA[_axis_num];    // POSITION_DATA structure
-            PosForMeaMoveDownY = new CMotionAPI.POSITION_DATA[_axis_num];    // POSITION_DATA structure
-            PosForMeaMoveForwardX = new CMotionAPI.POSITION_DATA[_axis_num];    // POSITION_DATA structure
-            PosForMeaMoveBackX = new CMotionAPI.POSITION_DATA[_axis_num];    // POSITION_DATA structure
             MotionDataForMove = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
-            PosForMove = new CMotionAPI.POSITION_DATA[_axis_num];    // POSITION_DATA structure
-            MotionDataForJog = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
-            PosForJog = new CMotionAPI.POSITION_DATA[_axis_num];    // POSITION_DATA structure
-            Direction = new Int16[_axis_num];  //Jog direction                                // Moving direction
-            WaitForCompletion = new UInt16[_axis_num];                          // Completion attribute storage variable
-            Timeout = new UInt16[_axis_num];
-            TimeoutMove = new UInt16[_axis_num];
-            HomeMethod = new UInt16[_axis_num];
+            MotionDataForJogY = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
+            MotionDataForHome = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
+            PosForMove = new CMotionAPI.POSITION_DATA[_axis_num];
+            Direction = new UInt16[_axis_num]; 
+            WaitForCompletion = new UInt16[_axis_num]; 
+            WaitForStart = new UInt16[_axis_num]; 
             hAxis = new UInt32[_axis_num];
             #endregion
-            paraReader.SetAxisData(ref MotionDataForMea
-                        , ref PosForMea
-                        , ref PosForMeaMoveDownY
-                        , ref PosForMeaMoveForwardX
-                        , ref PosForMeaMoveBackX
+            #region variables initialization
+            //Set variables from parameter files
+            _paraReader.SetAxisData(ref MotionDataForMea
                         , ref MotionDataForMove
-                        , ref PosForMove
-                        , ref MotionDataForJog
-                        , ref PosForJog
-                        , ref WaitForCompletion
-                        , ref Direction
-                        , ref TimeoutMove
-                        , ref Timeout);
+                        , ref MotionDataForJogY
+                        , ref MotionDataForHome
+                        );
+            //Set variables with frequently used values
+            int my_y = axis_map['Y'];
+            for (int i=0; i<_axis_num; i++)
+            {
+                PosForMove[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
+                PosForMove[i].PositionData = 0;
+                WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.POSITIONING_COMPLETED;
+                // By setting the completion attribute to "COMMAND_STARTED (starting the command)," 
+                // the control returns to the application immediately after positioning command execution.
+                WaitForStart[i] = (UInt16)CMotionAPI.ApiDefs.COMMAND_STARTED;
+                Direction[i] = (UInt16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE;
+                //將非Y方向的JOG速度都設為0
+                if (i != my_y) MotionDataForJogY[i].Velocity = 0;
+            }
+            #endregion
             #region H/W initialization
-            if (!SetMotorOn(ref msg)) return false;
+            if (!SetMotorOn()) return false;
+            #endregion
             return true;
         }
 
@@ -78,7 +85,208 @@ namespace Velociraptor
         {
             return _scan_mode;
         }
-        private bool SetMotorOn(ref string msg)
+        public bool MoveTo(char axis_char, int distance, bool isRelative = true)
+        {
+            if (isSimulate) return true;
+            int my_axis = axis_map[axis_char];
+            CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
+            move_pos[my_axis].PositionData = distance;
+            //Keep other axis to be relative, and pos = 0
+            //=> No impact on axis except the assigned one
+            for (int i = 0; i < _axis_num; i++)
+                MotionDataForMove[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
+            if (!isRelative)
+                MotionDataForMove[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMove, move_pos, 0, "Start", WaitForStart, 0);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            return true;
+        }
+        //Default use relative move
+        //If use absolute move, ONLY SPECIFIED AXIS ARE SET TO ABS
+        public bool MoveTo(char[] axis_char, int[] distance, bool isRelative)
+        {
+            if (isSimulate) return true;
+            CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
+            for (int i = 0; i < _axis_num; i++)
+                MotionDataForMove[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
+
+            for (int i = 0; i < axis_char.Length; i++)
+            {
+                int my_axis = axis_map[axis_char[i]];
+                move_pos[my_axis].PositionData = distance[i];
+                if (!isRelative)
+                    MotionDataForMove[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
+            }
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMove, move_pos, 0, "Start", WaitForStart, 0);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            return true;
+        }
+        public int GetPos(char axis_char)
+        {
+            if (isSimulate) return 1;
+            int my_axis = axis_map[axis_char];
+            UInt32 hRegister = 0;
+            rc = CMotionAPI.ymcGetRegisterDataHandle(_registerName[my_axis], ref hRegister);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcGetRegisterDataHandle OL \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return 0;
+            }
+            Int32[] RegData = new Int32[1];
+            UInt32 ReadDataNumber = 0;
+            rc = CMotionAPI.ymcGetRegisterData(hRegister, 1, RegData, ref ReadDataNumber);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcGetRegisterData OLy \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return 0;
+            }
+            return RegData[0];
+        }
+        public bool Move5um(int measureDistance)
+        {
+            if (isSimulate) return true;
+            CMotionAPI.POSITION_DATA[] pos = new CMotionAPI.POSITION_DATA[_axis_num];
+            pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
+            pos[0].PositionData = measureDistance;
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea
+                                , PosForMove, 0, "Start", WaitForCompletion, 0);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            err_msg = "Move succeeded";
+            return true;
+        }
+        public bool Move1um(int measureDistance)
+        {
+            if (isSimulate) return true;
+            int[] move_x = { measureDistance, -measureDistance + 1 , measureDistance - 1
+                            , -measureDistance + 1 , measureDistance - 1};
+            CMotionAPI.POSITION_DATA[] PosForMeaMoveX = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
+            CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
+            PosForMeaMoveDownY[1].PositionData = 1;
+            for (int i=0; i< 5; i++)
+            {
+                PosForMeaMoveX[0].PositionData = move_x[i];
+                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveX, 0, "Start", WaitForCompletion, 0);
+                if (rc != CMotionAPI.MP_SUCCESS)
+                {
+                    err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                    return false;
+                }
+                Thread.Sleep(80);
+                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
+                if (rc != CMotionAPI.MP_SUCCESS)
+                {
+                    err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                    return false;
+                }
+            }
+            err_msg = "Move succeeded";
+            return true;
+        }
+        public bool JogY(bool toStart, bool isPositive=true)
+        {
+            if (isSimulate) return true;
+            if (toStart)
+            {
+                ushort[] timeout = new ushort[_axis_num];
+                short[] direction = new short[_axis_num];
+                timeout[axis_map['Y']] = 1;
+                direction[axis_map['Y']] = (isPositive)
+                                            ? (Int16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE
+                                            : (Int16)CMotionAPI.ApiDefs.DIRECTION_NEGATIVE;
+                rc = CMotionAPI.ymcMoveJOG(g_hDevice, MotionDataForJogY, direction, timeout, 0, "Start", 0);
+            }
+            else
+            {
+                rc = CMotionAPI.ymcStopJOG(g_hDevice, 0, "Stop", WaitForCompletion, 0);
+            }
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcMoveJOG/StopJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            return true;
+        }
+        public bool GoHome()
+        {
+            if (isSimulate) return true;
+            UInt16[] WaitForCompletion = new UInt16[_axis_num];
+            UInt16[] HomeMethod = new UInt16[_axis_num];
+            for (int i=0; i<_axis_num; i++)
+            {
+                HomeMethod[i] = (UInt16)CMotionAPI.ApiDefs.HMETHOD_POT_ONLY; // Zero point return method
+            }
+            rc = CMotionAPI.ymcMoveHomePosition(g_hDevice, MotionDataForHome, PosForMove, HomeMethod, Direction, 0, "Start", WaitForCompletion, 0);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcMoveHomePositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            return true;
+        }
+        public void GetCenterPos(ref int[] distance)
+        {
+            distance[0] = _paraReader.moveToWaferCenterPointXDistance;
+            distance[1] = _paraReader.moveToWaferCenterPointYDistance;
+            distance[2] = 0;
+        }
+        public void GetLoadPos(ref int[] distance)
+        {
+            distance[0] = _paraReader.moveToWaferCenterPointXDistance;
+            distance[1] = -128500;
+            distance[2] = 0;
+        }
+        public bool StopMove()
+        {
+            if (isSimulate) return true;
+            rc = CMotionAPI.ymcStopMotion(g_hDevice, MotionDataForMove, "Stop", WaitForCompletion, 0);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcStopMotion \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            return true;
+        }
+        public bool ClearAlarm()
+        {
+            if (isSimulate) return true;
+            rc = CMotionAPI.ymcClearAlarm(0);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcClearAlarm \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return false;
+            }
+            return true;
+        }
+        public void MotorOff()
+        {
+            if (isSimulate) return;
+            // Executes servo OFF-- By best effort
+            rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_OFF, 5000);
+            if (rc != CMotionAPI.MP_SUCCESS) return;
+            //Deletes the device handle created in this thread. 
+            rc = CMotionAPI.ymcClearDevice(g_hDevice);
+            if (rc != CMotionAPI.MP_SUCCESS) return;
+            //Close the Controller.
+            rc = CMotionAPI.ymcCloseController(g_hController);
+            if (rc != CMotionAPI.MP_SUCCESS) return;
+        }
+        public string GetErrorMsg()
+        {
+            return err_msg;
+        }
+        private bool SetMotorOn()
         {
             //YASKAWA servor setting
             #region ymcOpenController
@@ -97,7 +305,7 @@ namespace Velociraptor
             rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                msg = String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                err_msg = String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return false;
             }
             #endregion
@@ -106,7 +314,7 @@ namespace Velociraptor
             rc = CMotionAPI.ymcSetAPITimeoutValue(50000);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                msg = String.Format("Error SetAPITimeoutValue \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                err_msg = String.Format("Error SetAPITimeoutValue \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return false;
             }
             #endregion
@@ -116,7 +324,7 @@ namespace Velociraptor
             //rc = CMotionAPI.ymcClearAxis(hAxis[0]);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                msg = String.Format("Error ClearAllAxes \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                err_msg = String.Format("Error ClearAllAxes \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return false;
             }
             for (int i = 0; i < _axis_num; i++)
@@ -125,16 +333,16 @@ namespace Velociraptor
                 rc = CMotionAPI.ymcDeclareAxis(1, 0, 3, (UInt16)(i + 1), (UInt16)(i + 1), (UInt16)CMotionAPI.ApiDefs.REAL_AXIS, AxisName, ref hAxis[i]);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {
-                    msg = String.Format("Error ymcDeclareAxis \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                    err_msg = String.Format("Error ymcDeclareAxis \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                     return false;
                 }
             }
             #endregion
             #region Gets the device handle
-            rc = CMotionAPI.ymcDeclareDevice(3, hAxis, ref g_hDevice);
+            rc = CMotionAPI.ymcDeclareDevice((ushort)_axis_num, hAxis, ref g_hDevice);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                msg = String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                err_msg = String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return false;
             }
             #endregion
@@ -143,157 +351,11 @@ namespace Velociraptor
             rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_ON, 5000);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                msg = String.Format("Error ymcServoControl \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                err_msg = String.Format("Error ymcServoControl \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return false;
             }
             #endregion
-            msg = "Servo On";
-            return true;
-            #endregion
-        }
-        public void MotorOff()
-        {
-            // Executes servo OFF-- By best effort
-            rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_OFF, 5000);
-            if (rc != CMotionAPI.MP_SUCCESS) return;
-            //Deletes the device handle created in this thread. 
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            if (rc != CMotionAPI.MP_SUCCESS) return;
-            //Close the Controller.
-            rc = CMotionAPI.ymcCloseController(g_hController);
-            if (rc != CMotionAPI.MP_SUCCESS) return;
-        }
-        public bool Move5um(int measureDistance, ref string msg)
-        {
-            PosForMea[0].PositionData = measureDistance;
-            for (int i=0; i<_axis_num; i++)
-            {
-                MotionDataForMea[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_TIME;
-                MotionDataForMea[i].MaxVelocity = 2000;
-                WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.POSITIONING_COMPLETED;
-            }
-            rc = CMotionAPI.ymcDeclareDevice(3, hAxis, ref g_hDevice);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMea, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            // Deletes the device handle.
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            // Error check processing
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            msg = "Move succeeded";
             return true;
         }
-        public bool Move1um(int measureDistance, ref string msg)
-        {
-            PosForMea[0].PositionData = measureDistance;
-            for (int i=0; i<_axis_num; i++)
-            {
-                MotionDataForMea[i].AccDecType = (Int16)CMotionAPI.ApiDefs.ATYPE_UNIT_PAR;
-                MotionDataForMea[i].MaxVelocity = 2000;
-                WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.LATCH_COMPLETED;
-            }
-            PosForMeaMoveForwardX[0].PositionData = measureDistance - 1;
-            PosForMeaMoveDownY[0].PositionData = 0;
-            PosForMeaMoveBackX[0].PositionData = -measureDistance + 1;
-            PosForMeaMoveForwardX[1].PositionData = 0;
-            PosForMeaMoveDownY[1].PositionData = 1;
-            PosForMeaMoveBackX[1].PositionData = PosForMea[1].PositionData;
-            PosForMeaMoveForwardX[2].PositionData = 0;
-            PosForMeaMoveDownY[2].PositionData = PosForMea[2].PositionData;
-            PosForMeaMoveBackX[2].PositionData = PosForMea[2].PositionData;
-
-            rc = CMotionAPI.ymcDeclareDevice(3, hAxis, ref g_hDevice);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            Thread.Sleep(80);
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMea, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            Thread.Sleep(80);
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveBackX, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            Thread.Sleep(80);
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveForwardX, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            Thread.Sleep(80);
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveBackX, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            Thread.Sleep(80);
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveForwardX, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            // Deletes the device handle.
-            rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            // Error check processing
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-                msg = String.Format("Error ymcClearDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
-            }
-            msg = "Move succeeded";
-            return true;
-        }
-
     }
 }

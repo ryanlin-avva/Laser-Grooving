@@ -59,6 +59,9 @@
   <PropertyGroup>
     <AssemblyName>Velociraptor</AssemblyName>
   </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DevComponents.DotNetBar2">
       <HintPath>..\..\..\..\Program Files (x86)\CLS_SDK\Samples\DevComponents.DotNetBar2.dll</HintPath>
@@ -117,14 +120,7 @@
     <Compile Include="MeasureParamReader.cs" />
     <Compile Include="MotionParamReader.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="MeasureInstrument.cs" />
     <Compile Include="Motions.cs" />
-    <Compile Include="MyForm\ManualForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MyForm\ManualForm.designer.cs">
-      <DependentUpon>ManualForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="MyForm\AutoParams.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -186,15 +182,17 @@
     <Compile Include="MyForm\WaferCenterPointForm.Designer.cs">
       <DependentUpon>WaferCenterPointForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SynOperation.cs" />
     <EmbeddedResource Include="AddOn\f_selected_sodx.resx">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyForm\AutoParams.resx">
       <DependentUpon>AutoParams.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="MyForm\ManualForm.resx">
-      <DependentUpon>ManualForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyForm\KeyBoardForm.resx">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>
@@ -216,14 +214,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <EmbeddedResource Include="MyForm\WaferCenterPointForm.resx">
       <DependentUpon>WaferCenterPointForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -254,6 +247,7 @@
     <None Include="Images\48\0-5.png" />
     <None Include="Images\48\0-6.png" />
     <None Include="Images\48\0-7.png" />
+    <None Include="Images\48\0-0.png" />
     <Content Include="Images\48\0-11.png" />
     <None Include="Images\48\down.png" />
     <None Include="Images\48\left.png" />
@@ -271,6 +265,10 @@
     <None Include="Images\48\left3.jpg" />
     <None Include="Images\48\right3.jpg" />
     <None Include="Images\48\up3.jpg" />
+    <None Include="Images\48\clear-button.png" />
+    <None Include="Images\48\reset-button.jpg" />
+    <None Include="Images\48\undo.png" />
+    <None Include="Images\48\home.png" />
     <Content Include="main.ico" />
   </ItemGroup>
   <ItemGroup>

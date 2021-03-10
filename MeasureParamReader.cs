@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Velociraptor
 {
-    class MeasureParamReader
+    public class MeasureParamReader
     {
         private string filePath;
         private StringBuilder lpReturnedString;
@@ -42,7 +42,6 @@ namespace Velociraptor
             SetTriggerInterval = int.Parse(ReadIniFile("TriggerParameter", "SetTriggerInterval", "0"));
             SetStartPosition = int.Parse(ReadIniFile("TriggerParameter", "SetStartPosition", "0"));
             SelectEncoderTriggerSource = int.Parse(ReadIniFile("TriggerParameter", "SelectEncoderTriggerSource", "0"));
-            MeasureDistance = int.Parse(ReadIniFile("TriggerParameter", "MeasureDistance", "0"));
             #endregion
         }
 
