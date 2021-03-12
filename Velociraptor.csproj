@@ -70,16 +70,49 @@
       <HintPath>..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.Instrumentation.dll</HintPath>
     </Reference>
     <Reference Include="halcondotnet">
-      <HintPath>..\..\..\..\..\Program Files\MVTec\HALCON-12.0\bin\dotnet35\halcondotnet.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\MVTec\HALCON-12.0\bin\dotnet35\halcondotnet.dll</HintPath>
     </Reference>
     <Reference Include="MagicCommonLibrary">
-      <HintPath>..\..\..\SDK\MagicCommonLibrary.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\MagicCommonLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="MagicCommonLibrary.resources">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\en\MagicCommonLibrary.resources.dll</HintPath>
     </Reference>
     <Reference Include="MagicGraphicLibrary">
-      <HintPath>..\..\..\SDK\MagicGraphicLibrary.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\MagicGraphicLibrary.dll</HintPath>
     </Reference>
     <Reference Include="MagicServerLibrary">
-      <HintPath>..\..\..\SDK\MagicServerLibrary.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\MagicServerLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="MLC_Joystick">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\MLC_Joystick.dll</HintPath>
+    </Reference>
+    <Reference Include="MLC_TranslationStage">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\MLC_TranslationStage.dll</HintPath>
+    </Reference>
+    <Reference Include="PA_SDK">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\PA_SDK.dll</HintPath>
+    </Reference>
+    <Reference Include="PA_TRANSLATION_STAGE">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\PA_TRANSLATION_STAGE.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Common">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\Rebex.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Networking">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\Rebex.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Sftp">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\Rebex.Sftp.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.SshShell">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\Rebex.SshShell.dll</HintPath>
+    </Reference>
+    <Reference Include="Rebex.Terminal">
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\Rebex.Terminal.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -92,7 +125,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="ZedGraph">
-      <HintPath>..\..\..\SDK\ZedGraph.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\SDK\ZedGraph.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -117,15 +150,16 @@
     <Compile Include="AddOn\f_selected_sodx.Designer.cs">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </Compile>
+    <Compile Include="HalconProc.cs" />
     <Compile Include="MeasureParamReader.cs" />
     <Compile Include="MotionParamReader.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Motions.cs" />
-    <Compile Include="MyForm\AutoParams.cs">
+    <Compile Include="MyForm\AutoParamsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MyForm\AutoParams.Designer.cs">
-      <DependentUpon>AutoParams.cs</DependentUpon>
+    <Compile Include="MyForm\AutoParamsForm.Designer.cs">
+      <DependentUpon>AutoParamsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="MyForm\KeyBoardForm.cs">
       <SubType>Form</SubType>
@@ -170,6 +204,8 @@
     <Compile Include="MyForm\PasswordBox.Designer.cs">
       <DependentUpon>PasswordBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="MyLine.cs" />
+    <Compile Include="MyUtil.cs" />
     <Compile Include="PCAPI\ymcErrorCode.cs" />
     <Compile Include="PCAPI\ymcPCConst.cs" />
     <Compile Include="PCAPI\ymcPCFunction.cs" />
@@ -188,11 +224,14 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SynOperation.cs" />
+    <Compile Include="Tuner.cs" />
+    <Compile Include="TuningData.cs" />
+    <Compile Include="VisionCalibrator.cs" />
     <EmbeddedResource Include="AddOn\f_selected_sodx.resx">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MyForm\AutoParams.resx">
-      <DependentUpon>AutoParams.cs</DependentUpon>
+    <EmbeddedResource Include="MyForm\AutoParamsForm.resx">
+      <DependentUpon>AutoParamsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyForm\KeyBoardForm.resx">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>
@@ -232,6 +271,16 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\background.jpg" />
+    <None Include="Resources\dart.png" />
+    <None Include="Resources\folder.png" />
+    <None Include="Resources\administration.png" />
+    <None Include="Resources\repeat.png" />
+    <None Include="Resources\right-arrow.png" />
+    <None Include="Resources\upward.png" />
+    <None Include="Resources\refresh.png" />
+    <None Include="Resources\save.png" />
+    <None Include="Resources\reload.png" />
     <None Include="Resources\FUNC_SETTINGS.bmp" />
     <None Include="Images\32\0.png" />
     <None Include="Images\32\1.png" />

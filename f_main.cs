@@ -13,6 +13,8 @@ using MagicCommonLibrary;
 using MagicAddOn;
 using AddOn;
 using Velociraptor.AddOn;
+using Velociraptor.Form;
+using HalconDotNet;
 
 namespace Velociraptor
 {
@@ -114,6 +116,12 @@ namespace Velociraptor
         }
         #endregion
 
+        #region ImageProcessing
+        private HalconProc hp = new HalconProc();
+        private HObject cur_img;
+        private HObject gray_img = null;
+        #endregion
+
         /// <summary>the current thread action</summary>
         eThreadAction _threadAction = eThreadAction.None;
         cClientCommunication _client = null;
@@ -125,7 +133,6 @@ namespace Velociraptor
         System.Timers.Timer timer;
         double xpos = -0.1;
         double ypos = -0.1;
-        int die_count = 0;
         int counter = 0;
         int counter_end = 0;
         double dataIntensityAverage = 0;
@@ -220,6 +227,15 @@ namespace Velociraptor
         bool _isCursorV2IndexChange = false;
         bool _isCursorH1IndexChange = false;
 
+        #region wafer info
+        private string _wafer_id;
+        private int _notch_idx;
+        private int _die_row_count = 0;
+        private int _die_col_count = 0;
+        private int[] _mea_pts_rows;
+        private int[] _mea_pts_cols;
+        #endregion
+        #region delegate function for precitec
         delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
         InitDisplayDelegateHandler InitDisplayDelegate;
 
@@ -252,7 +268,7 @@ namespace Velociraptor
 
         delegate void CloseFormDelegate(object sender, EventArgs e);
         CloseFormDelegate CloseForm;
-
+        #endregion
 
         cClientSocket.OnClientConnectEventHandler _eventOnClientConnect = null;
         cClientSocket.OnClientDisconnectEventHandler _eventOnClientDisconnect = null;
@@ -349,6 +365,8 @@ namespace Velociraptor
             CloseForm = new CloseFormDelegate(CloseOnStart);
             //CCD Range
             _ccd_range = new sCCDRange(0, 0);
+
+            cb_SelectMeasureDistance.SelectedIndex = 3;
         }
         #endregion
         #region CloseOnStart
@@ -400,12 +418,9 @@ namespace Velociraptor
             _threadGui.EventUserList[(int)enEventThreadGui.PrepareHighSpeed].Set();
 
             #endregion
-
-            Control.CheckForIllegalCrossThreadCalls = false;
-
             ctrl_zgc_sodx.ResourceLanguage = _generalSettings.General.ResourceLanguage;
             Text = string.Format("Sample 2 Version : {0}", Assembly.GetExecutingAssembly().GetName().Version);
-  
+
             #region Tool Tips
             ToolTip tips = new ToolTip();
 
@@ -419,8 +434,22 @@ namespace Velociraptor
             // Set up the ToolTip text for the Button and Checkbox.
             tips.SetToolTip(this.btn_advanced_mode, "工程模式切換");
             tips.SetToolTip(this.btn_ClearAlarm, "運動報警重置");
-            tips.SetToolTip(this.btn_dark, "量測去躁");
-            tips.SetToolTip(this.btn_connection, "相機連線");
+            tips.SetToolTip(this.btn_align, "晶圓轉正");
+            tips.SetToolTip(this.btn_start_mea, "開始測量");
+            tips.SetToolTip(this.btn_save, "儲存");
+            tips.SetToolTip(this.btn_load, "開啟影像");
+            tips.SetToolTip(this.btn_find_angle, "找角度");
+            grp_manual_buttons.Visible = false;
+            #endregion
+
+            GeneralMode(null, null);
+            Control.CheckForIllegalCrossThreadCalls = false;
+            #region halcon window control init
+            hp.SetHWindow(hWindowControl1);
+            hp.WinSize = hWindowControl1.Size;
+            string backgroud = "../../Images/background.jpg";
+            if (File.Exists(backgroud))
+                cur_img = hp.LoadImage(backgroud);
             #endregion
         }
         #endregion
@@ -848,7 +877,7 @@ namespace Velociraptor
                                                 }
                                             }
                                         }
-                                        btn_connection.Image = System.Drawing.Image.FromFile(@"Images/48/0-1.png");
+                                        btn_connection.Text = "相機斷線";
                                     }
 
                                     break;
@@ -856,7 +885,7 @@ namespace Velociraptor
                                 case eThreadAction.eClientDisconnect:
                                     _client.Close();
                                     _threadAction = eThreadAction.None;
-                                    btn_connection.Image = System.Drawing.Image.FromFile(@"Images/48/0-1.png");
+                                    btn_connection.Text = "相機連線";
                                     break;
                             }
                             if (_threadGui != null)
@@ -1209,40 +1238,11 @@ namespace Velociraptor
                 timer.AutoReset = false; //是否不斷重複定時器操作
                 timer.Enabled = true; //定時器啟動
 
-
                 tabControlMain.TabPages.Add(tbp_sodx); //Add a tab page
                 tabControlMain.TabPages.Add(tbp_status); //Add a tab page
                 tabControlMain.TabPages.Add(tbp_motion); //Add a tab page
-
-                label_cursor_v1.Visible = true;
-                chk_cursor_v1.Visible = true;
-                nud_cursor_v1.Visible = true;
-                label_cursor_v2.Visible = true;
-                chk_cursor_v2.Visible = true;
-                nud_cursor_v2.Visible = true;
-                label_cursor_v3.Visible = true;
-                chk_cursor_v3.Visible = true;
-                nud_cursor_v3.Visible = true;
-                label_noise_offset.Visible = true;
-                hsb_noise_offset.Visible = true;
-                label_dynamic.Visible = true;
-                nud_dynamic.Visible = true;
-                /*
-                cbx_high_speed_mode.Visible = true;
-                cbx_high_speed.Visible = true;
-                label_hz.Visible = true;
-                label_Scale.Visible = true;
-                ntb_scale.Visible = true;
-                label_ipaddress.Visible = true;
-                ctrl_ip_address.Visible = true;
-                label_first_channel.Visible = true;
-                label_numberofchannels.Visible = true;
-                ntb_dnld_first_channel.Visible = true;
-                ntb_dnld_number_of_channels.Visible = true;
-                groupBox1.Visible = true;
-                groupBox3.Visible = true;
-                btn_dark.Visible = true;
-                */
+                grp_cursor.Visible = true;
+                grp_align_test.Visible = true;
             }
             else
             {
@@ -1257,37 +1257,9 @@ namespace Velociraptor
             tabControlMain.TabPages.Remove(tbp_sodx); //Remove a tab page
             tabControlMain.TabPages.Remove(tbp_status); //Remove a tab page
             tabControlMain.TabPages.Remove(tbp_motion); //Remove a tab page
-            _curve_v2.IsVisible = _cursor_raw_v2.Visible = false;
-            _curve_v3.IsVisible = _cursor_raw_v3.Visible = false;
-            label_cursor_v1.Visible = false;
-            chk_cursor_v1.Visible = false;
-            nud_cursor_v1.Visible = false;
-            label_cursor_v2.Visible = false;
-            chk_cursor_v2.Visible = false;
-            nud_cursor_v2.Visible = false;
-            label_cursor_v3.Visible = false;
-            chk_cursor_v3.Visible = false;
-            nud_cursor_v3.Visible = false;
-            label_noise_offset.Visible = false;
-            hsb_noise_offset.Visible = false;
-            label_dynamic.Visible = false;
-            nud_dynamic.Visible = false;
-            /*
-            cbx_high_speed_mode.Visible = false;
-            cbx_high_speed.Visible = false;
-            label_hz.Visible = false;
-            label_Scale.Visible = false;
-            ntb_scale.Visible = false;
-            label_ipaddress.Visible = false;
-            ctrl_ip_address.Visible = false;
-            label_first_channel.Visible = false;
-            label_numberofchannels.Visible = false;
-            ntb_dnld_first_channel.Visible = false;
-            ntb_dnld_number_of_channels.Visible = false;
-            groupBox1.Visible = false;
-            groupBox3.Visible = false;
-            btn_dark.Visible = false;
-            */
+            grp_cursor.Visible = false;
+            grp_align_test.Visible = false;
+
             timer = new System.Timers.Timer(1);//定時週期0.001秒
             timer.Elapsed += ntb_cur_pos;//定時時間到的時候的回撥函式
             timer.AutoReset = true; //是否不斷重複定時器操作
@@ -1373,7 +1345,7 @@ namespace Velociraptor
             ntb_x_cur_motorpos.Text = _motion.GetPos('X').ToString();
             ntb_y_cur_motorpos.Text = _motion.GetPos('Y').ToString();
             ntb_z_cur_motorpos.Text = _motion.GetPos('Z').ToString();
-            
+            ntb_r_cur_motorpos.Text = _motion.GetPos('R').ToString();
         }      
         #endregion
         #region cb_SelectMeasureDistance_SelectedIndexChanged
@@ -1698,14 +1670,57 @@ namespace Velociraptor
                 MessageBox.Show(_motion.GetErrorMsg());
         }
         #endregion
-        #region btn_moveto_WaferCenter_point_Click
-        private void btn_moveto_WaferCenter_point_Click(object sender, EventArgs e)
+        #region btn_auto_measurement
+        private void btn_auto_measurement(object sender, EventArgs e)
         {
-            int[] distance = new int[3];
-            _motion.GetCenterPos(ref distance);
-            char[] axis = { 'X', 'Y', 'Z' };
-            if (!_motion.MoveTo(axis, distance, false))
-                MessageBox.Show(_motion.GetErrorMsg());
+            AutoParamsForm form = new AutoParamsForm();
+            if (form.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            _wafer_id = form.tb_wafer_id.Text;
+            _notch_idx = form.cmb_notch.SelectedIndex;
+            _die_row_count = int.Parse(form.tb_row_count.Text);
+            _die_col_count = int.Parse(form.tb_col_count.Text);
+            int pts_cnt = form.cmb_mea_points.SelectedIndex * 4 + 1;
+            _mea_pts_rows = new int[pts_cnt];
+            _mea_pts_cols = new int[pts_cnt];
+            //pts[0]==>central die
+            _mea_pts_rows[0] = (_die_row_count % 2 == 0) ? 1 : 0;
+            _mea_pts_cols[0] = (_die_col_count % 2 == 0) ? 1 : 0;
+            if (pts_cnt > 0) //more than 1 points
+            {
+                int r = int.Parse(form.tb_mea_row1.Text);
+                int c = int.Parse(form.tb_mea_col1.Text);
+                if (r > _die_row_count/2 || c > _die_col_count / 2)
+                {
+                    MessageBox.Show("指定量測的die位置，超出晶圓範圍");
+                    return;
+                }
+                _mea_pts_rows[1] = r; _mea_pts_cols[1] = -c; //left-top
+                _mea_pts_rows[2] = r; _mea_pts_cols[2] = c; //right-top
+                _mea_pts_rows[3] = -r; _mea_pts_cols[3] = c; //right-bottom
+                _mea_pts_rows[4] = -r; _mea_pts_cols[4] = -c; //left-bottom
+                if (pts_cnt > 5) //9 points
+                {
+                    r = int.Parse(form.tb_mea_row2.Text);
+                    c = int.Parse(form.tb_mea_col2.Text);
+                    if (r > _die_row_count / 2 || c > _die_col_count / 2)
+                    {
+                        MessageBox.Show("指定量測的die位置，超出晶圓範圍");
+                        return;
+                    }
+                    _mea_pts_rows[5] = -r; _mea_pts_cols[5] = -c; //left-bottom
+                    _mea_pts_rows[6] = r; _mea_pts_cols[6] = -c; //left-top
+                    _mea_pts_rows[7] = r; _mea_pts_cols[7] = c; //right-top
+                    _mea_pts_rows[8] = -r; _mea_pts_cols[8] = c; //right-bottom
+                }
+            }
+            SynOperation op = new SynOperation();
+            if (!op.DoAlignment())
+            {
+                MessageBox.Show("轉正失敗，請重新調整焦距或切割道閥值");
+                return;
+            }
+            op.DoAutoScan(_wafer_id, _mea_pts_rows, _mea_pts_cols);
         }
         #endregion
         #region btn_move_Click
@@ -1766,7 +1781,11 @@ namespace Velociraptor
         #region btn_load/unload_wafer_Click
         private void btn_load_wafer_Click(object sender, EventArgs e)
         {
-            btn_moveto_WaferCenter_point_Click(sender, e);
+            int[] distance = new int[3];
+            _motion.GetCenterPos(ref distance);
+            char[] axis = { 'X', 'Y', 'Z' };
+            if (!_motion.MoveTo(axis, distance, false))
+                MessageBox.Show(_motion.GetErrorMsg());
         }
         private void btn_unload_wafer_Click(object sender, EventArgs e)
         {
@@ -2529,6 +2548,11 @@ namespace Velociraptor
         #endregion
 
         private void btn_manual_mode_Click(object sender, EventArgs e)
+        {
+            grp_manual_buttons.Visible = !grp_manual_buttons.Visible;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
         {
             SynOperation op = new SynOperation();
             op.DoAlignment();

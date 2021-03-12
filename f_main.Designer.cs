@@ -58,6 +58,8 @@
             this.ntb_dnld_first_channel = new MagicGraphicLibrary.NumericTextBox(this.components);
             this.btn_origin_return = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label38 = new System.Windows.Forms.Label();
+            this.ntb_r_cur_motorpos = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -76,8 +78,7 @@
             this.label_xaxis = new System.Windows.Forms.Label();
             this.label_yaxis = new System.Windows.Forms.Label();
             this.label_zaxis = new System.Windows.Forms.Label();
-            this.label_current_position = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.grp_cursor = new System.Windows.Forms.GroupBox();
             this.btn_PosingStop = new System.Windows.Forms.Button();
             this.ntb_x_cur_pos = new System.Windows.Forms.Label();
             this.ntb_y_cur_pos = new System.Windows.Forms.Label();
@@ -151,8 +152,6 @@
             this.label33 = new System.Windows.Forms.Label();
             this.label61 = new System.Windows.Forms.Label();
             this.num_data_acquisition_number = new MagicGraphicLibrary.NumericTextBox(this.components);
-            this.btn_sodx_pause = new System.Windows.Forms.Button();
-            this.btn_sodx_execute = new System.Windows.Forms.Button();
             this.tbp_status = new System.Windows.Forms.TabPage();
             this.lst_log = new System.Windows.Forms.ListView();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
@@ -194,38 +193,48 @@
             this.btn_moveto_WaferCenter_point = new System.Windows.Forms.Button();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
             this.btn_move_distance_z = new System.Windows.Forms.Button();
-            this.label40 = new System.Windows.Forms.Label();
             this.btn_move_distance = new System.Windows.Forms.Button();
-            this.label38 = new System.Windows.Forms.Label();
+            this.btn_manual_mode = new System.Windows.Forms.Button();
+            this.btn_unload_wafer = new System.Windows.Forms.Button();
+            this.btn_load_wafer = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
+            this.label39 = new System.Windows.Forms.Label();
+            this.label42 = new System.Windows.Forms.Label();
+            this.label41 = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
+            this.label43 = new System.Windows.Forms.Label();
+            this.label44 = new System.Windows.Forms.Label();
+            this.btn_exposure = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
+            this.btn_imageThreshold = new System.Windows.Forms.Button();
+            this.hWindowControl1 = new HalconDotNet.HWindowControl();
+            this.button3 = new System.Windows.Forms.Button();
+            this.grp_manual_buttons = new System.Windows.Forms.GroupBox();
+            this.grp_align_test = new System.Windows.Forms.GroupBox();
+            this.lb_die_side = new System.Windows.Forms.Label();
+            this.lb_angle = new System.Windows.Forms.Label();
+            this.btn_find_angle = new System.Windows.Forms.Button();
+            this.btn_load = new System.Windows.Forms.Button();
+            this.btn_align = new System.Windows.Forms.Button();
+            this.btn_save = new System.Windows.Forms.Button();
+            this.btn_start_mea = new System.Windows.Forms.Button();
+            this.btn_ClearAlarm = new System.Windows.Forms.Button();
+            this.btn_advanced_mode = new System.Windows.Forms.Button();
             this.btn_movex_negative = new System.Windows.Forms.Button();
             this.btn_movex_positive = new System.Windows.Forms.Button();
             this.btn_movey_negative = new System.Windows.Forms.Button();
             this.btn_movey_positive = new System.Windows.Forms.Button();
             this.btn_movez_positive = new System.Windows.Forms.Button();
             this.btn_movez_negative = new System.Windows.Forms.Button();
-            this.btn_manual_mode = new System.Windows.Forms.Button();
-            this.btn_unload_wafer = new System.Windows.Forms.Button();
-            this.btn_load_wafer = new System.Windows.Forms.Button();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.btn_ClearAlarm = new System.Windows.Forms.Button();
-            this.btn_advanced_mode = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
-            this.button5 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.hWindowControl1 = new HalconDotNet.HWindowControl();
-            this.label44 = new System.Windows.Forms.Label();
-            this.label43 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
-            this.label41 = new System.Windows.Forms.Label();
-            this.label42 = new System.Windows.Forms.Label();
+            this.btn_sodx_pause = new System.Windows.Forms.Button();
+            this.btn_sodx_execute = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v1)).BeginInit();
             this.groupBox3.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.grp_cursor.SuspendLayout();
             this.tabControlMain.SuspendLayout();
             this.tbp_main.SuspendLayout();
             this.tbp_sodx.SuspendLayout();
@@ -235,6 +244,8 @@
             this.tbp_motion.SuspendLayout();
             this.groupBox7.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.grp_manual_buttons.SuspendLayout();
+            this.grp_align_test.SuspendLayout();
             this.SuspendLayout();
             // 
             // label_ipaddress
@@ -262,13 +273,14 @@
             0,
             0,
             0});
+            this.ntb_led_intensity.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
             this.ntb_led_intensity.Increment = new decimal(new int[] {
             1,
             0,
             0,
             0});
             this.ntb_led_intensity.InterceptArrowKeys = true;
-            this.ntb_led_intensity.Location = new System.Drawing.Point(11, 116);
+            this.ntb_led_intensity.Location = new System.Drawing.Point(15, 229);
             this.ntb_led_intensity.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -280,7 +292,7 @@
             0,
             0});
             this.ntb_led_intensity.Name = "ntb_led_intensity";
-            this.ntb_led_intensity.Size = new System.Drawing.Size(70, 23);
+            this.ntb_led_intensity.Size = new System.Drawing.Size(70, 22);
             this.ntb_led_intensity.TabIndex = 2;
             this.ntb_led_intensity.Text = "0";
             this.ntb_led_intensity.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -301,7 +313,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(84, 118);
+            this.label2.Location = new System.Drawing.Point(85, 231);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(18, 19);
             this.label2.TabIndex = 3;
@@ -311,11 +323,11 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label1.Location = new System.Drawing.Point(6, 88);
+            this.label1.Location = new System.Drawing.Point(12, 198);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(103, 21);
+            this.label1.Size = new System.Drawing.Size(74, 21);
             this.label1.TabIndex = 1;
-            this.label1.Text = "LED光源強度";
+            this.label1.Text = "光源強度";
             // 
             // cbx_high_speed
             // 
@@ -415,7 +427,7 @@
             // 
             // nud_dynamic
             // 
-            this.nud_dynamic.Location = new System.Drawing.Point(339, 32);
+            this.nud_dynamic.Location = new System.Drawing.Point(16, 251);
             this.nud_dynamic.Maximum = new decimal(new int[] {
             7,
             0,
@@ -429,56 +441,50 @@
             0,
             0,
             0});
-            this.nud_dynamic.Visible = false;
             this.nud_dynamic.ValueChanged += new System.EventHandler(this.nud_dynamic_ValueChanged);
             // 
             // label_dynamic
             // 
             this.label_dynamic.AutoSize = true;
-            this.label_dynamic.Location = new System.Drawing.Point(337, 16);
+            this.label_dynamic.Location = new System.Drawing.Point(18, 235);
             this.label_dynamic.Name = "label_dynamic";
             this.label_dynamic.Size = new System.Drawing.Size(51, 13);
             this.label_dynamic.TabIndex = 70;
             this.label_dynamic.Text = "Dynamic";
-            this.label_dynamic.Visible = false;
             // 
             // hsb_noise_offset
             // 
-            this.hsb_noise_offset.Location = new System.Drawing.Point(265, 32);
+            this.hsb_noise_offset.Location = new System.Drawing.Point(14, 198);
             this.hsb_noise_offset.Name = "hsb_noise_offset";
             this.hsb_noise_offset.Size = new System.Drawing.Size(68, 17);
             this.hsb_noise_offset.TabIndex = 69;
-            this.hsb_noise_offset.Visible = false;
             this.hsb_noise_offset.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hsb_noise_offset_Scroll);
             // 
             // label_noise_offset
             // 
             this.label_noise_offset.AutoSize = true;
-            this.label_noise_offset.Location = new System.Drawing.Point(262, 16);
+            this.label_noise_offset.Location = new System.Drawing.Point(11, 182);
             this.label_noise_offset.Name = "label_noise_offset";
             this.label_noise_offset.Size = new System.Drawing.Size(68, 13);
             this.label_noise_offset.TabIndex = 68;
             this.label_noise_offset.Text = "Noise Offset";
-            this.label_noise_offset.Visible = false;
             // 
             // chk_cursor_v3
             // 
             this.chk_cursor_v3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.chk_cursor_v3.Location = new System.Drawing.Point(183, 32);
+            this.chk_cursor_v3.Location = new System.Drawing.Point(14, 139);
             this.chk_cursor_v3.Name = "chk_cursor_v3";
             this.chk_cursor_v3.Size = new System.Drawing.Size(20, 18);
             this.chk_cursor_v3.TabIndex = 65;
-            this.chk_cursor_v3.Visible = false;
             this.chk_cursor_v3.Click += new System.EventHandler(this.chk_cursor_v_Click);
             // 
             // chk_cursor_v2
             // 
             this.chk_cursor_v2.BackColor = System.Drawing.Color.Blue;
-            this.chk_cursor_v2.Location = new System.Drawing.Point(99, 32);
+            this.chk_cursor_v2.Location = new System.Drawing.Point(14, 83);
             this.chk_cursor_v2.Name = "chk_cursor_v2";
             this.chk_cursor_v2.Size = new System.Drawing.Size(20, 18);
             this.chk_cursor_v2.TabIndex = 66;
-            this.chk_cursor_v2.Visible = false;
             this.chk_cursor_v2.Click += new System.EventHandler(this.chk_cursor_v_Click);
             // 
             // chk_cursor_v1
@@ -488,28 +494,25 @@
             this.chk_cursor_v1.Name = "chk_cursor_v1";
             this.chk_cursor_v1.Size = new System.Drawing.Size(20, 18);
             this.chk_cursor_v1.TabIndex = 67;
-            this.chk_cursor_v1.Visible = false;
             this.chk_cursor_v1.Click += new System.EventHandler(this.chk_cursor_v_Click);
             // 
             // label_cursor_v3
             // 
             this.label_cursor_v3.AutoSize = true;
-            this.label_cursor_v3.Location = new System.Drawing.Point(180, 18);
+            this.label_cursor_v3.Location = new System.Drawing.Point(11, 125);
             this.label_cursor_v3.Name = "label_cursor_v3";
             this.label_cursor_v3.Size = new System.Drawing.Size(58, 13);
             this.label_cursor_v3.TabIndex = 64;
             this.label_cursor_v3.Text = "Cursor V3";
-            this.label_cursor_v3.Visible = false;
             // 
             // label_cursor_v2
             // 
             this.label_cursor_v2.AutoSize = true;
-            this.label_cursor_v2.Location = new System.Drawing.Point(96, 18);
+            this.label_cursor_v2.Location = new System.Drawing.Point(11, 69);
             this.label_cursor_v2.Name = "label_cursor_v2";
             this.label_cursor_v2.Size = new System.Drawing.Size(58, 13);
             this.label_cursor_v2.TabIndex = 63;
             this.label_cursor_v2.Text = "Cursor V2";
-            this.label_cursor_v2.Visible = false;
             // 
             // label_cursor_v1
             // 
@@ -519,24 +522,21 @@
             this.label_cursor_v1.Size = new System.Drawing.Size(58, 13);
             this.label_cursor_v1.TabIndex = 62;
             this.label_cursor_v1.Text = "Cursor V1";
-            this.label_cursor_v1.Visible = false;
             // 
             // nud_cursor_v3
             // 
-            this.nud_cursor_v3.Location = new System.Drawing.Point(211, 32);
+            this.nud_cursor_v3.Location = new System.Drawing.Point(42, 139);
             this.nud_cursor_v3.Name = "nud_cursor_v3";
             this.nud_cursor_v3.Size = new System.Drawing.Size(48, 23);
             this.nud_cursor_v3.TabIndex = 59;
-            this.nud_cursor_v3.Visible = false;
             this.nud_cursor_v3.ValueChanged += new System.EventHandler(this.nud_cursor_vx_ValueChanged);
             // 
             // nud_cursor_v2
             // 
-            this.nud_cursor_v2.Location = new System.Drawing.Point(127, 32);
+            this.nud_cursor_v2.Location = new System.Drawing.Point(42, 83);
             this.nud_cursor_v2.Name = "nud_cursor_v2";
             this.nud_cursor_v2.Size = new System.Drawing.Size(48, 23);
             this.nud_cursor_v2.TabIndex = 60;
-            this.nud_cursor_v2.Visible = false;
             this.nud_cursor_v2.ValueChanged += new System.EventHandler(this.nud_cursor_vx_ValueChanged);
             // 
             // nud_cursor_v1
@@ -545,12 +545,11 @@
             this.nud_cursor_v1.Name = "nud_cursor_v1";
             this.nud_cursor_v1.Size = new System.Drawing.Size(48, 23);
             this.nud_cursor_v1.TabIndex = 61;
-            this.nud_cursor_v1.Visible = false;
             this.nud_cursor_v1.ValueChanged += new System.EventHandler(this.nud_cursor_vx_ValueChanged);
             // 
             // clsRawImage
             // 
-            this.clsRawImage.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.clsRawImage.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.clsRawImage.BackColor = System.Drawing.Color.Black;
             this.clsRawImage.Data = null;
             this.clsRawImage.Dynamic = ((byte)(0));
@@ -560,7 +559,7 @@
             this.clsRawImage.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clsRawImage.LabelColor = System.Drawing.Color.Yellow;
             this.clsRawImage.LabelEnabled = true;
-            this.clsRawImage.Location = new System.Drawing.Point(108, 6);
+            this.clsRawImage.Location = new System.Drawing.Point(118, 1);
             this.clsRawImage.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.clsRawImage.MenuLoadData = true;
             this.clsRawImage.MenuPauseData = true;
@@ -604,7 +603,7 @@
             this.ctrl_ip_address.MinimumSize = new System.Drawing.Size(87, 23);
             this.ctrl_ip_address.Name = "ctrl_ip_address";
             this.ctrl_ip_address.ReadOnly = false;
-            this.ctrl_ip_address.Size = new System.Drawing.Size(114, 23);
+            this.ctrl_ip_address.Size = new System.Drawing.Size(129, 23);
             this.ctrl_ip_address.TabIndex = 5;
             this.ctrl_ip_address.Text = "0.0.0.0";
             this.ctrl_ip_address.Visible = false;
@@ -724,6 +723,8 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.label38);
+            this.groupBox3.Controls.Add(this.ntb_r_cur_motorpos);
             this.groupBox3.Controls.Add(this.label7);
             this.groupBox3.Controls.Add(this.label6);
             this.groupBox3.Controls.Add(this.label5);
@@ -748,16 +749,34 @@
             this.groupBox3.Controls.Add(this.label_hz);
             this.groupBox3.Location = new System.Drawing.Point(9, 20);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(470, 119);
+            this.groupBox3.Size = new System.Drawing.Size(504, 144);
             this.groupBox3.TabIndex = 93;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Record";
-            this.groupBox3.Visible = false;
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(410, 103);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(76, 13);
+            this.label38.TabIndex = 123;
+            this.label38.Text = "r軸馬達位置";
+            // 
+            // ntb_r_cur_motorpos
+            // 
+            this.ntb_r_cur_motorpos.BackColor = System.Drawing.Color.White;
+            this.ntb_r_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.ntb_r_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ntb_r_cur_motorpos.Location = new System.Drawing.Point(337, 96);
+            this.ntb_r_cur_motorpos.Name = "ntb_r_cur_motorpos";
+            this.ntb_r_cur_motorpos.Size = new System.Drawing.Size(69, 20);
+            this.ntb_r_cur_motorpos.TabIndex = 122;
+            this.ntb_r_cur_motorpos.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(394, 77);
+            this.label7.Location = new System.Drawing.Point(410, 77);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(77, 13);
             this.label7.TabIndex = 121;
@@ -766,7 +785,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(393, 51);
+            this.label6.Location = new System.Drawing.Point(409, 51);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(78, 13);
             this.label6.TabIndex = 121;
@@ -775,7 +794,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(393, 24);
+            this.label5.Location = new System.Drawing.Point(409, 24);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(78, 13);
             this.label5.TabIndex = 120;
@@ -786,7 +805,7 @@
             this.ntb_z_cur_motorpos.BackColor = System.Drawing.Color.White;
             this.ntb_z_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_z_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_z_cur_motorpos.Location = new System.Drawing.Point(321, 70);
+            this.ntb_z_cur_motorpos.Location = new System.Drawing.Point(337, 70);
             this.ntb_z_cur_motorpos.Name = "ntb_z_cur_motorpos";
             this.ntb_z_cur_motorpos.Size = new System.Drawing.Size(69, 20);
             this.ntb_z_cur_motorpos.TabIndex = 118;
@@ -797,7 +816,7 @@
             this.ntb_y_cur_motorpos.BackColor = System.Drawing.Color.White;
             this.ntb_y_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_y_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_y_cur_motorpos.Location = new System.Drawing.Point(321, 44);
+            this.ntb_y_cur_motorpos.Location = new System.Drawing.Point(337, 44);
             this.ntb_y_cur_motorpos.Name = "ntb_y_cur_motorpos";
             this.ntb_y_cur_motorpos.Size = new System.Drawing.Size(69, 20);
             this.ntb_y_cur_motorpos.TabIndex = 117;
@@ -808,7 +827,7 @@
             this.ntb_x_cur_motorpos.BackColor = System.Drawing.Color.White;
             this.ntb_x_cur_motorpos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_x_cur_motorpos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_x_cur_motorpos.Location = new System.Drawing.Point(321, 19);
+            this.ntb_x_cur_motorpos.Location = new System.Drawing.Point(337, 19);
             this.ntb_x_cur_motorpos.Name = "ntb_x_cur_motorpos";
             this.ntb_x_cur_motorpos.Size = new System.Drawing.Size(69, 20);
             this.ntb_x_cur_motorpos.TabIndex = 116;
@@ -825,7 +844,7 @@
             this.ipAddressControl1.MinimumSize = new System.Drawing.Size(87, 23);
             this.ipAddressControl1.Name = "ipAddressControl1";
             this.ipAddressControl1.ReadOnly = false;
-            this.ipAddressControl1.Size = new System.Drawing.Size(114, 23);
+            this.ipAddressControl1.Size = new System.Drawing.Size(129, 23);
             this.ipAddressControl1.TabIndex = 5;
             this.ipAddressControl1.Text = "0.0.0.0";
             this.ipAddressControl1.Visible = false;
@@ -910,6 +929,7 @@
             0,
             0,
             0});
+            this.ntb_threshold.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
             this.ntb_threshold.HideSelection = false;
             this.ntb_threshold.ImeMode = System.Windows.Forms.ImeMode.On;
             this.ntb_threshold.Increment = new decimal(new int[] {
@@ -918,7 +938,7 @@
             0,
             0});
             this.ntb_threshold.InterceptArrowKeys = true;
-            this.ntb_threshold.Location = new System.Drawing.Point(11, 194);
+            this.ntb_threshold.Location = new System.Drawing.Point(13, 313);
             this.ntb_threshold.Maximum = new decimal(new int[] {
             20000,
             0,
@@ -930,7 +950,7 @@
             0,
             0});
             this.ntb_threshold.Name = "ntb_threshold";
-            this.ntb_threshold.Size = new System.Drawing.Size(78, 23);
+            this.ntb_threshold.Size = new System.Drawing.Size(78, 22);
             this.ntb_threshold.TabIndex = 123;
             this.ntb_threshold.Text = "400";
             this.ntb_threshold.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -952,7 +972,7 @@
             // 
             this.label_xaxis.AutoSize = true;
             this.label_xaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label_xaxis.Location = new System.Drawing.Point(275, 266);
+            this.label_xaxis.Location = new System.Drawing.Point(790, 174);
             this.label_xaxis.Name = "label_xaxis";
             this.label_xaxis.Size = new System.Drawing.Size(37, 21);
             this.label_xaxis.TabIndex = 99;
@@ -962,7 +982,7 @@
             // 
             this.label_yaxis.AutoSize = true;
             this.label_yaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label_yaxis.Location = new System.Drawing.Point(275, 306);
+            this.label_yaxis.Location = new System.Drawing.Point(867, 174);
             this.label_yaxis.Name = "label_yaxis";
             this.label_yaxis.Size = new System.Drawing.Size(36, 21);
             this.label_yaxis.TabIndex = 100;
@@ -972,44 +992,35 @@
             // 
             this.label_zaxis.AutoSize = true;
             this.label_zaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label_zaxis.Location = new System.Drawing.Point(275, 348);
+            this.label_zaxis.Location = new System.Drawing.Point(945, 174);
             this.label_zaxis.Name = "label_zaxis";
             this.label_zaxis.Size = new System.Drawing.Size(36, 21);
             this.label_zaxis.TabIndex = 101;
             this.label_zaxis.Text = "Z軸";
             // 
-            // label_current_position
+            // grp_cursor
             // 
-            this.label_current_position.AutoSize = true;
-            this.label_current_position.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label_current_position.Location = new System.Drawing.Point(308, 227);
-            this.label_current_position.Name = "label_current_position";
-            this.label_current_position.Size = new System.Drawing.Size(74, 21);
-            this.label_current_position.TabIndex = 103;
-            this.label_current_position.Text = "現在位置";
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.nud_dynamic);
-            this.groupBox1.Controls.Add(this.nud_cursor_v1);
-            this.groupBox1.Controls.Add(this.nud_cursor_v2);
-            this.groupBox1.Controls.Add(this.nud_cursor_v3);
-            this.groupBox1.Controls.Add(this.label_cursor_v1);
-            this.groupBox1.Controls.Add(this.label_cursor_v2);
-            this.groupBox1.Controls.Add(this.label_cursor_v3);
-            this.groupBox1.Controls.Add(this.chk_cursor_v1);
-            this.groupBox1.Controls.Add(this.chk_cursor_v2);
-            this.groupBox1.Controls.Add(this.chk_cursor_v3);
-            this.groupBox1.Controls.Add(this.label_noise_offset);
-            this.groupBox1.Controls.Add(this.hsb_noise_offset);
-            this.groupBox1.Controls.Add(this.label_dynamic);
-            this.groupBox1.Location = new System.Drawing.Point(6, 366);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(401, 60);
-            this.groupBox1.TabIndex = 110;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Cursor";
-            this.groupBox1.Visible = false;
+            this.grp_cursor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.grp_cursor.Controls.Add(this.nud_dynamic);
+            this.grp_cursor.Controls.Add(this.nud_cursor_v1);
+            this.grp_cursor.Controls.Add(this.nud_cursor_v2);
+            this.grp_cursor.Controls.Add(this.nud_cursor_v3);
+            this.grp_cursor.Controls.Add(this.label_cursor_v1);
+            this.grp_cursor.Controls.Add(this.label_cursor_v2);
+            this.grp_cursor.Controls.Add(this.label_cursor_v3);
+            this.grp_cursor.Controls.Add(this.chk_cursor_v1);
+            this.grp_cursor.Controls.Add(this.chk_cursor_v2);
+            this.grp_cursor.Controls.Add(this.chk_cursor_v3);
+            this.grp_cursor.Controls.Add(this.label_noise_offset);
+            this.grp_cursor.Controls.Add(this.hsb_noise_offset);
+            this.grp_cursor.Controls.Add(this.label_dynamic);
+            this.grp_cursor.Location = new System.Drawing.Point(949, -3);
+            this.grp_cursor.Name = "grp_cursor";
+            this.grp_cursor.Size = new System.Drawing.Size(102, 288);
+            this.grp_cursor.TabIndex = 110;
+            this.grp_cursor.TabStop = false;
+            this.grp_cursor.Text = "Cursor";
+            this.grp_cursor.Visible = false;
             // 
             // btn_PosingStop
             // 
@@ -1026,7 +1037,7 @@
             this.ntb_x_cur_pos.BackColor = System.Drawing.Color.White;
             this.ntb_x_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_x_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_x_cur_pos.Location = new System.Drawing.Point(313, 266);
+            this.ntb_x_cur_pos.Location = new System.Drawing.Point(787, 200);
             this.ntb_x_cur_pos.Name = "ntb_x_cur_pos";
             this.ntb_x_cur_pos.Size = new System.Drawing.Size(69, 20);
             this.ntb_x_cur_pos.TabIndex = 113;
@@ -1037,7 +1048,7 @@
             this.ntb_y_cur_pos.BackColor = System.Drawing.Color.White;
             this.ntb_y_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_y_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_y_cur_pos.Location = new System.Drawing.Point(313, 306);
+            this.ntb_y_cur_pos.Location = new System.Drawing.Point(866, 200);
             this.ntb_y_cur_pos.Name = "ntb_y_cur_pos";
             this.ntb_y_cur_pos.Size = new System.Drawing.Size(69, 20);
             this.ntb_y_cur_pos.TabIndex = 114;
@@ -1048,7 +1059,7 @@
             this.ntb_z_cur_pos.BackColor = System.Drawing.Color.White;
             this.ntb_z_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_z_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ntb_z_cur_pos.Location = new System.Drawing.Point(313, 346);
+            this.ntb_z_cur_pos.Location = new System.Drawing.Point(946, 200);
             this.ntb_z_cur_pos.Name = "ntb_z_cur_pos";
             this.ntb_z_cur_pos.Size = new System.Drawing.Size(69, 20);
             this.ntb_z_cur_pos.TabIndex = 115;
@@ -1086,10 +1097,10 @@
             // 
             // ctrl_zgc_dnld
             // 
-            this.ctrl_zgc_dnld.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.ctrl_zgc_dnld.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ctrl_zgc_dnld.ChoiceOfFiberLegend = "";
             this.ctrl_zgc_dnld.EnableChoiceOfFiber = true;
-            this.ctrl_zgc_dnld.Location = new System.Drawing.Point(499, -4);
+            this.ctrl_zgc_dnld.Location = new System.Drawing.Point(524, 3);
             this.ctrl_zgc_dnld.Margin = new System.Windows.Forms.Padding(5, 3, 5, 3);
             this.ctrl_zgc_dnld.MenuAutoScale = true;
             this.ctrl_zgc_dnld.MenuLoadData = false;
@@ -1109,7 +1120,7 @@
             this.ctrl_zgc_dnld.ScrollMinX = 0D;
             this.ctrl_zgc_dnld.ScrollMinY = 0D;
             this.ctrl_zgc_dnld.ScrollMinY2 = 0D;
-            this.ctrl_zgc_dnld.Size = new System.Drawing.Size(506, 439);
+            this.ctrl_zgc_dnld.Size = new System.Drawing.Size(423, 356);
             this.ctrl_zgc_dnld.TabIndex = 58;
             this.ctrl_zgc_dnld.TextMenuAutoScale = "AutoScale";
             this.ctrl_zgc_dnld.TextMenuLoadData = "Load Data";
@@ -1125,10 +1136,10 @@
             this.tabControlMain.Controls.Add(this.tbp_sodx);
             this.tabControlMain.Controls.Add(this.tbp_status);
             this.tabControlMain.Controls.Add(this.tbp_motion);
-            this.tabControlMain.Location = new System.Drawing.Point(1, 388);
+            this.tabControlMain.Location = new System.Drawing.Point(4, 305);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(1019, 477);
+            this.tabControlMain.Size = new System.Drawing.Size(1059, 392);
             this.tabControlMain.TabIndex = 120;
             // 
             // tbp_main
@@ -1139,7 +1150,7 @@
             this.tbp_main.Controls.Add(this.label37);
             this.tbp_main.Controls.Add(this.clsRawImage);
             this.tbp_main.Controls.Add(this.ntb_threshold);
-            this.tbp_main.Controls.Add(this.groupBox1);
+            this.tbp_main.Controls.Add(this.grp_cursor);
             this.tbp_main.Controls.Add(this.ctrl_zgc_dnld);
             this.tbp_main.Controls.Add(this.btn_dark);
             this.tbp_main.Controls.Add(this.label1);
@@ -1147,21 +1158,21 @@
             this.tbp_main.Controls.Add(this.label2);
             this.tbp_main.Location = new System.Drawing.Point(4, 23);
             this.tbp_main.Name = "tbp_main";
-            this.tbp_main.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
-            this.tbp_main.Size = new System.Drawing.Size(1011, 450);
+            this.tbp_main.Padding = new System.Windows.Forms.Padding(3);
+            this.tbp_main.Size = new System.Drawing.Size(1051, 365);
             this.tbp_main.TabIndex = 6;
             this.tbp_main.Text = "Main";
             // 
             // btn_connection
             // 
-            this.btn_connection.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_connection.Image = ((System.Drawing.Image)(resources.GetObject("btn_connection.Image")));
-            this.btn_connection.Location = new System.Drawing.Point(9, 25);
-            this.btn_connection.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btn_connection.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold);
+            this.btn_connection.Location = new System.Drawing.Point(7, 26);
+            this.btn_connection.Margin = new System.Windows.Forms.Padding(2);
             this.btn_connection.Name = "btn_connection";
             this.btn_connection.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_connection.Size = new System.Drawing.Size(51, 46);
+            this.btn_connection.Size = new System.Drawing.Size(90, 57);
             this.btn_connection.TabIndex = 125;
+            this.btn_connection.Text = "相機連接";
             this.btn_connection.UseVisualStyleBackColor = true;
             this.btn_connection.Click += new System.EventHandler(this.btn_connection_Click);
             // 
@@ -1169,7 +1180,7 @@
             // 
             this.label37.AutoSize = true;
             this.label37.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label37.Location = new System.Drawing.Point(7, 167);
+            this.label37.Location = new System.Drawing.Point(11, 283);
             this.label37.Name = "label37";
             this.label37.Size = new System.Drawing.Size(86, 21);
             this.label37.TabIndex = 124;
@@ -1177,13 +1188,13 @@
             // 
             // btn_dark
             // 
-            this.btn_dark.Font = new System.Drawing.Font("DFKai-SB", 12F);
-            this.btn_dark.ForeColor = System.Drawing.Color.Gold;
-            this.btn_dark.Image = ((System.Drawing.Image)(resources.GetObject("btn_dark.Image")));
-            this.btn_dark.Location = new System.Drawing.Point(11, 293);
+            this.btn_dark.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold);
+            this.btn_dark.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btn_dark.Location = new System.Drawing.Point(9, 102);
             this.btn_dark.Name = "btn_dark";
-            this.btn_dark.Size = new System.Drawing.Size(49, 47);
+            this.btn_dark.Size = new System.Drawing.Size(90, 57);
             this.btn_dark.TabIndex = 98;
+            this.btn_dark.Text = "相機去噪";
             this.btn_dark.UseVisualStyleBackColor = true;
             this.btn_dark.Click += new System.EventHandler(this.btn_dark_Click);
             // 
@@ -1203,15 +1214,15 @@
             this.tbp_sodx.Controls.Add(this.btn_sodx_execute);
             this.tbp_sodx.Location = new System.Drawing.Point(4, 23);
             this.tbp_sodx.Name = "tbp_sodx";
-            this.tbp_sodx.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
-            this.tbp_sodx.Size = new System.Drawing.Size(1011, 450);
+            this.tbp_sodx.Padding = new System.Windows.Forms.Padding(3);
+            this.tbp_sodx.Size = new System.Drawing.Size(1051, 365);
             this.tbp_sodx.TabIndex = 0;
             this.tbp_sodx.Text = "SODX";
             // 
             // chk_yaxis_auto_scale
             // 
             this.chk_yaxis_auto_scale.AutoSize = true;
-            this.chk_yaxis_auto_scale.Location = new System.Drawing.Point(444, 6);
+            this.chk_yaxis_auto_scale.Location = new System.Drawing.Point(76, 78);
             this.chk_yaxis_auto_scale.Name = "chk_yaxis_auto_scale";
             this.chk_yaxis_auto_scale.Size = new System.Drawing.Size(116, 17);
             this.chk_yaxis_auto_scale.TabIndex = 48;
@@ -1222,7 +1233,7 @@
             // 
             this.label69.AutoSize = true;
             this.label69.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label69.Location = new System.Drawing.Point(73, 38);
+            this.label69.Location = new System.Drawing.Point(73, 53);
             this.label69.Name = "label69";
             this.label69.Size = new System.Drawing.Size(105, 15);
             this.label69.TabIndex = 45;
@@ -1235,7 +1246,7 @@
             this.lbl_number_of_acq_in_sodx_fifo.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Bold);
             this.lbl_number_of_acq_in_sodx_fifo.ForeColor = System.Drawing.Color.Black;
             this.lbl_number_of_acq_in_sodx_fifo.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lbl_number_of_acq_in_sodx_fifo.Location = new System.Drawing.Point(189, 37);
+            this.lbl_number_of_acq_in_sodx_fifo.Location = new System.Drawing.Point(189, 52);
             this.lbl_number_of_acq_in_sodx_fifo.Name = "lbl_number_of_acq_in_sodx_fifo";
             this.lbl_number_of_acq_in_sodx_fifo.Size = new System.Drawing.Size(78, 15);
             this.lbl_number_of_acq_in_sodx_fifo.TabIndex = 44;
@@ -1245,7 +1256,7 @@
             // 
             this.lbl_number_of_overflow_in_sodx_fifo.AutoSize = true;
             this.lbl_number_of_overflow_in_sodx_fifo.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_number_of_overflow_in_sodx_fifo.Location = new System.Drawing.Point(212, 12);
+            this.lbl_number_of_overflow_in_sodx_fifo.Location = new System.Drawing.Point(212, 27);
             this.lbl_number_of_overflow_in_sodx_fifo.Name = "lbl_number_of_overflow_in_sodx_fifo";
             this.lbl_number_of_overflow_in_sodx_fifo.Size = new System.Drawing.Size(63, 15);
             this.lbl_number_of_overflow_in_sodx_fifo.TabIndex = 40;
@@ -1253,7 +1264,7 @@
             // 
             // ctrl_percentage_use_of_sodx_fifo
             // 
-            this.ctrl_percentage_use_of_sodx_fifo.Location = new System.Drawing.Point(278, 34);
+            this.ctrl_percentage_use_of_sodx_fifo.Location = new System.Drawing.Point(278, 49);
             this.ctrl_percentage_use_of_sodx_fifo.MarqueeAnimationSpeed = 0;
             this.ctrl_percentage_use_of_sodx_fifo.Name = "ctrl_percentage_use_of_sodx_fifo";
             this.ctrl_percentage_use_of_sodx_fifo.Size = new System.Drawing.Size(77, 21);
@@ -1264,7 +1275,7 @@
             // 
             this.ctrl_zgc_sodx.ChoiceOfFiberLegend = "";
             this.ctrl_zgc_sodx.EnableChoiceOfFiber = false;
-            this.ctrl_zgc_sodx.Location = new System.Drawing.Point(444, 34);
+            this.ctrl_zgc_sodx.Location = new System.Drawing.Point(492, 8);
             this.ctrl_zgc_sodx.Margin = new System.Windows.Forms.Padding(5, 3, 5, 3);
             this.ctrl_zgc_sodx.MenuAutoScale = false;
             this.ctrl_zgc_sodx.MenuLoadData = false;
@@ -1284,7 +1295,7 @@
             this.ctrl_zgc_sodx.ScrollMinX = 0D;
             this.ctrl_zgc_sodx.ScrollMinY = 0D;
             this.ctrl_zgc_sodx.ScrollMinY2 = 0D;
-            this.ctrl_zgc_sodx.Size = new System.Drawing.Size(558, 409);
+            this.ctrl_zgc_sodx.Size = new System.Drawing.Size(496, 351);
             this.ctrl_zgc_sodx.TabIndex = 34;
             this.ctrl_zgc_sodx.TextMenuAutoScale = "AutoScale";
             this.ctrl_zgc_sodx.TextMenuLoadData = "Load Data";
@@ -1346,7 +1357,7 @@
             this.groupBox4.Controls.Add(this.label22);
             this.groupBox4.Controls.Add(this.label30);
             this.groupBox4.Controls.Add(this.label33);
-            this.groupBox4.Location = new System.Drawing.Point(6, 110);
+            this.groupBox4.Location = new System.Drawing.Point(6, 101);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(432, 256);
             this.groupBox4.TabIndex = 33;
@@ -1905,7 +1916,7 @@
             // 
             this.label61.AutoSize = true;
             this.label61.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label61.Location = new System.Drawing.Point(73, 12);
+            this.label61.Location = new System.Drawing.Point(73, 27);
             this.label61.Name = "label61";
             this.label61.Size = new System.Drawing.Size(63, 15);
             this.label61.TabIndex = 36;
@@ -1931,7 +1942,7 @@
             0,
             0});
             this.num_data_acquisition_number.InterceptArrowKeys = true;
-            this.num_data_acquisition_number.Location = new System.Drawing.Point(142, 9);
+            this.num_data_acquisition_number.Location = new System.Drawing.Point(142, 24);
             this.num_data_acquisition_number.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -1960,26 +1971,6 @@
             0,
             0});
             // 
-            // btn_sodx_pause
-            // 
-            this.btn_sodx_pause.Image = ((System.Drawing.Image)(resources.GetObject("btn_sodx_pause.Image")));
-            this.btn_sodx_pause.Location = new System.Drawing.Point(368, 7);
-            this.btn_sodx_pause.Name = "btn_sodx_pause";
-            this.btn_sodx_pause.Size = new System.Drawing.Size(61, 52);
-            this.btn_sodx_pause.TabIndex = 47;
-            this.btn_sodx_pause.UseVisualStyleBackColor = true;
-            this.btn_sodx_pause.Click += new System.EventHandler(this.btn_sodx_pause_Click);
-            // 
-            // btn_sodx_execute
-            // 
-            this.btn_sodx_execute.Image = ((System.Drawing.Image)(resources.GetObject("btn_sodx_execute.Image")));
-            this.btn_sodx_execute.Location = new System.Drawing.Point(6, 7);
-            this.btn_sodx_execute.Name = "btn_sodx_execute";
-            this.btn_sodx_execute.Size = new System.Drawing.Size(61, 52);
-            this.btn_sodx_execute.TabIndex = 35;
-            this.btn_sodx_execute.UseVisualStyleBackColor = true;
-            this.btn_sodx_execute.Click += new System.EventHandler(this.btn_sodx_execute_Click);
-            // 
             // tbp_status
             // 
             this.tbp_status.BackColor = System.Drawing.SystemColors.Control;
@@ -1987,7 +1978,7 @@
             this.tbp_status.Controls.Add(this.groupBox5);
             this.tbp_status.Location = new System.Drawing.Point(4, 23);
             this.tbp_status.Name = "tbp_status";
-            this.tbp_status.Size = new System.Drawing.Size(1011, 450);
+            this.tbp_status.Size = new System.Drawing.Size(1051, 365);
             this.tbp_status.TabIndex = 5;
             this.tbp_status.Text = "Status";
             // 
@@ -1999,10 +1990,10 @@
             this.lst_log.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lst_log.FullRowSelect = true;
             this.lst_log.HideSelection = false;
-            this.lst_log.Location = new System.Drawing.Point(382, 6);
+            this.lst_log.Location = new System.Drawing.Point(394, 11);
             this.lst_log.Name = "lst_log";
             this.lst_log.ShowItemToolTips = true;
-            this.lst_log.Size = new System.Drawing.Size(616, 441);
+            this.lst_log.Size = new System.Drawing.Size(644, 354);
             this.lst_log.TabIndex = 36;
             this.lst_log.UseCompatibleStateImageBehavior = false;
             this.lst_log.View = System.Windows.Forms.View.Details;
@@ -2043,7 +2034,7 @@
             this.groupBox5.Controls.Add(this.lbl_error_unknow_telegram_type);
             this.groupBox5.Location = new System.Drawing.Point(3, 3);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(373, 476);
+            this.groupBox5.Size = new System.Drawing.Size(373, 367);
             this.groupBox5.TabIndex = 0;
             this.groupBox5.TabStop = false;
             // 
@@ -2051,7 +2042,7 @@
             // 
             this.lbl_number_of_overflow_in_data_format_fifo.AutoSize = true;
             this.lbl_number_of_overflow_in_data_format_fifo.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_number_of_overflow_in_data_format_fifo.Location = new System.Drawing.Point(135, 193);
+            this.lbl_number_of_overflow_in_data_format_fifo.Location = new System.Drawing.Point(138, 126);
             this.lbl_number_of_overflow_in_data_format_fifo.Name = "lbl_number_of_overflow_in_data_format_fifo";
             this.lbl_number_of_overflow_in_data_format_fifo.Size = new System.Drawing.Size(63, 15);
             this.lbl_number_of_overflow_in_data_format_fifo.TabIndex = 35;
@@ -2061,7 +2052,7 @@
             // 
             this.label9.AutoSize = true;
             this.label9.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.Location = new System.Drawing.Point(9, 193);
+            this.label9.Location = new System.Drawing.Point(12, 126);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(84, 15);
             this.label9.TabIndex = 33;
@@ -2069,7 +2060,7 @@
             // 
             // ctrl_percentage_use_of_data_format_fifo
             // 
-            this.ctrl_percentage_use_of_data_format_fifo.Location = new System.Drawing.Point(303, 189);
+            this.ctrl_percentage_use_of_data_format_fifo.Location = new System.Drawing.Point(306, 122);
             this.ctrl_percentage_use_of_data_format_fifo.MarqueeAnimationSpeed = 0;
             this.ctrl_percentage_use_of_data_format_fifo.Name = "ctrl_percentage_use_of_data_format_fifo";
             this.ctrl_percentage_use_of_data_format_fifo.Size = new System.Drawing.Size(57, 21);
@@ -2080,7 +2071,7 @@
             // 
             this.lbl_number_of_overflow_in_command_data_fifo.AutoSize = true;
             this.lbl_number_of_overflow_in_command_data_fifo.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_number_of_overflow_in_command_data_fifo.Location = new System.Drawing.Point(135, 167);
+            this.lbl_number_of_overflow_in_command_data_fifo.Location = new System.Drawing.Point(138, 103);
             this.lbl_number_of_overflow_in_command_data_fifo.Name = "lbl_number_of_overflow_in_command_data_fifo";
             this.lbl_number_of_overflow_in_command_data_fifo.Size = new System.Drawing.Size(63, 15);
             this.lbl_number_of_overflow_in_command_data_fifo.TabIndex = 32;
@@ -2090,7 +2081,7 @@
             // 
             this.lbl_number_of_overflow_in_data_raw_fifo.AutoSize = true;
             this.lbl_number_of_overflow_in_data_raw_fifo.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_number_of_overflow_in_data_raw_fifo.Location = new System.Drawing.Point(135, 115);
+            this.lbl_number_of_overflow_in_data_raw_fifo.Location = new System.Drawing.Point(138, 57);
             this.lbl_number_of_overflow_in_data_raw_fifo.Name = "lbl_number_of_overflow_in_data_raw_fifo";
             this.lbl_number_of_overflow_in_data_raw_fifo.Size = new System.Drawing.Size(63, 15);
             this.lbl_number_of_overflow_in_data_raw_fifo.TabIndex = 31;
@@ -2100,7 +2091,7 @@
             // 
             this.label10.AutoSize = true;
             this.label10.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label10.Location = new System.Drawing.Point(9, 90);
+            this.label10.Location = new System.Drawing.Point(12, 35);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(84, 15);
             this.label10.TabIndex = 26;
@@ -2110,7 +2101,7 @@
             // 
             this.lbl_number_of_overflow_in_data_raw_socket.AutoSize = true;
             this.lbl_number_of_overflow_in_data_raw_socket.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_number_of_overflow_in_data_raw_socket.Location = new System.Drawing.Point(135, 90);
+            this.lbl_number_of_overflow_in_data_raw_socket.Location = new System.Drawing.Point(138, 35);
             this.lbl_number_of_overflow_in_data_raw_socket.Name = "lbl_number_of_overflow_in_data_raw_socket";
             this.lbl_number_of_overflow_in_data_raw_socket.Size = new System.Drawing.Size(63, 15);
             this.lbl_number_of_overflow_in_data_raw_socket.TabIndex = 24;
@@ -2120,7 +2111,7 @@
             // 
             this.label48.AutoSize = true;
             this.label48.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label48.Location = new System.Drawing.Point(9, 167);
+            this.label48.Location = new System.Drawing.Point(12, 103);
             this.label48.Name = "label48";
             this.label48.Size = new System.Drawing.Size(91, 15);
             this.label48.TabIndex = 23;
@@ -2130,7 +2121,7 @@
             // 
             this.label36.AutoSize = true;
             this.label36.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label36.Location = new System.Drawing.Point(9, 115);
+            this.label36.Location = new System.Drawing.Point(12, 57);
             this.label36.Name = "label36";
             this.label36.Size = new System.Drawing.Size(63, 15);
             this.label36.TabIndex = 25;
@@ -2140,7 +2131,7 @@
             // 
             this.label47.AutoSize = true;
             this.label47.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label47.Location = new System.Drawing.Point(9, 141);
+            this.label47.Location = new System.Drawing.Point(12, 80);
             this.label47.Name = "label47";
             this.label47.Size = new System.Drawing.Size(84, 15);
             this.label47.TabIndex = 21;
@@ -2150,7 +2141,7 @@
             // 
             this.lbl_number_of_overflow_in_data_sample_fifo.AutoSize = true;
             this.lbl_number_of_overflow_in_data_sample_fifo.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_number_of_overflow_in_data_sample_fifo.Location = new System.Drawing.Point(135, 141);
+            this.lbl_number_of_overflow_in_data_sample_fifo.Location = new System.Drawing.Point(138, 80);
             this.lbl_number_of_overflow_in_data_sample_fifo.Name = "lbl_number_of_overflow_in_data_sample_fifo";
             this.lbl_number_of_overflow_in_data_sample_fifo.Size = new System.Drawing.Size(63, 15);
             this.lbl_number_of_overflow_in_data_sample_fifo.TabIndex = 20;
@@ -2158,7 +2149,7 @@
             // 
             // ctrl_percentage_use_of_fifo_data_raw_socket
             // 
-            this.ctrl_percentage_use_of_fifo_data_raw_socket.Location = new System.Drawing.Point(303, 86);
+            this.ctrl_percentage_use_of_fifo_data_raw_socket.Location = new System.Drawing.Point(306, 31);
             this.ctrl_percentage_use_of_fifo_data_raw_socket.MarqueeAnimationSpeed = 0;
             this.ctrl_percentage_use_of_fifo_data_raw_socket.Name = "ctrl_percentage_use_of_fifo_data_raw_socket";
             this.ctrl_percentage_use_of_fifo_data_raw_socket.Size = new System.Drawing.Size(57, 21);
@@ -2167,7 +2158,7 @@
             // 
             // ctrl_percentage_use_of_fifo_data_raw_fifo
             // 
-            this.ctrl_percentage_use_of_fifo_data_raw_fifo.Location = new System.Drawing.Point(303, 112);
+            this.ctrl_percentage_use_of_fifo_data_raw_fifo.Location = new System.Drawing.Point(306, 54);
             this.ctrl_percentage_use_of_fifo_data_raw_fifo.MarqueeAnimationSpeed = 0;
             this.ctrl_percentage_use_of_fifo_data_raw_fifo.Name = "ctrl_percentage_use_of_fifo_data_raw_fifo";
             this.ctrl_percentage_use_of_fifo_data_raw_fifo.Size = new System.Drawing.Size(57, 21);
@@ -2176,7 +2167,7 @@
             // 
             // ctrl_percentage_use_of_command_data_fifo
             // 
-            this.ctrl_percentage_use_of_command_data_fifo.Location = new System.Drawing.Point(303, 163);
+            this.ctrl_percentage_use_of_command_data_fifo.Location = new System.Drawing.Point(306, 99);
             this.ctrl_percentage_use_of_command_data_fifo.MarqueeAnimationSpeed = 0;
             this.ctrl_percentage_use_of_command_data_fifo.Name = "ctrl_percentage_use_of_command_data_fifo";
             this.ctrl_percentage_use_of_command_data_fifo.Size = new System.Drawing.Size(57, 21);
@@ -2185,7 +2176,7 @@
             // 
             // ctrl_percentage_use_of_data_sample_fifo
             // 
-            this.ctrl_percentage_use_of_data_sample_fifo.Location = new System.Drawing.Point(303, 138);
+            this.ctrl_percentage_use_of_data_sample_fifo.Location = new System.Drawing.Point(306, 77);
             this.ctrl_percentage_use_of_data_sample_fifo.MarqueeAnimationSpeed = 0;
             this.ctrl_percentage_use_of_data_sample_fifo.Name = "ctrl_percentage_use_of_data_sample_fifo";
             this.ctrl_percentage_use_of_data_sample_fifo.Size = new System.Drawing.Size(57, 21);
@@ -2196,7 +2187,7 @@
             // 
             this.lbl_rx_rate.AutoSize = true;
             this.lbl_rx_rate.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_rx_rate.Location = new System.Drawing.Point(9, 15);
+            this.lbl_rx_rate.Location = new System.Drawing.Point(12, 15);
             this.lbl_rx_rate.Name = "lbl_rx_rate";
             this.lbl_rx_rate.Size = new System.Drawing.Size(49, 15);
             this.lbl_rx_rate.TabIndex = 22;
@@ -2206,7 +2197,7 @@
             // 
             this.lbl_tx_rate.AutoSize = true;
             this.lbl_tx_rate.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_tx_rate.Location = new System.Drawing.Point(9, 41);
+            this.lbl_tx_rate.Location = new System.Drawing.Point(138, 15);
             this.lbl_tx_rate.Name = "lbl_tx_rate";
             this.lbl_tx_rate.Size = new System.Drawing.Size(49, 15);
             this.lbl_tx_rate.TabIndex = 19;
@@ -2216,7 +2207,7 @@
             // 
             this.lbl_error_no_dataformat.AutoSize = true;
             this.lbl_error_no_dataformat.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_no_dataformat.Location = new System.Drawing.Point(9, 319);
+            this.lbl_error_no_dataformat.Location = new System.Drawing.Point(9, 246);
             this.lbl_error_no_dataformat.Name = "lbl_error_no_dataformat";
             this.lbl_error_no_dataformat.Size = new System.Drawing.Size(168, 15);
             this.lbl_error_no_dataformat.TabIndex = 11;
@@ -2226,7 +2217,7 @@
             // 
             this.lbl_unformatted_data.AutoSize = true;
             this.lbl_unformatted_data.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_unformatted_data.Location = new System.Drawing.Point(9, 415);
+            this.lbl_unformatted_data.Location = new System.Drawing.Point(9, 332);
             this.lbl_unformatted_data.Name = "lbl_unformatted_data";
             this.lbl_unformatted_data.Size = new System.Drawing.Size(147, 15);
             this.lbl_unformatted_data.TabIndex = 11;
@@ -2236,7 +2227,7 @@
             // 
             this.lbl_resynchronization.AutoSize = true;
             this.lbl_resynchronization.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_resynchronization.Location = new System.Drawing.Point(9, 402);
+            this.lbl_resynchronization.Location = new System.Drawing.Point(9, 346);
             this.lbl_resynchronization.Name = "lbl_resynchronization";
             this.lbl_resynchronization.Size = new System.Drawing.Size(154, 15);
             this.lbl_resynchronization.TabIndex = 11;
@@ -2246,7 +2237,7 @@
             // 
             this.lbl_not_enough_data.AutoSize = true;
             this.lbl_not_enough_data.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_not_enough_data.Location = new System.Drawing.Point(9, 388);
+            this.lbl_not_enough_data.Location = new System.Drawing.Point(9, 316);
             this.lbl_not_enough_data.Name = "lbl_not_enough_data";
             this.lbl_not_enough_data.Size = new System.Drawing.Size(140, 15);
             this.lbl_not_enough_data.TabIndex = 10;
@@ -2256,7 +2247,7 @@
             // 
             this.lbl_error_data.AutoSize = true;
             this.lbl_error_data.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_data.Location = new System.Drawing.Point(9, 305);
+            this.lbl_error_data.Location = new System.Drawing.Point(9, 232);
             this.lbl_error_data.Name = "lbl_error_data";
             this.lbl_error_data.Size = new System.Drawing.Size(105, 15);
             this.lbl_error_data.TabIndex = 10;
@@ -2266,7 +2257,7 @@
             // 
             this.lbl_error_data_header.AutoSize = true;
             this.lbl_error_data_header.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_data_header.Location = new System.Drawing.Point(9, 291);
+            this.lbl_error_data_header.Location = new System.Drawing.Point(9, 218);
             this.lbl_error_data_header.Name = "lbl_error_data_header";
             this.lbl_error_data_header.Size = new System.Drawing.Size(154, 15);
             this.lbl_error_data_header.TabIndex = 10;
@@ -2276,7 +2267,7 @@
             // 
             this.lbl_error_data_format_entry.AutoSize = true;
             this.lbl_error_data_format_entry.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_data_format_entry.Location = new System.Drawing.Point(9, 277);
+            this.lbl_error_data_format_entry.Location = new System.Drawing.Point(9, 204);
             this.lbl_error_data_format_entry.Name = "lbl_error_data_format_entry";
             this.lbl_error_data_format_entry.Size = new System.Drawing.Size(196, 15);
             this.lbl_error_data_format_entry.TabIndex = 10;
@@ -2286,7 +2277,7 @@
             // 
             this.lbl_error_data_format_header.AutoSize = true;
             this.lbl_error_data_format_header.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_data_format_header.Location = new System.Drawing.Point(9, 263);
+            this.lbl_error_data_format_header.Location = new System.Drawing.Point(9, 190);
             this.lbl_error_data_format_header.Name = "lbl_error_data_format_header";
             this.lbl_error_data_format_header.Size = new System.Drawing.Size(203, 15);
             this.lbl_error_data_format_header.TabIndex = 10;
@@ -2296,7 +2287,7 @@
             // 
             this.lbl_error_command_data.AutoSize = true;
             this.lbl_error_command_data.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_command_data.Location = new System.Drawing.Point(9, 249);
+            this.lbl_error_command_data.Location = new System.Drawing.Point(9, 176);
             this.lbl_error_command_data.Name = "lbl_error_command_data";
             this.lbl_error_command_data.Size = new System.Drawing.Size(161, 15);
             this.lbl_error_command_data.TabIndex = 10;
@@ -2306,7 +2297,7 @@
             // 
             this.lbl_error_command_header.AutoSize = true;
             this.lbl_error_command_header.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_command_header.Location = new System.Drawing.Point(9, 235);
+            this.lbl_error_command_header.Location = new System.Drawing.Point(9, 162);
             this.lbl_error_command_header.Name = "lbl_error_command_header";
             this.lbl_error_command_header.Size = new System.Drawing.Size(175, 15);
             this.lbl_error_command_header.TabIndex = 10;
@@ -2316,7 +2307,7 @@
             // 
             this.lbl_number_of_spectra.AutoSize = true;
             this.lbl_number_of_spectra.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_number_of_spectra.Location = new System.Drawing.Point(9, 374);
+            this.lbl_number_of_spectra.Location = new System.Drawing.Point(9, 301);
             this.lbl_number_of_spectra.Name = "lbl_number_of_spectra";
             this.lbl_number_of_spectra.Size = new System.Drawing.Size(154, 15);
             this.lbl_number_of_spectra.TabIndex = 10;
@@ -2326,7 +2317,7 @@
             // 
             this.lbl_number_of_data.AutoSize = true;
             this.lbl_number_of_data.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_number_of_data.Location = new System.Drawing.Point(9, 360);
+            this.lbl_number_of_data.Location = new System.Drawing.Point(9, 287);
             this.lbl_number_of_data.Name = "lbl_number_of_data";
             this.lbl_number_of_data.Size = new System.Drawing.Size(133, 15);
             this.lbl_number_of_data.TabIndex = 10;
@@ -2336,7 +2327,7 @@
             // 
             this.lbl_number_of_format.AutoSize = true;
             this.lbl_number_of_format.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_number_of_format.Location = new System.Drawing.Point(9, 346);
+            this.lbl_number_of_format.Location = new System.Drawing.Point(9, 273);
             this.lbl_number_of_format.Name = "lbl_number_of_format";
             this.lbl_number_of_format.Size = new System.Drawing.Size(147, 15);
             this.lbl_number_of_format.TabIndex = 10;
@@ -2346,7 +2337,7 @@
             // 
             this.lbl_number_of_command.AutoSize = true;
             this.lbl_number_of_command.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_number_of_command.Location = new System.Drawing.Point(9, 332);
+            this.lbl_number_of_command.Location = new System.Drawing.Point(9, 259);
             this.lbl_number_of_command.Name = "lbl_number_of_command";
             this.lbl_number_of_command.Size = new System.Drawing.Size(154, 15);
             this.lbl_number_of_command.TabIndex = 10;
@@ -2356,7 +2347,7 @@
             // 
             this.lbl_error_unknow_telegram_type.AutoSize = true;
             this.lbl_error_unknow_telegram_type.Font = new System.Drawing.Font("Consolas", 9.75F);
-            this.lbl_error_unknow_telegram_type.Location = new System.Drawing.Point(9, 222);
+            this.lbl_error_unknow_telegram_type.Location = new System.Drawing.Point(9, 149);
             this.lbl_error_unknow_telegram_type.Name = "lbl_error_unknow_telegram_type";
             this.lbl_error_unknow_telegram_type.Size = new System.Drawing.Size(217, 15);
             this.lbl_error_unknow_telegram_type.TabIndex = 10;
@@ -2372,8 +2363,8 @@
             this.tbp_motion.Controls.Add(this.btn_PosingStop);
             this.tbp_motion.Location = new System.Drawing.Point(4, 23);
             this.tbp_motion.Name = "tbp_motion";
-            this.tbp_motion.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
-            this.tbp_motion.Size = new System.Drawing.Size(1011, 450);
+            this.tbp_motion.Padding = new System.Windows.Forms.Padding(3);
+            this.tbp_motion.Size = new System.Drawing.Size(1051, 365);
             this.tbp_motion.TabIndex = 7;
             this.tbp_motion.Text = "Motion";
             this.tbp_motion.UseVisualStyleBackColor = true;
@@ -2382,18 +2373,18 @@
             // 
             this.cb_SelectMeasureDistance.FormattingEnabled = true;
             this.cb_SelectMeasureDistance.Items.AddRange(new object[] {
-            "100um",
-            "200um",
-            "500um",
-            "1mm",
-            "2mm",
-            "5mm",
-            "1cm",
-            "2cm",
-            "5cm"});
-            this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(277, 190);
+            "100",
+            "200",
+            "500",
+            "1",
+            "2",
+            "5",
+            "1",
+            "2",
+            "5"});
+            this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(651, 192);
             this.cb_SelectMeasureDistance.Name = "cb_SelectMeasureDistance";
-            this.cb_SelectMeasureDistance.Size = new System.Drawing.Size(79, 21);
+            this.cb_SelectMeasureDistance.Size = new System.Drawing.Size(67, 21);
             this.cb_SelectMeasureDistance.TabIndex = 121;
             this.cb_SelectMeasureDistance.SelectedIndexChanged += new System.EventHandler(this.cb_SelectMeasureDistance_SelectedIndexChanged);
             // 
@@ -2401,7 +2392,7 @@
             // 
             this.label35.AutoSize = true;
             this.label35.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label35.Location = new System.Drawing.Point(274, 166);
+            this.label35.Location = new System.Drawing.Point(648, 165);
             this.label35.Name = "label35";
             this.label35.Size = new System.Drawing.Size(74, 21);
             this.label35.TabIndex = 122;
@@ -2410,29 +2401,27 @@
             // btn_moveto_WaferCenter_point
             // 
             this.btn_moveto_WaferCenter_point.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_moveto_WaferCenter_point.Location = new System.Drawing.Point(147, 227);
+            this.btn_moveto_WaferCenter_point.Location = new System.Drawing.Point(531, 171);
             this.btn_moveto_WaferCenter_point.Name = "btn_moveto_WaferCenter_point";
-            this.btn_moveto_WaferCenter_point.Size = new System.Drawing.Size(95, 61);
+            this.btn_moveto_WaferCenter_point.Size = new System.Drawing.Size(90, 57);
             this.btn_moveto_WaferCenter_point.TabIndex = 124;
             this.btn_moveto_WaferCenter_point.Text = "自動模式";
             this.btn_moveto_WaferCenter_point.UseVisualStyleBackColor = true;
-            this.btn_moveto_WaferCenter_point.Click += new System.EventHandler(this.btn_moveto_WaferCenter_point_Click);
+            this.btn_moveto_WaferCenter_point.Click += new System.EventHandler(this.btn_auto_measurement);
             // 
             // groupBox7
             // 
             this.groupBox7.Controls.Add(this.btn_move_distance_z);
-            this.groupBox7.Controls.Add(this.label40);
             this.groupBox7.Controls.Add(this.btn_move_distance);
-            this.groupBox7.Controls.Add(this.label38);
             this.groupBox7.Controls.Add(this.btn_movex_negative);
             this.groupBox7.Controls.Add(this.btn_movex_positive);
             this.groupBox7.Controls.Add(this.btn_movey_negative);
             this.groupBox7.Controls.Add(this.btn_movey_positive);
             this.groupBox7.Controls.Add(this.btn_movez_positive);
             this.groupBox7.Controls.Add(this.btn_movez_negative);
-            this.groupBox7.Location = new System.Drawing.Point(1, 3);
+            this.groupBox7.Location = new System.Drawing.Point(779, 12);
             this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(252, 202);
+            this.groupBox7.Size = new System.Drawing.Size(252, 158);
             this.groupBox7.TabIndex = 157;
             this.groupBox7.TabStop = false;
             // 
@@ -2440,7 +2429,7 @@
             // 
             this.btn_move_distance_z.BackColor = System.Drawing.Color.White;
             this.btn_move_distance_z.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_move_distance_z.Location = new System.Drawing.Point(187, 93);
+            this.btn_move_distance_z.Location = new System.Drawing.Point(188, 63);
             this.btn_move_distance_z.Name = "btn_move_distance_z";
             this.btn_move_distance_z.Size = new System.Drawing.Size(62, 29);
             this.btn_move_distance_z.TabIndex = 164;
@@ -2449,21 +2438,11 @@
             this.btn_move_distance_z.UseVisualStyleBackColor = false;
             this.btn_move_distance_z.Click += new System.EventHandler(this.btn_move_distance_z_Click);
             // 
-            // label40
-            // 
-            this.label40.AutoSize = true;
-            this.label40.Font = new System.Drawing.Font("Microsoft JhengHei", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label40.Location = new System.Drawing.Point(60, 67);
-            this.label40.Name = "label40";
-            this.label40.Size = new System.Drawing.Size(69, 19);
-            this.label40.TabIndex = 163;
-            this.label40.Text = "移動距離";
-            // 
             // btn_move_distance
             // 
             this.btn_move_distance.BackColor = System.Drawing.Color.White;
             this.btn_move_distance.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_move_distance.Location = new System.Drawing.Point(64, 94);
+            this.btn_move_distance.Location = new System.Drawing.Point(65, 64);
             this.btn_move_distance.Name = "btn_move_distance";
             this.btn_move_distance.Size = new System.Drawing.Size(62, 29);
             this.btn_move_distance.TabIndex = 162;
@@ -2472,24 +2451,333 @@
             this.btn_move_distance.UseVisualStyleBackColor = false;
             this.btn_move_distance.Click += new System.EventHandler(this.btn_move_distance_Click);
             // 
-            // label38
+            // btn_manual_mode
             // 
-            this.label38.AutoSize = true;
-            this.label38.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label38.Location = new System.Drawing.Point(197, 62);
-            this.label38.Name = "label38";
-            this.label38.Size = new System.Drawing.Size(52, 21);
-            this.label38.TabIndex = 161;
-            this.label38.Text = "Z方向";
+            this.btn_manual_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_manual_mode.Location = new System.Drawing.Point(530, 240);
+            this.btn_manual_mode.Name = "btn_manual_mode";
+            this.btn_manual_mode.Size = new System.Drawing.Size(90, 57);
+            this.btn_manual_mode.TabIndex = 160;
+            this.btn_manual_mode.Text = "手動量測";
+            this.btn_manual_mode.UseVisualStyleBackColor = true;
+            this.btn_manual_mode.Click += new System.EventHandler(this.btn_manual_mode_Click);
+            // 
+            // btn_unload_wafer
+            // 
+            this.btn_unload_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_unload_wafer.Location = new System.Drawing.Point(530, 83);
+            this.btn_unload_wafer.Name = "btn_unload_wafer";
+            this.btn_unload_wafer.Size = new System.Drawing.Size(90, 57);
+            this.btn_unload_wafer.TabIndex = 159;
+            this.btn_unload_wafer.Text = "晶圓退出";
+            this.btn_unload_wafer.UseVisualStyleBackColor = true;
+            this.btn_unload_wafer.Click += new System.EventHandler(this.btn_unload_wafer_Click);
+            // 
+            // btn_load_wafer
+            // 
+            this.btn_load_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_load_wafer.Location = new System.Drawing.Point(530, 14);
+            this.btn_load_wafer.Name = "btn_load_wafer";
+            this.btn_load_wafer.Size = new System.Drawing.Size(90, 57);
+            this.btn_load_wafer.TabIndex = 158;
+            this.btn_load_wafer.Text = "晶圓載入";
+            this.btn_load_wafer.UseVisualStyleBackColor = true;
+            this.btn_load_wafer.Click += new System.EventHandler(this.btn_load_wafer_Click);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.grp_align_test);
+            this.panel1.Controls.Add(this.grp_manual_buttons);
+            this.panel1.Controls.Add(this.button1);
+            this.panel1.Controls.Add(this.label39);
+            this.panel1.Controls.Add(this.label42);
+            this.panel1.Controls.Add(this.label41);
+            this.panel1.Controls.Add(this.button2);
+            this.panel1.Controls.Add(this.btn_ClearAlarm);
+            this.panel1.Controls.Add(this.label43);
+            this.panel1.Controls.Add(this.cb_SelectMeasureDistance);
+            this.panel1.Controls.Add(this.label44);
+            this.panel1.Controls.Add(this.btn_advanced_mode);
+            this.panel1.Controls.Add(this.label35);
+            this.panel1.Controls.Add(this.btn_exposure);
+            this.panel1.Controls.Add(this.button5);
+            this.panel1.Controls.Add(this.btn_imageThreshold);
+            this.panel1.Controls.Add(this.label_zaxis);
+            this.panel1.Controls.Add(this.ntb_z_cur_pos);
+            this.panel1.Controls.Add(this.label_yaxis);
+            this.panel1.Controls.Add(this.label_xaxis);
+            this.panel1.Controls.Add(this.ntb_y_cur_pos);
+            this.panel1.Controls.Add(this.hWindowControl1);
+            this.panel1.Controls.Add(this.button3);
+            this.panel1.Controls.Add(this.btn_moveto_WaferCenter_point);
+            this.panel1.Controls.Add(this.ntb_x_cur_pos);
+            this.panel1.Controls.Add(this.btn_manual_mode);
+            this.panel1.Controls.Add(this.groupBox7);
+            this.panel1.Controls.Add(this.btn_unload_wafer);
+            this.panel1.Controls.Add(this.btn_load_wafer);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1043, 308);
+            this.panel1.TabIndex = 161;
+            // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.White;
+            this.button1.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.Location = new System.Drawing.Point(652, 40);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(64, 29);
+            this.button1.TabIndex = 165;
+            this.button1.Text = "2000";
+            this.button1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.button1.UseVisualStyleBackColor = false;
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label39.Location = new System.Drawing.Point(720, 191);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(35, 21);
+            this.label39.TabIndex = 169;
+            this.label39.Text = "um";
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label42.Location = new System.Drawing.Point(648, 88);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(111, 21);
+            this.label42.TabIndex = 164;
+            this.label42.Text = "die Y方向寬度";
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label41.Location = new System.Drawing.Point(648, 14);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(112, 21);
+            this.label41.TabIndex = 163;
+            this.label41.Text = "die X方向長度";
+            // 
+            // button2
+            // 
+            this.button2.BackColor = System.Drawing.Color.White;
+            this.button2.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.Location = new System.Drawing.Point(651, 114);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(64, 29);
+            this.button2.TabIndex = 166;
+            this.button2.Text = "2000";
+            this.button2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.button2.UseVisualStyleBackColor = false;
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label43.Location = new System.Drawing.Point(720, 42);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(35, 21);
+            this.label43.TabIndex = 167;
+            this.label43.Text = "um";
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label44.Location = new System.Drawing.Point(719, 117);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(35, 21);
+            this.label44.TabIndex = 168;
+            this.label44.Text = "um";
+            // 
+            // btn_exposure
+            // 
+            this.btn_exposure.BackColor = System.Drawing.Color.White;
+            this.btn_exposure.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_exposure.Location = new System.Drawing.Point(12, 155);
+            this.btn_exposure.Name = "btn_exposure";
+            this.btn_exposure.Size = new System.Drawing.Size(95, 29);
+            this.btn_exposure.TabIndex = 172;
+            this.btn_exposure.Text = "0";
+            this.btn_exposure.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btn_exposure.UseVisualStyleBackColor = false;
+            // 
+            // button5
+            // 
+            this.button5.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.button5.Location = new System.Drawing.Point(12, 112);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(90, 37);
+            this.button5.TabIndex = 171;
+            this.button5.Text = "曝光時間";
+            this.button5.UseVisualStyleBackColor = true;
+            // 
+            // btn_imageThreshold
+            // 
+            this.btn_imageThreshold.BackColor = System.Drawing.Color.White;
+            this.btn_imageThreshold.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_imageThreshold.Location = new System.Drawing.Point(12, 69);
+            this.btn_imageThreshold.Name = "btn_imageThreshold";
+            this.btn_imageThreshold.Size = new System.Drawing.Size(95, 29);
+            this.btn_imageThreshold.TabIndex = 165;
+            this.btn_imageThreshold.Text = "0";
+            this.btn_imageThreshold.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btn_imageThreshold.UseVisualStyleBackColor = false;
+            // 
+            // hWindowControl1
+            // 
+            this.hWindowControl1.BackColor = System.Drawing.Color.Black;
+            this.hWindowControl1.BorderColor = System.Drawing.Color.Black;
+            this.hWindowControl1.ImagePart = new System.Drawing.Rectangle(0, 0, 640, 480);
+            this.hWindowControl1.Location = new System.Drawing.Point(112, 2);
+            this.hWindowControl1.Margin = new System.Windows.Forms.Padding(2);
+            this.hWindowControl1.Name = "hWindowControl1";
+            this.hWindowControl1.Size = new System.Drawing.Size(396, 303);
+            this.hWindowControl1.TabIndex = 169;
+            this.hWindowControl1.WindowSize = new System.Drawing.Size(396, 303);
+            // 
+            // button3
+            // 
+            this.button3.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.button3.Location = new System.Drawing.Point(12, 7);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(90, 56);
+            this.button3.TabIndex = 170;
+            this.button3.Text = "切割道\r\n閥值";
+            this.button3.UseVisualStyleBackColor = true;
+            // 
+            // grp_manual_buttons
+            // 
+            this.grp_manual_buttons.Controls.Add(this.btn_align);
+            this.grp_manual_buttons.Controls.Add(this.btn_save);
+            this.grp_manual_buttons.Controls.Add(this.btn_start_mea);
+            this.grp_manual_buttons.Location = new System.Drawing.Point(645, 228);
+            this.grp_manual_buttons.Name = "grp_manual_buttons";
+            this.grp_manual_buttons.Size = new System.Drawing.Size(196, 77);
+            this.grp_manual_buttons.TabIndex = 177;
+            this.grp_manual_buttons.TabStop = false;
+            this.grp_manual_buttons.Visible = false;
+            // 
+            // grp_align_test
+            // 
+            this.grp_align_test.Controls.Add(this.btn_find_angle);
+            this.grp_align_test.Controls.Add(this.btn_load);
+            this.grp_align_test.Controls.Add(this.lb_angle);
+            this.grp_align_test.Controls.Add(this.lb_die_side);
+            this.grp_align_test.Location = new System.Drawing.Point(4, 190);
+            this.grp_align_test.Name = "grp_align_test";
+            this.grp_align_test.Size = new System.Drawing.Size(107, 109);
+            this.grp_align_test.TabIndex = 178;
+            this.grp_align_test.TabStop = false;
+            // 
+            // lb_die_side
+            // 
+            this.lb_die_side.AutoSize = true;
+            this.lb_die_side.Location = new System.Drawing.Point(7, 69);
+            this.lb_die_side.Name = "lb_die_side";
+            this.lb_die_side.Size = new System.Drawing.Size(36, 13);
+            this.lb_die_side.TabIndex = 0;
+            this.lb_die_side.Text = "邊長:";
+            // 
+            // lb_angle
+            // 
+            this.lb_angle.AutoSize = true;
+            this.lb_angle.Location = new System.Drawing.Point(7, 88);
+            this.lb_angle.Name = "lb_angle";
+            this.lb_angle.Size = new System.Drawing.Size(36, 13);
+            this.lb_angle.TabIndex = 1;
+            this.lb_angle.Text = "角度:";
+            // 
+            // btn_find_angle
+            // 
+            this.btn_find_angle.Image = global::Velociraptor.Properties.Resources.dart;
+            this.btn_find_angle.Location = new System.Drawing.Point(58, 17);
+            this.btn_find_angle.Name = "btn_find_angle";
+            this.btn_find_angle.Size = new System.Drawing.Size(40, 40);
+            this.btn_find_angle.TabIndex = 3;
+            this.btn_find_angle.UseVisualStyleBackColor = true;
+            // 
+            // btn_load
+            // 
+            this.btn_load.Image = global::Velociraptor.Properties.Resources.folder;
+            this.btn_load.Location = new System.Drawing.Point(7, 17);
+            this.btn_load.Name = "btn_load";
+            this.btn_load.Size = new System.Drawing.Size(40, 40);
+            this.btn_load.TabIndex = 2;
+            this.btn_load.UseVisualStyleBackColor = true;
+            // 
+            // btn_align
+            // 
+            this.btn_align.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_align.Image = global::Velociraptor.Properties.Resources.upward;
+            this.btn_align.Location = new System.Drawing.Point(11, 18);
+            this.btn_align.Name = "btn_align";
+            this.btn_align.Size = new System.Drawing.Size(51, 50);
+            this.btn_align.TabIndex = 174;
+            this.btn_align.UseVisualStyleBackColor = true;
+            this.btn_align.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // btn_save
+            // 
+            this.btn_save.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_save.Image = global::Velociraptor.Properties.Resources.save;
+            this.btn_save.Location = new System.Drawing.Point(132, 18);
+            this.btn_save.Name = "btn_save";
+            this.btn_save.Size = new System.Drawing.Size(51, 50);
+            this.btn_save.TabIndex = 176;
+            this.btn_save.UseVisualStyleBackColor = true;
+            // 
+            // btn_start_mea
+            // 
+            this.btn_start_mea.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_start_mea.Image = global::Velociraptor.Properties.Resources.right_arrow;
+            this.btn_start_mea.Location = new System.Drawing.Point(72, 18);
+            this.btn_start_mea.Name = "btn_start_mea";
+            this.btn_start_mea.Size = new System.Drawing.Size(51, 50);
+            this.btn_start_mea.TabIndex = 175;
+            this.btn_start_mea.UseVisualStyleBackColor = true;
+            // 
+            // btn_ClearAlarm
+            // 
+            this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_ClearAlarm.Image = global::Velociraptor.Properties.Resources.refresh;
+            this.btn_ClearAlarm.Location = new System.Drawing.Point(926, 247);
+            this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(2);
+            this.btn_ClearAlarm.Name = "btn_ClearAlarm";
+            this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.btn_ClearAlarm.Size = new System.Drawing.Size(51, 50);
+            this.btn_ClearAlarm.TabIndex = 173;
+            this.btn_ClearAlarm.UseVisualStyleBackColor = true;
+            this.btn_ClearAlarm.Click += new System.EventHandler(this.btn_ClearAlarm_Click);
+            // 
+            // btn_advanced_mode
+            // 
+            this.btn_advanced_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold);
+            this.btn_advanced_mode.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.btn_advanced_mode.Image = global::Velociraptor.Properties.Resources.administration;
+            this.btn_advanced_mode.Location = new System.Drawing.Point(984, 247);
+            this.btn_advanced_mode.Margin = new System.Windows.Forms.Padding(2);
+            this.btn_advanced_mode.Name = "btn_advanced_mode";
+            this.btn_advanced_mode.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.btn_advanced_mode.Size = new System.Drawing.Size(51, 50);
+            this.btn_advanced_mode.TabIndex = 126;
+            this.btn_advanced_mode.UseVisualStyleBackColor = true;
+            this.btn_advanced_mode.Click += new System.EventHandler(this.btn_advanced_mode_Click);
             // 
             // btn_movex_negative
             // 
             this.btn_movex_negative.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_movex_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movex_negative.Image")));
-            this.btn_movex_negative.Location = new System.Drawing.Point(4, 81);
+            this.btn_movex_negative.Location = new System.Drawing.Point(5, 51);
             this.btn_movex_negative.Name = "btn_movex_negative";
             this.btn_movex_negative.Size = new System.Drawing.Size(48, 50);
             this.btn_movex_negative.TabIndex = 123;
+            this.btn_movex_negative.Text = "X-";
             this.btn_movex_negative.UseVisualStyleBackColor = true;
             this.btn_movex_negative.Click += new System.EventHandler(this.btn_movex_negative_Click);
             // 
@@ -2497,10 +2785,11 @@
             // 
             this.btn_movex_positive.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_movex_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movex_positive.Image")));
-            this.btn_movex_positive.Location = new System.Drawing.Point(132, 79);
+            this.btn_movex_positive.Location = new System.Drawing.Point(133, 49);
             this.btn_movex_positive.Name = "btn_movex_positive";
             this.btn_movex_positive.Size = new System.Drawing.Size(48, 50);
             this.btn_movex_positive.TabIndex = 90;
+            this.btn_movex_positive.Text = "X+";
             this.btn_movex_positive.UseVisualStyleBackColor = true;
             this.btn_movex_positive.Click += new System.EventHandler(this.btn_movex_positive_Click);
             // 
@@ -2508,21 +2797,23 @@
             // 
             this.btn_movey_negative.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_movey_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movey_negative.Image")));
-            this.btn_movey_negative.Location = new System.Drawing.Point(69, 149);
+            this.btn_movey_negative.Location = new System.Drawing.Point(69, 97);
             this.btn_movey_negative.Name = "btn_movey_negative";
             this.btn_movey_negative.Size = new System.Drawing.Size(51, 50);
             this.btn_movey_negative.TabIndex = 126;
+            this.btn_movey_negative.Text = "Y-";
             this.btn_movey_negative.UseVisualStyleBackColor = true;
             this.btn_movey_negative.Click += new System.EventHandler(this.btn_movey_negative_Click);
             // 
             // btn_movey_positive
             // 
-            this.btn_movey_positive.Font = new System.Drawing.Font("Arial", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_movey_positive.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_movey_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movey_positive.Image")));
             this.btn_movey_positive.Location = new System.Drawing.Point(69, 11);
             this.btn_movey_positive.Name = "btn_movey_positive";
             this.btn_movey_positive.Size = new System.Drawing.Size(51, 49);
             this.btn_movey_positive.TabIndex = 125;
+            this.btn_movey_positive.Text = "Y+";
             this.btn_movey_positive.UseVisualStyleBackColor = true;
             this.btn_movey_positive.Click += new System.EventHandler(this.btn_movey_positive_Click);
             // 
@@ -2534,6 +2825,7 @@
             this.btn_movez_positive.Name = "btn_movez_positive";
             this.btn_movez_positive.Size = new System.Drawing.Size(54, 48);
             this.btn_movez_positive.TabIndex = 128;
+            this.btn_movez_positive.Text = "Z+";
             this.btn_movez_positive.UseVisualStyleBackColor = true;
             this.btn_movez_positive.Click += new System.EventHandler(this.btn_movez_positive_Click);
             // 
@@ -2541,232 +2833,39 @@
             // 
             this.btn_movez_negative.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_movez_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movez_negative.Image")));
-            this.btn_movez_negative.Location = new System.Drawing.Point(195, 150);
+            this.btn_movez_negative.Location = new System.Drawing.Point(195, 98);
             this.btn_movez_negative.Name = "btn_movez_negative";
             this.btn_movez_negative.Size = new System.Drawing.Size(54, 51);
             this.btn_movez_negative.TabIndex = 127;
+            this.btn_movez_negative.Text = "Z-";
             this.btn_movez_negative.UseVisualStyleBackColor = true;
             this.btn_movez_negative.Click += new System.EventHandler(this.btn_movez_negative_Click);
             // 
-            // btn_manual_mode
+            // btn_sodx_pause
             // 
-            this.btn_manual_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_manual_mode.Location = new System.Drawing.Point(147, 309);
-            this.btn_manual_mode.Name = "btn_manual_mode";
-            this.btn_manual_mode.Size = new System.Drawing.Size(98, 61);
-            this.btn_manual_mode.TabIndex = 160;
-            this.btn_manual_mode.Text = "人工模式";
-            this.btn_manual_mode.UseVisualStyleBackColor = true;
-            this.btn_manual_mode.Click += new System.EventHandler(this.btn_manual_mode_Click);
+            this.btn_sodx_pause.Image = ((System.Drawing.Image)(resources.GetObject("btn_sodx_pause.Image")));
+            this.btn_sodx_pause.Location = new System.Drawing.Point(368, 22);
+            this.btn_sodx_pause.Name = "btn_sodx_pause";
+            this.btn_sodx_pause.Size = new System.Drawing.Size(61, 52);
+            this.btn_sodx_pause.TabIndex = 47;
+            this.btn_sodx_pause.UseVisualStyleBackColor = true;
+            this.btn_sodx_pause.Click += new System.EventHandler(this.btn_sodx_pause_Click);
             // 
-            // btn_unload_wafer
+            // btn_sodx_execute
             // 
-            this.btn_unload_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_unload_wafer.Location = new System.Drawing.Point(24, 309);
-            this.btn_unload_wafer.Name = "btn_unload_wafer";
-            this.btn_unload_wafer.Size = new System.Drawing.Size(95, 61);
-            this.btn_unload_wafer.TabIndex = 159;
-            this.btn_unload_wafer.Text = "晶圓退出";
-            this.btn_unload_wafer.UseVisualStyleBackColor = true;
-            this.btn_unload_wafer.Click += new System.EventHandler(this.btn_unload_wafer_Click);
-            // 
-            // btn_load_wafer
-            // 
-            this.btn_load_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_load_wafer.Location = new System.Drawing.Point(24, 227);
-            this.btn_load_wafer.Name = "btn_load_wafer";
-            this.btn_load_wafer.Size = new System.Drawing.Size(95, 61);
-            this.btn_load_wafer.TabIndex = 158;
-            this.btn_load_wafer.Text = "晶圓載入";
-            this.btn_load_wafer.UseVisualStyleBackColor = true;
-            this.btn_load_wafer.Click += new System.EventHandler(this.btn_load_wafer_Click);
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.btn_ClearAlarm);
-            this.panel1.Controls.Add(this.btn_advanced_mode);
-            this.panel1.Controls.Add(this.button6);
-            this.panel1.Controls.Add(this.button5);
-            this.panel1.Controls.Add(this.button4);
-            this.panel1.Controls.Add(this.button3);
-            this.panel1.Controls.Add(this.hWindowControl1);
-            this.panel1.Controls.Add(this.ntb_x_cur_pos);
-            this.panel1.Controls.Add(this.label44);
-            this.panel1.Controls.Add(this.ntb_y_cur_pos);
-            this.panel1.Controls.Add(this.btn_moveto_WaferCenter_point);
-            this.panel1.Controls.Add(this.ntb_z_cur_pos);
-            this.panel1.Controls.Add(this.label_zaxis);
-            this.panel1.Controls.Add(this.btn_manual_mode);
-            this.panel1.Controls.Add(this.label_yaxis);
-            this.panel1.Controls.Add(this.label43);
-            this.panel1.Controls.Add(this.label_xaxis);
-            this.panel1.Controls.Add(this.groupBox7);
-            this.panel1.Controls.Add(this.label_current_position);
-            this.panel1.Controls.Add(this.button2);
-            this.panel1.Controls.Add(this.button1);
-            this.panel1.Controls.Add(this.btn_unload_wafer);
-            this.panel1.Controls.Add(this.label41);
-            this.panel1.Controls.Add(this.btn_load_wafer);
-            this.panel1.Controls.Add(this.label42);
-            this.panel1.Controls.Add(this.label35);
-            this.panel1.Controls.Add(this.cb_SelectMeasureDistance);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel1.Location = new System.Drawing.Point(0, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1024, 375);
-            this.panel1.TabIndex = 161;
-            // 
-            // btn_ClearAlarm
-            // 
-            this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_ClearAlarm.Image = ((System.Drawing.Image)(resources.GetObject("btn_ClearAlarm.Image")));
-            this.btn_ClearAlarm.Location = new System.Drawing.Point(966, 70);
-            this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.btn_ClearAlarm.Name = "btn_ClearAlarm";
-            this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_ClearAlarm.Size = new System.Drawing.Size(45, 41);
-            this.btn_ClearAlarm.TabIndex = 173;
-            this.btn_ClearAlarm.UseVisualStyleBackColor = true;
-            this.btn_ClearAlarm.Click += new System.EventHandler(this.btn_ClearAlarm_Click);
-            // 
-            // btn_advanced_mode
-            // 
-            this.btn_advanced_mode.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_advanced_mode.Image = ((System.Drawing.Image)(resources.GetObject("btn_advanced_mode.Image")));
-            this.btn_advanced_mode.Location = new System.Drawing.Point(966, 15);
-            this.btn_advanced_mode.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.btn_advanced_mode.Name = "btn_advanced_mode";
-            this.btn_advanced_mode.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_advanced_mode.Size = new System.Drawing.Size(45, 44);
-            this.btn_advanced_mode.TabIndex = 126;
-            this.btn_advanced_mode.UseVisualStyleBackColor = true;
-            this.btn_advanced_mode.Click += new System.EventHandler(this.btn_advanced_mode_Click);
-            // 
-            // button6
-            // 
-            this.button6.BackColor = System.Drawing.Color.White;
-            this.button6.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button6.Location = new System.Drawing.Point(914, 206);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(95, 29);
-            this.button6.TabIndex = 172;
-            this.button6.Text = "0";
-            this.button6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button6.UseVisualStyleBackColor = false;
-            // 
-            // button5
-            // 
-            this.button5.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.button5.Location = new System.Drawing.Point(914, 134);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(95, 61);
-            this.button5.TabIndex = 171;
-            this.button5.Text = "曝光時間";
-            this.button5.UseVisualStyleBackColor = true;
-            // 
-            // button4
-            // 
-            this.button4.BackColor = System.Drawing.Color.White;
-            this.button4.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button4.Location = new System.Drawing.Point(914, 334);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(95, 29);
-            this.button4.TabIndex = 165;
-            this.button4.Text = "0";
-            this.button4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button4.UseVisualStyleBackColor = false;
-            // 
-            // button3
-            // 
-            this.button3.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.button3.Location = new System.Drawing.Point(914, 264);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(95, 61);
-            this.button3.TabIndex = 170;
-            this.button3.Text = "切割道\r\n閥值";
-            this.button3.UseVisualStyleBackColor = true;
-            // 
-            // hWindowControl1
-            // 
-            this.hWindowControl1.BackColor = System.Drawing.Color.Black;
-            this.hWindowControl1.BorderColor = System.Drawing.Color.Black;
-            this.hWindowControl1.ImagePart = new System.Drawing.Rectangle(0, 0, 640, 480);
-            this.hWindowControl1.Location = new System.Drawing.Point(434, 15);
-            this.hWindowControl1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.hWindowControl1.Name = "hWindowControl1";
-            this.hWindowControl1.Size = new System.Drawing.Size(460, 350);
-            this.hWindowControl1.TabIndex = 169;
-            this.hWindowControl1.WindowSize = new System.Drawing.Size(460, 350);
-            // 
-            // label44
-            // 
-            this.label44.AutoSize = true;
-            this.label44.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label44.Location = new System.Drawing.Point(347, 118);
-            this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(35, 21);
-            this.label44.TabIndex = 168;
-            this.label44.Text = "um";
-            // 
-            // label43
-            // 
-            this.label43.AutoSize = true;
-            this.label43.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label43.Location = new System.Drawing.Point(347, 39);
-            this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(35, 21);
-            this.label43.TabIndex = 167;
-            this.label43.Text = "um";
-            // 
-            // button2
-            // 
-            this.button2.BackColor = System.Drawing.Color.White;
-            this.button2.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(277, 114);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(64, 29);
-            this.button2.TabIndex = 166;
-            this.button2.Text = "2000";
-            this.button2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button2.UseVisualStyleBackColor = false;
-            // 
-            // button1
-            // 
-            this.button1.BackColor = System.Drawing.Color.White;
-            this.button1.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(277, 36);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(64, 29);
-            this.button1.TabIndex = 165;
-            this.button1.Text = "2000";
-            this.button1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button1.UseVisualStyleBackColor = false;
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label41.Location = new System.Drawing.Point(273, 13);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(112, 21);
-            this.label41.TabIndex = 163;
-            this.label41.Text = "die X方向長度";
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label42.Location = new System.Drawing.Point(274, 91);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(111, 21);
-            this.label42.TabIndex = 164;
-            this.label42.Text = "die Y方向寬度";
+            this.btn_sodx_execute.Image = ((System.Drawing.Image)(resources.GetObject("btn_sodx_execute.Image")));
+            this.btn_sodx_execute.Location = new System.Drawing.Point(6, 22);
+            this.btn_sodx_execute.Name = "btn_sodx_execute";
+            this.btn_sodx_execute.Size = new System.Drawing.Size(61, 52);
+            this.btn_sodx_execute.TabIndex = 35;
+            this.btn_sodx_execute.UseVisualStyleBackColor = true;
+            this.btn_sodx_execute.Click += new System.EventHandler(this.btn_sodx_execute_Click);
             // 
             // f_main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(1024, 841);
+            this.ClientSize = new System.Drawing.Size(1043, 697);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.tabControlMain);
             this.Font = new System.Drawing.Font("PMingLiU", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -2783,8 +2882,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v1)).EndInit();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.grp_cursor.ResumeLayout(false);
+            this.grp_cursor.PerformLayout();
             this.tabControlMain.ResumeLayout(false);
             this.tbp_main.ResumeLayout(false);
             this.tbp_main.PerformLayout();
@@ -2797,9 +2896,11 @@
             this.groupBox5.PerformLayout();
             this.tbp_motion.ResumeLayout(false);
             this.groupBox7.ResumeLayout(false);
-            this.groupBox7.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.grp_manual_buttons.ResumeLayout(false);
+            this.grp_align_test.ResumeLayout(false);
+            this.grp_align_test.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -2841,13 +2942,12 @@
         private System.Windows.Forms.Label label_xaxis;
         private System.Windows.Forms.Label label_yaxis;
         private System.Windows.Forms.Label label_zaxis;
-        private System.Windows.Forms.Label label_current_position;
         private MagicGraphicLibrary.IPAddressControl ipAddressControl1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ComboBox comboBox2;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox grp_cursor;
         private System.Windows.Forms.Button btn_PosingStop;
         internal System.Windows.Forms.Label ntb_x_cur_pos;
         internal System.Windows.Forms.Label ntb_y_cur_pos;
@@ -2977,9 +3077,7 @@
         private System.Windows.Forms.Button btn_manual_mode;
         private System.Windows.Forms.TabPage tbp_motion;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label label38;
         private System.Windows.Forms.Button btn_move_distance;
-        private System.Windows.Forms.Label label40;
         private System.Windows.Forms.Label label42;
         private System.Windows.Forms.Label label41;
         private System.Windows.Forms.Button button2;
@@ -2989,13 +3087,25 @@
         private System.Windows.Forms.Label label43;
         private HalconDotNet.HWindowControl hWindowControl1;
         private System.Windows.Forms.Label label37;
-        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button btn_exposure;
         private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button btn_imageThreshold;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button btn_connection;
         private System.Windows.Forms.Button btn_ClearAlarm;
         private System.Windows.Forms.Button btn_advanced_mode;
+        private System.Windows.Forms.Label label38;
+        internal System.Windows.Forms.Label ntb_r_cur_motorpos;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.Button btn_align;
+        private System.Windows.Forms.Button btn_start_mea;
+        private System.Windows.Forms.GroupBox grp_manual_buttons;
+        private System.Windows.Forms.Button btn_save;
+        private System.Windows.Forms.GroupBox grp_align_test;
+        private System.Windows.Forms.Button btn_load;
+        private System.Windows.Forms.Label lb_angle;
+        private System.Windows.Forms.Label lb_die_side;
+        private System.Windows.Forms.Button btn_find_angle;
     }
 }
 

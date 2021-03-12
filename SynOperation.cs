@@ -12,5 +12,9 @@ namespace Velociraptor
         {
             return true;
         }
+        public bool DoAutoScan(string datafilename, int[]pts_rows, int[]pts_cols)
+        {
+            return true;
+        }
     }
 }

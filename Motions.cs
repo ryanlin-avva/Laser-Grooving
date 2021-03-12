@@ -62,6 +62,12 @@ namespace Velociraptor
                         );
             //Set variables with frequently used values
             int my_y = axis_map['Y'];
+            if (my_y == -1)
+            {
+                err_msg = "Axis Y NOT Found";
+                return false;
+            }
+
             for (int i=0; i<_axis_num; i++)
             {
                 PosForMove[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
@@ -89,6 +95,11 @@ namespace Velociraptor
         {
             if (isSimulate) return true;
             int my_axis = axis_map[axis_char];
+            if (my_axis == -1)
+            {
+                err_msg = "Axis " + axis_char + " NOT Found";
+                return false;
+            }
             CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             move_pos[my_axis].PositionData = distance;
             //Keep other axis to be relative, and pos = 0
@@ -117,6 +128,11 @@ namespace Velociraptor
             for (int i = 0; i < axis_char.Length; i++)
             {
                 int my_axis = axis_map[axis_char[i]];
+                if (my_axis == -1)
+                {
+                    err_msg = "Axis " + axis_char[i] + " NOT Found";
+                    return false;
+                }
                 move_pos[my_axis].PositionData = distance[i];
                 if (!isRelative)
                     MotionDataForMove[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
@@ -133,6 +149,7 @@ namespace Velociraptor
         {
             if (isSimulate) return 1;
             int my_axis = axis_map[axis_char];
+            if (my_axis == -1) return 0;
             UInt32 hRegister = 0;
             rc = CMotionAPI.ymcGetRegisterDataHandle(_registerName[my_axis], ref hRegister);
             if (rc != CMotionAPI.MP_SUCCESS)
@@ -201,8 +218,15 @@ namespace Velociraptor
             {
                 ushort[] timeout = new ushort[_axis_num];
                 short[] direction = new short[_axis_num];
-                timeout[axis_map['Y']] = 1;
-                direction[axis_map['Y']] = (isPositive)
+                int my_axis = axis_map['Y'];
+                if (my_axis == -1)
+                {
+                    err_msg = "Axis Y NOT Found";
+                    return false;
+                }
+
+                timeout[my_axis] = 1;
+                direction[my_axis] = (isPositive)
                                             ? (Int16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE
                                             : (Int16)CMotionAPI.ApiDefs.DIRECTION_NEGATIVE;
                 rc = CMotionAPI.ymcMoveJOG(g_hDevice, MotionDataForJogY, direction, timeout, 0, "Start", 0);

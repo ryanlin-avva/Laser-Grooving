@@ -42,10 +42,10 @@ namespace Velociraptor
             lpReturnedString = new StringBuilder(bufferSize);
 
             #region Gets Axis parameters
-            axis_x = int.Parse(ReadIniFile("AxisMapping", "X", "0"));
-            axis_y = int.Parse(ReadIniFile("AxisMapping", "Y", "1"));
-            axis_z = int.Parse(ReadIniFile("AxisMapping", "Z", "2"));
-            axis_r = int.Parse(ReadIniFile("AxisMapping", "R", "3"));
+            axis_x = int.Parse(ReadIniFile("AxisMapping", "X", "-1"));
+            axis_y = int.Parse(ReadIniFile("AxisMapping", "Y", "-1"));
+            axis_z = int.Parse(ReadIniFile("AxisMapping", "Z", "-1"));
+            axis_r = int.Parse(ReadIniFile("AxisMapping", "R", "-1"));
             axis_a = int.Parse(ReadIniFile("AxisMapping", "A", "-1"));
             axis_b = int.Parse(ReadIniFile("AxisMapping", "B", "-1")); 
             axis_num = int.Parse(ReadIniFile("AxisMapping", "Num", "4")); 
@@ -66,12 +66,12 @@ namespace Velociraptor
         }
         public int SetAxes(ref Dictionary<char, int> axis_map)
         {
-            if (axis_x != -1) axis_map.Add('X', axis_x);
-            if (axis_y != -1) axis_map.Add('Y', axis_y);
-            if (axis_z != -1) axis_map.Add('Z', axis_z);
-            if (axis_r != -1) axis_map.Add('R', axis_r);
-            if (axis_a != -1) axis_map.Add('A', axis_a);
-            if (axis_b != -1) axis_map.Add('B', axis_b);
+            axis_map.Add('X', axis_x);
+            axis_map.Add('Y', axis_y);
+            axis_map.Add('Z', axis_z);
+            axis_map.Add('R', axis_r);
+            axis_map.Add('A', axis_a);
+            axis_map.Add('B', axis_b);
             return axis_num;
         }
         
