@@ -54,6 +54,25 @@ namespace Velociraptor.Form
 
         private void btn_ok_Click(object sender, EventArgs e)
         {
+            if (tb_wafer_id.Text == "")
+            {
+                MessageBox.Show("wafer id沒有設定");
+                return;
+            }
+            if (tb_row_count.Text == "" || tb_col_count.Text == "")
+            {
+                MessageBox.Show("die的行/列數沒有設定");
+                return;
+            }
+            if ((tb_mea_row1.Visible && tb_mea_row1.Text=="")
+                || (tb_mea_row1.Visible && tb_mea_row1.Text == "")
+                || (tb_mea_col1.Visible && tb_mea_col1.Text == "")
+                || (tb_mea_row2.Visible && tb_mea_row2.Text == "")
+                || (tb_mea_col2.Visible && tb_mea_col2.Text == ""))
+            {
+                MessageBox.Show("量測位置沒有設定");
+                return;
+            }
             this.DialogResult = DialogResult.OK;
         }
 
