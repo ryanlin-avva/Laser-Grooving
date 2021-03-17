@@ -161,6 +161,12 @@
     <Compile Include="MyForm\AutoParamsForm.Designer.cs">
       <DependentUpon>AutoParamsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="MyForm\ConnectionIpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MyForm\ConnectionIpForm.Designer.cs">
+      <DependentUpon>ConnectionIpForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MyForm\KeyBoardForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -227,11 +233,17 @@
     <Compile Include="Tuner.cs" />
     <Compile Include="TuningData.cs" />
     <Compile Include="VisionCalibrator.cs" />
+    <EmbeddedResource Include="AddOn\f_dark.resx">
+      <DependentUpon>f_dark.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AddOn\f_selected_sodx.resx">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyForm\AutoParamsForm.resx">
       <DependentUpon>AutoParamsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MyForm\ConnectionIpForm.resx">
+      <DependentUpon>ConnectionIpForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyForm\KeyBoardForm.resx">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>

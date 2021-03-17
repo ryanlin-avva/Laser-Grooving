@@ -15,6 +15,7 @@ using AddOn;
 using Velociraptor.AddOn;
 using Velociraptor.Form;
 using HalconDotNet;
+using Velociraptor.MyForm;
 
 namespace Velociraptor
 {
@@ -239,9 +240,6 @@ namespace Velociraptor
         delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
         InitDisplayDelegateHandler InitDisplayDelegate;
 
-        delegate void UpdateInitDisplayDelegateHandler(System.Windows.Forms.Form form);
-        UpdateInitDisplayDelegateHandler UpdateInitDisplayDelegate;
-
         delegate void InitDownloadDisplayDelegateHandler(System.Windows.Forms.Form form);
         InitDownloadDisplayDelegateHandler InitDownloadDisplayDelegate;
 
@@ -267,7 +265,7 @@ namespace Velociraptor
         DisplaySodxAcquisitionDelegateHandler DisplaySodxAcquisitionDelegate;
 
         delegate void CloseFormDelegate(object sender, EventArgs e);
-        CloseFormDelegate CloseForm;
+        CloseFormDelegate _eventCloseForm;
         #endregion
 
         cClientSocket.OnClientConnectEventHandler _eventOnClientConnect = null;
@@ -294,12 +292,6 @@ namespace Velociraptor
             _generalSettings = new cGeneralSettings(null, null);
             _generalSettings.Load();
 
-            if (!_motion.Init(Constants.paraFilename))
-            {
-                MessageBox.Show(_motion.GetErrorMsg());
-                return;
-            }
-
             #region Settings
             _cprojectSettings.FileNameSettings = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ProjectSettings");
             _cprojectSettings.Load();
@@ -324,19 +316,13 @@ namespace Velociraptor
             _fifoDataSodx = new cQueueExt(_maxNumberOfBufferInFifoDataSodx);
             _fifoDataSodx.IdName = "Sample Data Sodx";
             _fifoDataSodx.OnError += _eventOnError;
-            _client = new cClientCommunication(_rxBufferSizeOfClientSocket, _txBufferSizeOfClientSocket);
             #endregion
 
-            _client.Initialize(null, null);
-            _client.HighSpeedBase = _generalSettings.HighSpeedBase;
-            _client.SensorsBase = _generalSettings.SensorsBase;
-            _client.OpticalProbesBase = _generalSettings.OpticalProbesBase;
             _errorList = new List<cErrorEventArgs>();
             _selectingFilters = new cSelectingFilters();
             _selectingFilters.OnFiltersAdd += _eventOnFiltersAdd;
             _selectingFilters.OnFiltersRemove += _eventOnFiltersRemove;
             _saveFilteredData = new cSaveFilteredData(_selectingFilters);
-            _displayDataSodx = new cDisplayDataSodx(_generalSettings, ctrl_zgc_sodx, btn_sodx_pause, chk_yaxis_auto_scale);
 
 
             InitDisplayDelegate = new InitDisplayDelegateHandler(OnInitDisplay);
@@ -351,7 +337,6 @@ namespace Velociraptor
             DisplayStatisticsDelegate = new DisplayStatisticsDelegateHandler(DisplayStatistics);
             DisplayDataFormatDelegate = new DisplayDataFormatDelegateHandler(DisplayDataFormat);
             DisplaySodxAcquisitionDelegate = new DisplaySodxAcquisitionDelegateHandler(DisplaySodxAcquisition);
-            UpdateInitDisplayDelegate = new UpdateInitDisplayDelegateHandler(_OnUpdateInitDisplay);
             _eventOnClientConnect = new cClientSocket.OnClientConnectEventHandler(OnClientConnect);
             _eventOnClientDisconnect = new cClientSocket.OnClientDisconnectEventHandler(OnClientDisconnect);
             _eventOnUpdateCommandData = new cClientCommunication.OnReceiveCommandDataEventHandler(OnUpdateCommandData);
@@ -362,7 +347,7 @@ namespace Velociraptor
             _eventOnError = new cErrorEventArgs.OnErrorEventHandler(_OnError);
             _eventOnFiltersRemove = new cSelectingFilters.OnFiltersRemoveEventHandler(_OnFiltersRemove);
             _eventOnFiltersAdd = new cSelectingFilters.OnFiltersAddEventHandler(_OnFiltersAdd);
-            CloseForm = new CloseFormDelegate(CloseOnStart);
+            _eventCloseForm = new CloseFormDelegate(_OnCloseOnStart);
             //CCD Range
             _ccd_range = new sCCDRange(0, 0);
 
@@ -370,7 +355,7 @@ namespace Velociraptor
         }
         #endregion
         #region CloseOnStart
-        private void CloseOnStart(object sender, EventArgs e)
+        private void _OnCloseOnStart(object sender, EventArgs e)
         {
             this.Close();
         }
@@ -382,6 +367,11 @@ namespace Velociraptor
             clsRawImage.OnValueCursorChange += new RawImage.OnValueCursorChangeEventHandler(ctrl_display_OnValueCursorChange);
 
             #region sets the client parameter
+            _client = new cClientCommunication(_rxBufferSizeOfClientSocket, _txBufferSizeOfClientSocket);
+            _client.Initialize(null, null);
+            _client.HighSpeedBase = _generalSettings.HighSpeedBase;
+            _client.SensorsBase = _generalSettings.SensorsBase;
+            _client.OpticalProbesBase = _generalSettings.OpticalProbesBase;
             _client.OnClientConnect += _eventOnClientConnect;
             _client.OnClientDisconnect += _eventOnClientDisconnect;
             _client.OnReceiveCommandData += _eventOnUpdateCommandData;
@@ -397,7 +387,7 @@ namespace Velociraptor
 
             ctrl_ip_address.Text = _generalSettings.General.IpAddress;
             #endregion
-        
+
             #region start thread
             //start process thread 
             _threadActionProcess = new cThreadProcess(Enum.GetValues(typeof(eThreadAction)).Length);
@@ -418,7 +408,6 @@ namespace Velociraptor
             _threadGui.EventUserList[(int)enEventThreadGui.PrepareHighSpeed].Set();
 
             #endregion
-            ctrl_zgc_sodx.ResourceLanguage = _generalSettings.General.ResourceLanguage;
             Text = string.Format("Sample 2 Version : {0}", Assembly.GetExecutingAssembly().GetName().Version);
 
             #region Tool Tips
@@ -442,8 +431,18 @@ namespace Velociraptor
             grp_manual_buttons.Visible = false;
             #endregion
 
+            ConnectMeasure();
             GeneralMode(null, null);
             Control.CheckForIllegalCrossThreadCalls = false;
+            if (!_motion.Init(Constants.paraFilename))
+            {
+                MessageBox.Show(_motion.GetErrorMsg());
+                _threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].Set();
+                this.Close();
+                //Application.Exit();
+                return;
+            }
+
             #region halcon window control init
             hp.SetHWindow(hWindowControl1);
             hp.WinSize = hWindowControl1.Size;
@@ -456,75 +455,9 @@ namespace Velociraptor
         #region Form Closing
         private void f_main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            #region _fifoCommandData
-            if (_fifoCommandData != null)
-            {
-                _fifoCommandData.Dispose();
-                _fifoCommandData = null;
-            }
-            #endregion
-            #region _controlUpdate
-            if (_controlUpdate != null)
-            {
-                _controlUpdate.Dispose();
-                _controlUpdate = null;
-            }
-            #endregion
-            #region FifoDataSample
-            if (_fifoDataSample != null)
-            {
-                lock (_fifoDataSample)
-                {
-
-                    if (_fifoDataSample != null)
-                    {
-                        _fifoDataSample.Dispose();
-                        _fifoDataSample = null;
-                    }
-                    _fifoDataSample = null;
-                }
-            }
-            #endregion
-
-            _motion.MotorOff();
-
             #region Settings
             _cprojectSettings.Save();
             _cprojectSettings.Project.Dispose();
-            #endregion
-            #region clsRawImage
-            if (clsRawImage != null)
-            {
-                clsRawImage.RefreshDisplay = 0;
-            }
-            #endregion
-            #region _threadDataSample
-            if (_threadDataSample != null)
-            {
-                if (_threadDataSample != null)
-                {
-                    _threadDataSample.StopThread(500);
-                    _threadDataSample.Dispose();
-                    _threadDataSample = null;
-                }
-                _threadDataSample = null;
-            }
-            #endregion
-            #region _threadActionProcess
-            if (_threadActionProcess != null)
-            {
-                _threadActionProcess.StopThread(500);
-                _threadActionProcess.Dispose();
-                _threadActionProcess = null;
-            }
-            #endregion
-            #region _threadGui
-            if (_threadGui != null)
-            {
-                _threadGui.StopThread(500);
-                _threadGui.Dispose();
-                _threadGui = null;
-            }
             #endregion
             #region _client
             if (_client != null)
@@ -542,26 +475,19 @@ namespace Velociraptor
                 _client = null;
             }
             #endregion
-            #region _displayDataSodx
-            if (_displayDataSodx != null)
+            #region _threadDataSample
+            if (_threadDataSample != null)
             {
-                _displayDataSodx.Dispose();
-                _displayDataSodx = null;
+                if (_threadDataSample != null)
+                {
+                    _threadDataSample.StopThread(500);
+                    _threadDataSample.Dispose();
+                    _threadDataSample = null;
+                }
+                _threadDataSample = null;
             }
             #endregion
-            if (_threadAcquisitionProcess != null)
-            {
-                _threadAcquisitionProcess.StopThread(500);
-                _threadAcquisitionProcess.Dispose();
-                _threadAcquisitionProcess = null;
-            }
-
-
-            // Ends the motion API.
-            //Application.Exit();
-
-
-
+            _motion.MotorOff();
             #region _fifoCommandData
             if (_fifoCommandData != null)
             {
@@ -586,39 +512,6 @@ namespace Velociraptor
                 _fifoDataSample = null;
             }
             #endregion
-            #region _fifoDataSodx
-            if (_fifoDataSodx != null)
-            {
-                _fifoDataSodx.OnError -= _eventOnError;
-                _fifoDataSodx.Dispose();
-                _fifoDataSodx = null;
-            }
-            #endregion
-            #region _controlUpdate
-            if (_controlUpdate != null)
-            {
-                _controlUpdate.Dispose();
-                _controlUpdate = null;
-            }
-            #endregion
-            #region _saveFilteredData
-            if (_saveFilteredData != null)
-            {
-                _saveFilteredData.Dispose();
-                _saveFilteredData = null;
-            }
-            #endregion
-            #region _selectingFilters
-            if (_selectingFilters != null)
-            {
-                _selectingFilters.OnFiltersAdd -= _eventOnFiltersAdd;
-                _selectingFilters.OnFiltersRemove -= _eventOnFiltersRemove;
-                _selectingFilters.Dispose();
-                _selectingFilters = null;
-            }
-            #endregion
-
-
         }
         #endregion
         #endregion
@@ -657,7 +550,6 @@ namespace Velociraptor
                 if (_threadGui.EventUserList[(int)enEventThreadGui.InitDisplay].WaitOne(0))
                 {
                     this.Invoke(this.InitDisplayDelegate, new object[] { this });
-                    this.Invoke(this.UpdateInitDisplayDelegate, new object[] { this });
                     _threadGui.EventUserList[(int)enEventThreadGui.PrepareHighSpeed].Set();
                 }
                 #endregion
@@ -802,16 +694,6 @@ namespace Velociraptor
                     this.Invoke(new cClientIhm.UpdateDisplayErrorDelegateHandler(cClientIhm.FuncUpdateDisplayErrorDelegateHandler), lst_log, _errorList);
                 }
                 #endregion
-                #region UpdateButton
-                if (_threadGui.EventUserList[(int)enEventThreadGui.eUpdateButton].WaitOne(0))
-                {
-                    Invoke((Action)(() =>
-                    {
-                        btn_connection.Enabled = (_client != null) && (_client.ClientIsConnected == false);
-                    }));
-                }
-                #endregion
-
             }
             _threadGui.EventExitProcessThreadDo.Set();
         }
@@ -827,21 +709,47 @@ namespace Velociraptor
             {
                 while (_threadActionProcess.EventExitProcessThread.WaitOne(timeoutValue) == false)
                 {
-
+                    #region Close App; Stop threads
+                    if (_threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].WaitOne(0))
+                    {
+                        if (_threadDataSample != null)
+                        {
+                            _threadActionProcess.StopThread(500);
+                            _threadActionProcess.Dispose();
+                            _threadActionProcess = null;
+                        }
+                        if (_threadGui != null)
+                        {
+                            _threadGui.StopThread(500);
+                            _threadGui.Dispose();
+                            _threadGui = null;
+                        }
+                        if (_threadAcquisitionProcess != null)
+                        {
+                            _threadAcquisitionProcess.StopThread(500);
+                            _threadAcquisitionProcess.Dispose();
+                            _threadAcquisitionProcess = null;
+                        }
+                        _threadActionProcess.EventExitProcessThread.Set();
+                        continue;
+                    }
+                    #endregion
                     #region Connect/Disconnect
                     if (_client != null)
                     {
                         //calculate statistics Timeout                    
-                        if (timeout.IsTimeout())
+                        if (timeout.IsTimeout() 
+                            && ((_threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].WaitOne(0)) 
+                                || (_threadActionProcess.EventUserList[(int)eThreadAction.eClientDisconnect].WaitOne(0))))
                         {
-                            GC.Collect();
+                            //GC.Collect();
                             switch (_threadAction)
                             {
                                 //client connect
                                 case eThreadAction.eClientConnect:
-                                    _threadAction = (_client.Open()) ? eThreadAction.None : eThreadAction.eClientDisconnect;
-                                    if (_threadAction == eThreadAction.None)
+                                    if (_client.Open())
                                     {
+                                        _threadAction = eThreadAction.None;
                                         sVersion version = _client.Version;
                                         _saveFilteredData.SaturationLevelIntensity = _client.SaturationLevelIntensity;
                                         _generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
@@ -855,6 +763,11 @@ namespace Velociraptor
                                         _client.SelectOutputFormat = _generalSettings.General.SodxCommand;
                                         _client.TriggerStop();
                                         _threadGui.EventUserList[(int)enEventThreadGui.PrepareHighSpeed].Set();
+                                    }
+                                    else
+                                    {
+                                        _threadAction = eThreadAction.eClientDisconnect;
+                                        _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
                                     }
                                     if ((_client != null) && (_client.DnldCommand != null))
                                     {
@@ -877,21 +790,21 @@ namespace Velociraptor
                                                 }
                                             }
                                         }
-                                        btn_connection.Text = "相機斷線";
                                     }
-
                                     break;
-                                //client disconnect
                                 case eThreadAction.eClientDisconnect:
                                     _client.Close();
                                     _threadAction = eThreadAction.None;
-                                    btn_connection.Text = "相機連線";
+                                    MessageBox.Show("量測用相機連線失敗");
                                     break;
                             }
                             if (_threadGui != null)
                             {
-                                _threadGui.EventUserList[(int)enEventThreadGui.DisplayStatistics].Set();
-                                _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].Set();
+                                if (is_advanced_mode)
+                                {
+                                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayStatistics].Set();
+                                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].Set();
+                                }
                             }
                         }
                     }
@@ -1015,6 +928,10 @@ namespace Velociraptor
             catch (Exception ex)
             {
                 MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this._eventCloseForm?.Invoke(null, null);
             }
         }
         #endregion
@@ -1183,30 +1100,6 @@ namespace Velociraptor
         #endregion
 
         #region 按鈕Click事件
-        #region Connection Click
-        private void btn_connection_Click(object sender, EventArgs e)
-        {
-
-            if (_client != null)
-            {
-                _client.IP = IPAddress.Parse(ctrl_ip_address.Text);
-                _generalSettings.General.IpAddress = ctrl_ip_address.Text;
-                lock (_lockActionProcess)
-                {
-                    _threadAction = (_client.ClientIsConnected) ? eThreadAction.eClientDisconnect : eThreadAction.eClientConnect;
-                    if (_client.ClientIsConnected)
-                    {
-                        _eventActionProcessControlList.Add(new sEventActionProcessControl(eThreadAction.eClientDisconnect, _generalSettings));
-                    }
-                    else
-                    {
-                        _eventActionProcessControlList.Add(new sEventActionProcessControl(eThreadAction.eClientConnect, _generalSettings));
-                    }
-                }
-            }
-        }
-        #endregion
-
         #region btn_dark_Click
         private void btn_dark_Click(object sender, EventArgs e)
         {
@@ -1243,6 +1136,7 @@ namespace Velociraptor
                 tabControlMain.TabPages.Add(tbp_motion); //Add a tab page
                 grp_cursor.Visible = true;
                 grp_align_test.Visible = true;
+                btn_connection_ip.Visible = true;
             }
             else
             {
@@ -1259,6 +1153,7 @@ namespace Velociraptor
             tabControlMain.TabPages.Remove(tbp_motion); //Remove a tab page
             grp_cursor.Visible = false;
             grp_align_test.Visible = false;
+            btn_connection_ip.Visible = false;
 
             timer = new System.Timers.Timer(1);//定時週期0.001秒
             timer.Elapsed += ntb_cur_pos;//定時時間到的時候的回撥函式
@@ -1826,24 +1721,6 @@ namespace Velociraptor
             _clu_cbx_high_speed = new sControlUpdateEx(cbx_high_speed);
             _controlUpdate.ControlUpdateList.Add(_clu_cbx_high_speed);
             _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].Set();
-
-        }
-        #endregion   
-        #region _OnUpdateInitDisplay
-        private void _OnUpdateInitDisplay(System.Windows.Forms.Form form)
-        {
-            //SODX graphic-----------------------------------------------------------------
-            ctrl_zgc_sodx.DisplayInit();
-            ctrl_zgc_sodx.SetXAxisTitle("Fibers", Color.Black, Color.SkyBlue, 8);
-            ctrl_zgc_sodx.SetYAxisTitle("Value", Color.Black, Color.SkyBlue, 8);
-            ctrl_zgc_sodx.GraphPane.YAxis.Title.FontSpec.Angle = 90;
-            ctrl_zgc_sodx.GraphPane.XAxis.Scale.Min = 90;
-            ctrl_zgc_sodx.GraphPane.XAxis.Scale.Max = _generalSettings.General.Sensor.NumberOfFibers;
-            ctrl_zgc_sodx.GraphPane.YAxis.Scale.Min = 0;
-            ctrl_zgc_sodx.GraphPane.YAxis.Scale.Max = 0x7FFF;
-            ctrl_zgc_sodx.AxisChange();
-            btn_connection_Click(null, null);
-            _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].Set();
             _threadGui.EventUserList[(int)enEventThreadGui.DisplaySampleRate].Set();
             Invalidate();
         }
@@ -2086,10 +1963,6 @@ namespace Velociraptor
         {
             if ((dataSample != null) && (_displayDataSodx != null))
             {
-
-                ntb_x_cur_pos.Text = "";
-                ntb_y_cur_pos.Text = "";
-                ntb_z_cur_pos.Text = "";
 
                 lbl_global_signal_start_time_value.BackColor = Color.PaleTurquoise;
                 lbl_global_signal_sample_counter_value.BackColor = Color.PaleTurquoise;
@@ -2556,6 +2429,65 @@ namespace Velociraptor
         {
             SynOperation op = new SynOperation();
             op.DoAlignment();
+        }
+
+        private void btn_trigger_Click(object sender, EventArgs e)
+        {
+            if ((_client != null) && (_client.DnldCommand != null))
+            {
+                if (_client.DnldCommand.IsBusyDownloadRaw)
+                {
+                    _client.DnldCommand.StopDownloadRaw();
+                }
+                else
+                {
+                    UInt32 ivalue = 0;
+                    sSpectrumRaw spectrumRaw = new sSpectrumRaw();
+                    if (UInt32.TryParse(ntb_dnld_first_channel.Text, out ivalue))
+                    {
+                        spectrumRaw.FirstChannel = ivalue;
+                        if (UInt32.TryParse(ntb_dnld_number_of_channels.Text, out ivalue))
+                        {
+                            spectrumRaw.NumberOfChannels = ivalue;
+                            spectrumRaw.SpectraId = (uint)eSpectraId.SpectraIdRawSpectrum;
+                            _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
+                        }
+                    }
+                }
+            }
+        }
+        private void ConnectMeasure()
+        { 
+            if (_client != null)
+            {
+                if (_generalSettings.General.IpAddress == "")
+                {
+                    btn_connection_ip_Click(null, null);
+                }
+                lock (_lockActionProcess)
+                {
+                    _threadAction = (_client.ClientIsConnected) ? eThreadAction.eClientDisconnect : eThreadAction.eClientConnect;
+                    switch (_threadAction)
+                    {
+                        case eThreadAction.eClientConnect:
+                            _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
+                            break;
+                        case eThreadAction.eClientDisconnect:
+                            _threadActionProcess.EventUserList[(int)eThreadAction.eClientDisconnect].Set();
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void btn_connection_ip_Click(object sender, EventArgs e)
+        {
+            ConnectionIpForm frm = new ConnectionIpForm();
+            if (frm.ShowDialog() == DialogResult.OK)
+            {
+                _client.IP = IPAddress.Parse(frm.ctrl_ip_address.Text);
+                _generalSettings.General.IpAddress = frm.ctrl_ip_address.Text;
+            }
         }
     }
 }
