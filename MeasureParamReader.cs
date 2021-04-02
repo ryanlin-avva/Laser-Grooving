@@ -28,7 +28,7 @@ namespace Velociraptor
 
         public MeasureParamReader(string iniPath)
         {
-            filePath = iniPath;
+            filePath = System.Environment.CurrentDirectory + "//" + iniPath;
             bufferSize = 512;
             lpReturnedString = new StringBuilder(bufferSize);
 

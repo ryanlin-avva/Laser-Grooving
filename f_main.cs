@@ -120,7 +120,7 @@ namespace Velociraptor
         #region ImageProcessing
         private HalconProc hp = new HalconProc();
         private HObject cur_img;
-        private HObject gray_img = null;
+        private string ImageFullPath;
         #endregion
 
         /// <summary>the current thread action</summary>
@@ -170,6 +170,7 @@ namespace Velociraptor
         sAcquisition _acquisitionTab = new sAcquisition();
         PasswordEngineer psengineerForm = new PasswordEngineer();
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
+        bool _cancelFormClosing = true;
 
         //acquisition thread
         int _dataAcquisitionNumber = 0;
@@ -215,9 +216,9 @@ namespace Velociraptor
 
         private int _measure_distance;
         private bool is_advanced_mode = false;
-        public Motions _motion = new Motions();
-        public MeasureParamReader measureParamReader;
-
+        private Motions _motion = new Motions();
+        private MeasureParamReader measureParamReader;
+        private SynOperation _syn_op;
         cCurve _curve_v1 = null;
         cCurve _curve_v2 = null;
         cCurve _curve_v3 = null;
@@ -235,6 +236,8 @@ namespace Velociraptor
         private int _die_col_count = 0;
         private int[] _mea_pts_rows;
         private int[] _mea_pts_cols;
+        //die_side (um) 0:x邊長, 1:y邊長, 2:切割道寬度
+        private double[] die_side = new double[3];
         #endregion
         #region delegate function for precitec
         delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
@@ -352,6 +355,8 @@ namespace Velociraptor
             _ccd_range = new sCCDRange(0, 0);
 
             cb_SelectMeasureDistance.SelectedIndex = 3;
+
+            _syn_op = new SynOperation(_motion, hp);
         }
         #endregion
         #region CloseOnStart
@@ -458,6 +463,8 @@ namespace Velociraptor
             #region Settings
             _cprojectSettings.Save();
             _cprojectSettings.Project.Dispose();
+            _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
+            _generalSettings.SaveSettings();
             #endregion
             #region _client
             if (_client != null)
@@ -469,8 +476,6 @@ namespace Velociraptor
                 _client.OnUpdateIhm -= _eventOnUpdateIhm;
                 _client.OnClientConnect -= _eventOnClientConnect;
                 _client.OnClientDisconnect -= _eventOnClientDisconnect;
-                _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
-                _generalSettings.SaveSettings();
                 _client.Dispose();
                 _client = null;
             }
@@ -480,7 +485,7 @@ namespace Velociraptor
             {
                 if (_threadDataSample != null)
                 {
-                    _threadDataSample.StopThread(500);
+                    _threadDataSample.StopThread(50);
                     _threadDataSample.Dispose();
                     _threadDataSample = null;
                 }
@@ -488,6 +493,8 @@ namespace Velociraptor
             }
             #endregion
             _motion.MotorOff();
+            if (_displayDataSodx != null)
+                _displayDataSodx.Dispose();
             #region _fifoCommandData
             if (_fifoCommandData != null)
             {
@@ -512,6 +519,7 @@ namespace Velociraptor
                 _fifoDataSample = null;
             }
             #endregion
+            _threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].Set();
         }
         #endregion
         #endregion
@@ -714,19 +722,19 @@ namespace Velociraptor
                     {
                         if (_threadDataSample != null)
                         {
-                            _threadActionProcess.StopThread(500);
+                            _threadActionProcess.StopThread(50);
                             _threadActionProcess.Dispose();
                             _threadActionProcess = null;
                         }
                         if (_threadGui != null)
                         {
-                            _threadGui.StopThread(500);
+                            _threadGui.StopThread(50);
                             _threadGui.Dispose();
                             _threadGui = null;
                         }
                         if (_threadAcquisitionProcess != null)
                         {
-                            _threadAcquisitionProcess.StopThread(500);
+                            _threadAcquisitionProcess.StopThread(50);
                             _threadAcquisitionProcess.Dispose();
                             _threadAcquisitionProcess = null;
                         }
@@ -1568,6 +1576,26 @@ namespace Velociraptor
         #region btn_auto_measurement
         private void btn_auto_measurement(object sender, EventArgs e)
         {
+            if (tb_dieX.Text == "" || tb_dieY.Text == "")
+            {
+                MessageBox.Show("請先輸入die的邊長");
+                return;
+            }
+
+            //轉正
+            VisionCalibrator vc = new VisionCalibrator();
+            die_side[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
+            die_side[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_side[2] = Constants.SCRIBE_LINE_WIDTH;
+            int threshold = Int32.Parse(tbThreshold.Text);
+            if (!_syn_op.DoAlignment(cur_img, threshold, ref die_side))
+            {
+                MessageBox.Show(_syn_op.Err_msg);
+                return;
+            }
+            die_side[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(die_side[Constants.WAY_HORIZONTAL]);
+            die_side[Constants.WAY_VERTICAL] = vc.Pixel2Um_Y(die_side[Constants.WAY_VERTICAL]);
+
             AutoParamsForm form = new AutoParamsForm();
             if (form.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
@@ -1609,13 +1637,7 @@ namespace Velociraptor
                     _mea_pts_rows[8] = -r; _mea_pts_cols[8] = c; //right-bottom
                 }
             }
-            SynOperation op = new SynOperation();
-            if (!op.DoAlignment())
-            {
-                MessageBox.Show("轉正失敗，請重新調整焦距或切割道閥值");
-                return;
-            }
-            op.DoAutoScan(_wafer_id, _mea_pts_rows, _mea_pts_cols);
+            _syn_op.DoAutoScan(_wafer_id, _mea_pts_rows, _mea_pts_cols);
         }
         #endregion
         #region btn_move_Click
@@ -2425,10 +2447,27 @@ namespace Velociraptor
             grp_manual_buttons.Visible = !grp_manual_buttons.Visible;
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void btn_align_Click(object sender, EventArgs e)
         {
-            SynOperation op = new SynOperation();
-            op.DoAlignment();
+            if (tb_dieX.Text == "" || tb_dieY.Text == "")
+            {
+                MessageBox.Show("請先輸入die的邊長");
+                return;
+            }
+
+            //轉正
+            VisionCalibrator vc = new VisionCalibrator();
+            die_side[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
+            die_side[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_side[2] = Constants.SCRIBE_LINE_WIDTH;
+            int threshold = Int32.Parse(tbThreshold.Text);
+            if (!_syn_op.DoAlignment(cur_img, threshold, ref die_side))
+            {
+                MessageBox.Show(_syn_op.Err_msg);
+                return;
+            }
+            die_side[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(die_side[Constants.WAY_HORIZONTAL]);
+            die_side[Constants.WAY_VERTICAL] = vc.Pixel2Um_Y(die_side[Constants.WAY_VERTICAL]);
         }
 
         private void btn_trigger_Click(object sender, EventArgs e)
@@ -2487,6 +2526,43 @@ namespace Velociraptor
             {
                 _client.IP = IPAddress.Parse(frm.ctrl_ip_address.Text);
                 _generalSettings.General.IpAddress = frm.ctrl_ip_address.Text;
+            }
+        }
+
+        private void btn_load_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Filter = "txt files (*.case)|*.case|All files (*.*)|*.*";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                ParamMgr param = new ParamMgr();
+                param.Read(openFileDialog1.FileName);
+                tbThreshold.Text = param.ThresholdStr;
+                die_side[0] = param.Width;
+                die_side[1] = param.Height;
+                die_side[2] = Constants.SCRIBE_LINE_WIDTH;
+                tbThreshold.Text = param.Threshold.ToString();
+                tb_dieX.Text = param.Width.ToString();
+                tb_dieY.Text = param.Height.ToString();
+                ImageFullPath = param.ImageFilePath;
+                cur_img = hp.LoadImage(ImageFullPath);
+            }
+        }
+
+
+        private void btn_find_angle_Click(object sender, EventArgs e)
+        {
+            double w=0, h=0, angle=0;
+            int threshold = Int32.Parse(tbThreshold.Text);
+            if (_syn_op.find_angle(cur_img, threshold, ref die_side, ref angle))
+            {
+                lb_die_side.Text = "邊長: " + w.ToString("0.###")
+                    + " X " + h.ToString("0.###");
+                lb_angle.Text = "角度: " + angle.ToString("0.####");
+
+            }
+            else
+            {
+                MessageBox.Show(_syn_op.Err_msg);
             }
         }
     }

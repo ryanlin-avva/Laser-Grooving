@@ -91,6 +91,12 @@ namespace Velociraptor
         {
             return _scan_mode;
         }
+        public bool MoveTo(char axis_char, double distance, bool isRelative = true)
+        {
+            if (isSimulate) return true;
+            //TO-DO 加上轉動的double
+            return true;
+        }
         public bool MoveTo(char axis_char, int distance, bool isRelative = true)
         {
             if (isSimulate) return true;

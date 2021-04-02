@@ -66,5 +66,9 @@ namespace Velociraptor
         //在擬線前，線段選取範圍的最小長度不能大於這個值(大約1/4 FOV)
         //否則碰到大die，很可能找不到適當的線段
         public const int SELECT_LENGTH_LOWER_BOUND = 500;
+        //切割道寬度
+        public const int SCRIBE_LINE_WIDTH = 40;
+        //切割道顏色
+        public const bool SCRIBE_IS_DARK = true;
     }
 }

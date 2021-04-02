@@ -95,9 +95,15 @@ namespace Velociraptor
             HOperatorSet.ClearWindow(HvDefaultWinHandle);
             HOperatorSet.DispObj(img, HvDefaultWinHandle);
         }
-        public void PrepareGrayImage(HObject img, ref HObject gray_img)
+        public void PrepareGrayImage(HObject img, out HObject gray_img)
         {
-            if (img == null) return;
+            HOperatorSet.GenEmptyObj(out gray_img);
+            if (img == null)
+            {
+                gray_img.Dispose();
+                gray_img = null;
+                return;
+            }
             HTuple h_channel;
             HOperatorSet.CountChannels(img, out h_channel);
             if (h_channel == 3)
