@@ -204,6 +204,10 @@
             this.btn_unload_wafer = new System.Windows.Forms.Button();
             this.btn_load_wafer = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.tb_dieY = new System.Windows.Forms.TextBox();
+            this.tb_dieX = new System.Windows.Forms.TextBox();
+            this.tbExposure = new System.Windows.Forms.TextBox();
+            this.tbThreshold = new System.Windows.Forms.TextBox();
             this.grp_align_test = new System.Windows.Forms.GroupBox();
             this.btn_find_angle = new System.Windows.Forms.Button();
             this.btn_load = new System.Windows.Forms.Button();
@@ -223,11 +227,7 @@
             this.button5 = new System.Windows.Forms.Button();
             this.hWindowControl1 = new HalconDotNet.HWindowControl();
             this.button3 = new System.Windows.Forms.Button();
-            this.tbThreshold = new System.Windows.Forms.TextBox();
-            this.tbExposure = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.tb_dieX = new System.Windows.Forms.TextBox();
-            this.tb_dieY = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -2722,6 +2722,38 @@
             this.panel1.Size = new System.Drawing.Size(1592, 462);
             this.panel1.TabIndex = 161;
             // 
+            // tb_dieY
+            // 
+            this.tb_dieY.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tb_dieY.Location = new System.Drawing.Point(978, 175);
+            this.tb_dieY.Name = "tb_dieY";
+            this.tb_dieY.Size = new System.Drawing.Size(104, 30);
+            this.tb_dieY.TabIndex = 182;
+            // 
+            // tb_dieX
+            // 
+            this.tb_dieX.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tb_dieX.Location = new System.Drawing.Point(978, 65);
+            this.tb_dieX.Name = "tb_dieX";
+            this.tb_dieX.Size = new System.Drawing.Size(104, 30);
+            this.tb_dieX.TabIndex = 181;
+            // 
+            // tbExposure
+            // 
+            this.tbExposure.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tbExposure.Location = new System.Drawing.Point(21, 247);
+            this.tbExposure.Name = "tbExposure";
+            this.tbExposure.Size = new System.Drawing.Size(126, 30);
+            this.tbExposure.TabIndex = 180;
+            // 
+            // tbThreshold
+            // 
+            this.tbThreshold.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tbThreshold.Location = new System.Drawing.Point(21, 113);
+            this.tbThreshold.Name = "tbThreshold";
+            this.tbThreshold.Size = new System.Drawing.Size(126, 30);
+            this.tbThreshold.TabIndex = 179;
+            // 
             // grp_align_test
             // 
             this.grp_align_test.Controls.Add(this.btn_find_angle);
@@ -2806,6 +2838,7 @@
             // 
             // btn_save
             // 
+            this.btn_save.Enabled = false;
             this.btn_save.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.btn_save.Image = global::Velociraptor.Properties.Resources.save;
             this.btn_save.Location = new System.Drawing.Point(198, 26);
@@ -2814,6 +2847,8 @@
             this.btn_save.Size = new System.Drawing.Size(77, 74);
             this.btn_save.TabIndex = 176;
             this.btn_save.UseVisualStyleBackColor = true;
+            this.btn_save.Visible = false;
+            this.btn_save.Click += new System.EventHandler(this.btn_save_Click);
             // 
             // btn_start_mea
             // 
@@ -2825,6 +2860,7 @@
             this.btn_start_mea.Size = new System.Drawing.Size(77, 74);
             this.btn_start_mea.TabIndex = 175;
             this.btn_start_mea.UseVisualStyleBackColor = true;
+            this.btn_start_mea.Click += new System.EventHandler(this.btn_start_mea_Click);
             // 
             // label39
             // 
@@ -2942,41 +2978,9 @@
             this.button3.Text = "切割道\r\n閥值";
             this.button3.UseVisualStyleBackColor = true;
             // 
-            // tbThreshold
-            // 
-            this.tbThreshold.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tbThreshold.Location = new System.Drawing.Point(21, 113);
-            this.tbThreshold.Name = "tbThreshold";
-            this.tbThreshold.Size = new System.Drawing.Size(126, 30);
-            this.tbThreshold.TabIndex = 179;
-            // 
-            // tbExposure
-            // 
-            this.tbExposure.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tbExposure.Location = new System.Drawing.Point(21, 247);
-            this.tbExposure.Name = "tbExposure";
-            this.tbExposure.Size = new System.Drawing.Size(126, 30);
-            this.tbExposure.TabIndex = 180;
-            // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // tb_dieX
-            // 
-            this.tb_dieX.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tb_dieX.Location = new System.Drawing.Point(978, 65);
-            this.tb_dieX.Name = "tb_dieX";
-            this.tb_dieX.Size = new System.Drawing.Size(104, 30);
-            this.tb_dieX.TabIndex = 181;
-            // 
-            // tb_dieY
-            // 
-            this.tb_dieY.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tb_dieY.Location = new System.Drawing.Point(978, 175);
-            this.tb_dieY.Name = "tb_dieY";
-            this.tb_dieY.Size = new System.Drawing.Size(104, 30);
-            this.tb_dieY.TabIndex = 182;
             // 
             // f_main
             // 

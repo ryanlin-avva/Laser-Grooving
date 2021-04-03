@@ -9,7 +9,7 @@ using MagicCommonLibrary;
 using MagicGraphicLibrary;
 using MagicServerLibrary;
 using ZedGraph;
-
+using System.Diagnostics;
 
 namespace MagicAddOn
 {
@@ -311,6 +311,8 @@ namespace MagicAddOn
 
                 while (!_threadGui.EventExitProcessThread.WaitOne(timeoutValue))
                 {
+                    //Debug.WriteLine("CDisplayDataSodx ThreadGuiLoop");
+
                     #region FifoEventThreadGui
                     if (_fifoEventThreadGui != null)
                     {
@@ -647,6 +649,7 @@ namespace MagicAddOn
 
                 while (!_threadFifo.EventExitProcessThread.WaitOne(timeoutDefaultValue))
                 {
+                    //Debug.WriteLine("CDisplayDataSodx ThreadFifoLoop");
                     try
                     {
                         _mutex.WaitOne(-1);

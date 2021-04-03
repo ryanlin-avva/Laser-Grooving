@@ -46,8 +46,8 @@ namespace Velociraptor
             bool found = false;
             while (true)
             {
-                Debug.WriteLine("*************SegmentLines**** " + trycnt.ToString()
-                                + ":" + tuner.GetCurParam().ToString());
+                //Debug.WriteLine("*************SegmentLines**** " + trycnt.ToString()
+                //                + ":" + tuner.GetCurParam().ToString());
                 List<MyLine> keeper = new List<MyLine>();
                 hp.SegmentLines(my_img, tuner.GetCurParam(), ref keeper);
                 int[] ori_cnt = new int[2]; //segmentLines找到的線段總數-應有數量

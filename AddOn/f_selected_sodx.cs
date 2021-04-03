@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using MagicCommonLibrary;
 using MagicServerLibrary;
+using System.Diagnostics;
 
 namespace MagicAddOn
 {
@@ -63,6 +64,8 @@ namespace MagicAddOn
             {
                 while (_threadProcess.EventExitProcessThread.WaitOne(100) == false)
                 {
+                    //Debug.WriteLine("f_selected_sodx ThreadGuiLoop");
+
                     if (_threadProcess.EventUserList[(int)eThreadAction.UpdatedDataToForm].WaitOne(0))
                     {
                         IsBusyToUpdate = true;

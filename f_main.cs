@@ -170,15 +170,12 @@ namespace Velociraptor
         sAcquisition _acquisitionTab = new sAcquisition();
         PasswordEngineer psengineerForm = new PasswordEngineer();
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
-        bool _cancelFormClosing = true;
 
         //acquisition thread
         int _dataAcquisitionNumber = 0;
         int _dataAcquisitionCounter = 0;
         eThreadAcquisition _threadAcquisition = eThreadAcquisition.eStop;
         eThreadDisplayAcquisition _threadDisplayAcquisition = eThreadDisplayAcquisition.eRun;
-
-
 
         #region Fifo
         //Command Data Fifo
@@ -215,6 +212,7 @@ namespace Velociraptor
         #endregion
 
         private int _measure_distance;
+        private int _start_measure_pos;
         private bool is_advanced_mode = false;
         private Motions _motion = new Motions();
         private MeasureParamReader measureParamReader;
@@ -463,7 +461,8 @@ namespace Velociraptor
             #region Settings
             _cprojectSettings.Save();
             _cprojectSettings.Project.Dispose();
-            _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
+            if (_client!=null)
+                _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
             _generalSettings.SaveSettings();
             #endregion
             #region _client
@@ -520,6 +519,7 @@ namespace Velociraptor
             }
             #endregion
             _threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].Set();
+            if (_controlUpdate != null) _controlUpdate.Dispose();
         }
         #endregion
         #endregion
@@ -540,6 +540,7 @@ namespace Velociraptor
 
             while (!_threadGui.EventExitProcessThread.WaitOne(10))
             {
+                //Debug.WriteLine("ThreadGuiLoop");
                 dTimeout = _tm.FlashTiming;
                 _timoutStatisticsValue += (int)dTimeout;
                 _timoutDataSampleValue += (int)dTimeout;
@@ -717,6 +718,8 @@ namespace Velociraptor
             {
                 while (_threadActionProcess.EventExitProcessThread.WaitOne(timeoutValue) == false)
                 {
+                    //Debug.WriteLine("ThreadLoop");
+
                     #region Close App; Stop threads
                     if (_threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].WaitOne(0))
                     {
@@ -836,8 +839,8 @@ namespace Velociraptor
                         if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
                         {
 
-                            _cprojectSettings.Project.NumberOfSamples = -1;                          
-                            measureParamReader.SetStartPosition = int.Parse(ntb_x_cur_pos.Text);
+                            _cprojectSettings.Project.NumberOfSamples = -1;
+                            _start_measure_pos = int.Parse(ntb_x_cur_pos.Text);
                             _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
                             _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
                             _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
@@ -847,9 +850,9 @@ namespace Velociraptor
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, measureParamReader.EnableTriggerDuringReturnMovement);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, measureParamReader.ChooseAxis);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, measureParamReader.EndlessRountripTrigger);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, measureParamReader.SetStartPosition + _measure_distance);
+                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, _start_measure_pos + _measure_distance);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, measureParamReader.SetTriggerInterval);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, measureParamReader.SetStartPosition);
+                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, _start_measure_pos);
                             _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, measureParamReader.SelectEncoderTriggerSource);
                             #endregion
 
@@ -949,6 +952,8 @@ namespace Velociraptor
         {
             while (!_threadDataSample.EventExitProcessThread.WaitOne(0))
             {
+                //Debug.WriteLine("ThreadDataSample_0");
+
                 #region DataSample_0
                 if (_threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].WaitOne(0))  
                 {              
@@ -965,7 +970,8 @@ namespace Velociraptor
                                 if ((clsDataSample != null) && (_acquisitionTab != null)  && ((_acquisitionTab.NumberOfSamples == -1) || (_acquisitionTab.NumberOfSamples > _acquisitionTab.NumberOfAcquisition)))
                                 {
                                     #region Record                                 
-                                    if (IsInteger((clsDataSample.SignalDataList[0].DataToDouble - measureParamReader.SetStartPosition) / measureParamReader.SetTriggerInterval) && clsDataSample.SignalDataList[4].PointCount == 192 )
+                                    if (clsDataSample.SignalDataList[4].PointCount == 192)
+                                        //if (IsInteger((clsDataSample.SignalDataList[0].DataToDouble - measureParamReader.SetStartPosition) / measureParamReader.SetTriggerInterval) && clsDataSample.SignalDataList[4].PointCount == 192)
                                     {
                                         if (xpos != clsDataSample.SignalDataList[0].DataToDouble )
                                         {
@@ -2312,6 +2318,7 @@ namespace Velociraptor
 
             while (!_threadAcquisitionProcess.EventExitProcessThread.WaitOne(timeout))
             {
+                //Debug.WriteLine("ThreadAquisitionLoop");
                 lock (_fifoDataSodx)
                 {
                     do
@@ -2564,6 +2571,55 @@ namespace Velociraptor
             {
                 MessageBox.Show(_syn_op.Err_msg);
             }
+        }
+
+        private void btn_start_mea_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_client.ClientIsConnected)
+                {
+
+                    SaveFileDialog sfd_upload = new SaveFileDialog();
+                    sfd_upload.Filter = "DATA file|*.data|TXT file|*.txt|所有檔案|*.*";
+                    sfd_upload.Title = "Save a File";
+                    sfd_upload.InitialDirectory = Application.StartupPath;
+                    sfd_upload.RestoreDirectory = true;
+                    DateTime dt = DateTime.Now;
+                    string dateTimeFileName = string.Format("_{0:yy_MM_dd_HH_mm_ss}", dt);
+                    sfd_upload.FileName = String.Format("{0}", dateTimeFileName);
+                    sfd_upload.DefaultExt = "data";
+                    if ((_client != null) && (_client.DnldCommand != null))
+                    {
+                        if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
+                        {
+                            if (sfd_upload.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                            {
+                                string strFilePath = sfd_upload.FileName.ToString();
+                                _cprojectSettings.Project.DataDirectoryFilename = strFilePath;
+                                _cprojectSettings.Project.DataDirectory = strFilePath.Substring(0, strFilePath.LastIndexOf("\\"));
+                                _cprojectSettings.Project.Filename = strFilePath.Substring(strFilePath.LastIndexOf("\\") + 1);
+
+                                _threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample].Set();
+
+                                sw.Reset();//碼表歸零
+                                sw.Start();//碼表開始計時
+                            }
+                        }
+
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btn_save_Click(object sender, EventArgs e)
+        {
+            //NOT USE YET
         }
     }
 }

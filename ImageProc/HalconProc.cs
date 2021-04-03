@@ -317,8 +317,8 @@ namespace Velociraptor
         public void MouseMoveHandle(object sender, HMouseEventArgs e)
         {
             if (!mousePressed) return;
-            Debug.WriteLine("-------------------------------");
-            Debug.WriteLine("Mouse:" + e.X.ToString(".##") + "," + e.Y.ToString(".##"));
+            //Debug.WriteLine("-------------------------------");
+            //Debug.WriteLine("Mouse:" + e.X.ToString(".##") + "," + e.Y.ToString(".##"));
 
             int x1 = lastMousePos.X - (int)e.X;
             int y1 = lastMousePos.Y - (int)e.Y;
