@@ -19,8 +19,6 @@ namespace Velociraptor
         private int _scan_mode;
         private MotionParamReader _paraReader;
         private string err_msg = "";
-        private int center_pos_x;
-        private int center_pos_y;
         #region YASKAWA servor parameter control
         UInt32 g_hController = 0; // Controller handle				
         UInt32 g_hDevice;  // Device handle

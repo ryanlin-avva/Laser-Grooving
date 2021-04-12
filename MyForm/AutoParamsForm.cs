@@ -5,6 +5,15 @@ namespace Velociraptor.Form
 {
     public partial class AutoParamsForm : System.Windows.Forms.Form
     {
+        #region notch direction
+        public enum eNotchWay
+        {
+            UP
+            , DOWN
+            , LEFT
+            , RIGHT
+        }
+        #endregion
         public AutoParamsForm()
         {
             InitializeComponent();

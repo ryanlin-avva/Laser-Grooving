@@ -254,6 +254,7 @@ namespace Velociraptor
         private Motions _motion = new Motions();
         private MeasureParamReader measureParamReader;
         private SynOperation _syn_op;
+        private DBKeeper _db;
 
         #region wafer info
         private string _wafer_id;
@@ -343,6 +344,12 @@ namespace Velociraptor
             cb_SelectMeasureDistance.SelectedIndex = 3;
 
             _syn_op = new SynOperation(_motion, hp);
+            _db = new DBKeeper();
+            if (!_db.OpenSucceeded())
+            {
+                MessageBox.Show(_db.Message);
+                Environment.Exit(-1);
+            }
         }
         #endregion
         #region CloseOnStart
@@ -423,7 +430,6 @@ namespace Velociraptor
             #endregion
 
             ConnectMeasure();
-            GeneralMode(null, null);
             Control.CheckForIllegalCrossThreadCalls = false;
             if (!_motion.Init(Constants.paraFilename))
             {
@@ -443,6 +449,7 @@ namespace Velociraptor
             #endregion
 
             _motion.GetCenterPos(ref _center_pos);
+            GeneralMode(null, null);
         }
         #endregion
         #region Form Closing
@@ -855,7 +862,7 @@ namespace Velociraptor
                                 }
                             }
                             #endregion
-                            if (_motion.ScanMode() == 0)
+                            if (_motion.ScanMode() == 5)
                             {                               
                                 _threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].Set();
                                 
@@ -1613,11 +1620,20 @@ namespace Velociraptor
             _mea_pts_cols[0] = (_die_col_count % 2 == 0) ? 1 : 0;
             _mea_pos_y[0] = TransformDiePos(_mea_pts_rows[0], true);
             _mea_pos_x[0] = TransformDiePos(_mea_pts_cols[0], false);
-            if (pts_cnt > 0) //more than 1 points
+
+            DBKeeper.SCAN_DATA data = new DBKeeper.SCAN_DATA();
+            data.wafer_id = _wafer_id;
+            data.points_cnt = pts_cnt;
+            data.scan_type = _motion.ScanMode();
+            data.notch_way = form.cmb_notch.SelectedIndex;
+            if (pts_cnt > 1) //more than 1 points
             {
                 int r = int.Parse(form.tb_mea_row1.Text);
                 int c = int.Parse(form.tb_mea_col1.Text);
-                if (r > _die_row_count/2 || c > _die_col_count / 2)
+                data.row1 = r;
+                data.col1 = c;
+
+               if (r > _die_row_count/2 || c > _die_col_count / 2)
                 {
                     MessageBox.Show("指定量測的die位置，超出晶圓範圍");
                     return;
@@ -1637,6 +1653,9 @@ namespace Velociraptor
                 {
                     r = int.Parse(form.tb_mea_row2.Text);
                     c = int.Parse(form.tb_mea_col2.Text);
+                    data.row2 = r;
+                    data.col2 = c;
+
                     if (r > _die_row_count / 2 || c > _die_col_count / 2)
                     {
                         MessageBox.Show("指定量測的die位置，超出晶圓範圍");
@@ -1654,7 +1673,12 @@ namespace Velociraptor
                     _mea_pos_y[8] = -pos_y; _mea_pos_x[8] = pos_x; //left-bottom
                 }
             }
-            _syn_op.DoAutoScan(_wafer_id, _mea_pos_x, _mea_pos_y);
+            if (_syn_op.DoAutoScan(_wafer_id, _mea_pos_x, _mea_pos_y))
+                data.scan_ok = 1;
+            else
+                data.scan_ok = 0;
+            if (!_db.Insert(ref data))
+                MessageBox.Show(_db.Message);
         }
         private int TransformDiePos(int die_idx, bool is_row)
         {
