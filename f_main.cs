@@ -123,14 +123,6 @@ namespace Velociraptor
         private string ImageFullPath;
         #endregion
 
-        /// <summary>the current thread action</summary>
-        eThreadAction _threadAction = eThreadAction.None;
-        cClientCommunication _client = null;
-        /// <summary>size of rx/tx ethernet buffer</summary>
-        const int _rxBufferSizeOfClientSocket = 1024 * 1024 * 32;
-        const int _txBufferSizeOfClientSocket = 1024 * 1024 * 32;
-        /// <summary>_lock thread action process</summary>
-        object _lockActionProcess = new object();
         System.Timers.Timer timer;
         double xpos = -0.1;
         double ypos = -0.1;
@@ -138,45 +130,62 @@ namespace Velociraptor
         int counter_end = 0;
         double dataIntensityAverage = 0;
 
-        #region Threads
+        #region Threads and events
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
         /// <summary>thread to the display refresh</summary>
         cThreadProcess _threadGui = null;
         /// <summary>thread to the display refresh</summary>
         cThreadProcess _threadDataSample = null;
-
         cThreadProcess _threadAcquisitionProcess = null;
+        /// <summary>_lock thread action process</summary>
+        object _lockActionProcess = new object();
+        /// <summary>the current thread action</summary>
+        eThreadAction _threadAction = eThreadAction.None;
+        List<sEventActionProcessControl> _eventActionProcessControlList = new List<sEventActionProcessControl>();
+        List<cErrorEventArgs> _errorList = null;
+        cClientSocket.OnClientConnectEventHandler _eventOnClientConnect = null;
+        cClientSocket.OnClientDisconnectEventHandler _eventOnClientDisconnect = null;
+        cClientCommunication.OnReceiveCommandDataEventHandler _eventOnUpdateCommandData = null;
+        cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormat = null;
+        cClientCommunication.OnUpdateIhmEventHandler _eventOnUpdateIhm = null;
+        cClientCommunication.OnReceiveDataSampleEventHandler _eventOnUpdateDataSample = null;
+        cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormatEntry = null;
+        cErrorEventArgs.OnErrorEventHandler _eventOnError = null;
+        cSelectingFilters.OnFiltersRemoveEventHandler _eventOnFiltersRemove = null;
+        cSelectingFilters.OnFiltersAddEventHandler _eventOnFiltersAdd = null;
         #endregion
         #region acquisition thread
-        //int _dataAcquisitionNumber = 0;
-        //int _dataAcquisitionCounter = 0;
-        //eThreadAcquisition _threadAcquisition = eThreadAcquisition.eStop;
-
-        #endregion
-        //CCD Range
-        sCCDRange _ccd_range = null;
-        cGeneralSettings _generalSettings = null;
-
-        //cThreadProcess _threadAcquisitionProcess = null;
-
-        //bool _isStopPushButton = false;
-        //cDataSample _dataSampleGui = null;
-        cCsvWriteFiles _ccsvWriteFiles = new cCsvWriteFiles();
-        //cSelectingFilters _selectingFilters = null;
-        //cSaveFilteredData _saveFilteredData = null;
-        cProjectSettings _cprojectSettings = new cProjectSettings();
-        sProjectSettings _sprojectSettings = new sProjectSettings();
-        sAcquisition _acquisitionTab = new sAcquisition();
-        PasswordEngineer psengineerForm = new PasswordEngineer();
-        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
-
-        //acquisition thread
         int _dataAcquisitionNumber = 0;
         int _dataAcquisitionCounter = 0;
         eThreadAcquisition _threadAcquisition = eThreadAcquisition.eStop;
         eThreadDisplayAcquisition _threadDisplayAcquisition = eThreadDisplayAcquisition.eRun;
-
+        #endregion
+        #region cls_components
+        cClientCommunication _client = null;
+        /// <summary>size of rx/tx ethernet buffer</summary>
+        const int _rxBufferSizeOfClientSocket = 1024 * 1024 * 32;
+        const int _txBufferSizeOfClientSocket = 1024 * 1024 * 32;
+        sCCDRange _ccd_range = null;
+        cGeneralSettings _generalSettings = null;
+        cCsvWriteFiles _ccsvWriteFiles = new cCsvWriteFiles();
+        cProjectSettings _cprojectSettings = new cProjectSettings();
+        sProjectSettings _sprojectSettings = new sProjectSettings();
+        sAcquisition _acquisitionTab = new sAcquisition();
+        cSelectingFilters _selectingFilters = null;
+        cSaveFilteredData _saveFilteredData = null;
+        cDisplayDataSodx _displayDataSodx = null;
+        #region cursor and curve
+        cCurve _curve_v1 = null;
+        cCurve _curve_v2 = null;
+        cCurve _curve_v3 = null;
+        cRawImageCursor _cursor_raw_v1 = null;
+        cRawImageCursor _cursor_raw_v2 = null;
+        cRawImageCursor _cursor_raw_v3 = null;
+        bool _isCursorV1IndexChange = false;
+        bool _isCursorV2IndexChange = false;
+        bool _isCursorH1IndexChange = false;
+        #endregion
         #region Fifo
         //Command Data Fifo
         const int _maxNumberOfBufferInFifoCommandData = 64;
@@ -192,13 +201,6 @@ namespace Velociraptor
         private const int _maxNumberOfBufferInFifoDataFormat = 64;
         private cQueueExt _fifoDataFormat = null;
         #endregion
-        List<string[]> MultiPointList = new List<string[]>();
-        List<sEventActionProcessControl> _eventActionProcessControlList = new List<sEventActionProcessControl>();
-        List<cErrorEventArgs> _errorList = null;
-        cSelectingFilters _selectingFilters = null;
-        cSaveFilteredData _saveFilteredData = null;
-        cDisplayDataSodx _displayDataSodx = null;
-
         #region Control Update
         cControlUpdateEx _controlUpdate = null;
         sControlUpdateEx _clu_led_intensity = null;
@@ -209,33 +211,6 @@ namespace Velociraptor
         sControlUpdateEx _clu_cbx_high_speed = null;
         cControlUpdateEx.OnEventHandler _eventControlUpdateValueToText = null;
         cControlUpdateEx.OnEventHandler _eventcontrolUpdateTextToValue = null;
-        #endregion
-
-        private int _measure_distance;
-        private int _start_measure_pos;
-        private bool is_advanced_mode = false;
-        private Motions _motion = new Motions();
-        private MeasureParamReader measureParamReader;
-        private SynOperation _syn_op;
-        cCurve _curve_v1 = null;
-        cCurve _curve_v2 = null;
-        cCurve _curve_v3 = null;
-        cRawImageCursor _cursor_raw_v1 = null;
-        cRawImageCursor _cursor_raw_v2 = null;
-        cRawImageCursor _cursor_raw_v3 = null;
-        bool _isCursorV1IndexChange = false;
-        bool _isCursorV2IndexChange = false;
-        bool _isCursorH1IndexChange = false;
-
-        #region wafer info
-        private string _wafer_id;
-        private int _notch_idx;
-        private int _die_row_count = 0;
-        private int _die_col_count = 0;
-        private int[] _mea_pts_rows;
-        private int[] _mea_pts_cols;
-        //die_side (um) 0:x邊長, 1:y邊長, 2:切割道寬度
-        private double[] die_side = new double[3];
         #endregion
         #region delegate function for precitec
         delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
@@ -268,18 +243,31 @@ namespace Velociraptor
         delegate void CloseFormDelegate(object sender, EventArgs e);
         CloseFormDelegate _eventCloseForm;
         #endregion
+        #endregion
 
-        cClientSocket.OnClientConnectEventHandler _eventOnClientConnect = null;
-        cClientSocket.OnClientDisconnectEventHandler _eventOnClientDisconnect = null;
-        cClientCommunication.OnReceiveCommandDataEventHandler _eventOnUpdateCommandData = null;
-        cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormat = null;
-        cClientCommunication.OnUpdateIhmEventHandler _eventOnUpdateIhm = null;
-        cClientCommunication.OnReceiveDataSampleEventHandler _eventOnUpdateDataSample = null;
-        cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormatEntry = null;
-        cErrorEventArgs.OnErrorEventHandler _eventOnError = null;
-        cSelectingFilters.OnFiltersRemoveEventHandler _eventOnFiltersRemove = null;
-        cSelectingFilters.OnFiltersAddEventHandler _eventOnFiltersAdd = null;
+        PasswordEngineer psengineerForm = new PasswordEngineer();
+        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
 
+        private int _measure_distance;
+        private int _start_measure_pos;
+        private bool is_advanced_mode = false;
+        private Motions _motion = new Motions();
+        private MeasureParamReader measureParamReader;
+        private SynOperation _syn_op;
+
+        #region wafer info
+        private string _wafer_id;
+        private int _notch_idx;
+        private int _die_row_count = 0;
+        private int _die_col_count = 0;
+        private int[] _mea_pts_rows;
+        private int[] _mea_pts_cols;
+        private int[] _mea_pos_x;
+        private int[] _mea_pos_y;
+        //die_side (um) 0:x邊長, 1:y邊長, 2:切割道寬度
+        private double[] die_side = new double[3];
+        int[] _center_pos = new int[3];
+        #endregion
         #region 主程式開關
         #region Constructor
         public f_main()
@@ -299,6 +287,8 @@ namespace Velociraptor
             #endregion
 
             measureParamReader = new MeasureParamReader(Constants.paraFilename);
+            if (!Directory.Exists(measureParamReader.SavingPath))
+                Directory.CreateDirectory(measureParamReader.SavingPath);
 
             #region Fifo
             //Fifo Data Format
@@ -328,8 +318,6 @@ namespace Velociraptor
 
             InitDisplayDelegate = new InitDisplayDelegateHandler(OnInitDisplay);
             InitDownloadDisplayDelegate = new InitDownloadDisplayDelegateHandler(_OnUpdateInitDownloadDisplay);
-
-
 
             DisplayConnectionStateDelegate = new DisplayConnectionStateDelegateHandler(DisplayClientConnectionState);
             DisplayCommandDataDelegate = new DisplayCommandDataDelegateHandler(DisplayCommandData);
@@ -453,6 +441,8 @@ namespace Velociraptor
             if (File.Exists(backgroud))
                 cur_img = hp.LoadImage(backgroud);
             #endregion
+
+            _motion.GetCenterPos(ref _center_pos);
         }
         #endregion
         #region Form Closing
@@ -1587,7 +1577,11 @@ namespace Velociraptor
                 MessageBox.Show("請先輸入die的邊長");
                 return;
             }
-
+            if (tbThreshold.Text == "")
+            {
+                MessageBox.Show("請先輸入影像分割閥值");
+                return;
+            }
             //轉正
             VisionCalibrator vc = new VisionCalibrator();
             die_side[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
@@ -1612,9 +1606,13 @@ namespace Velociraptor
             int pts_cnt = form.cmb_mea_points.SelectedIndex * 4 + 1;
             _mea_pts_rows = new int[pts_cnt];
             _mea_pts_cols = new int[pts_cnt];
+            _mea_pos_y = new int[pts_cnt];
+            _mea_pos_x = new int[pts_cnt];
             //pts[0]==>central die
             _mea_pts_rows[0] = (_die_row_count % 2 == 0) ? 1 : 0;
             _mea_pts_cols[0] = (_die_col_count % 2 == 0) ? 1 : 0;
+            _mea_pos_y[0] = TransformDiePos(_mea_pts_rows[0], true);
+            _mea_pos_x[0] = TransformDiePos(_mea_pts_cols[0], false);
             if (pts_cnt > 0) //more than 1 points
             {
                 int r = int.Parse(form.tb_mea_row1.Text);
@@ -1624,10 +1622,17 @@ namespace Velociraptor
                     MessageBox.Show("指定量測的die位置，超出晶圓範圍");
                     return;
                 }
+                int pos_x = TransformDiePos(c, false);
+                int pos_y = TransformDiePos(r, true);
+
                 _mea_pts_rows[1] = r; _mea_pts_cols[1] = -c; //left-top
                 _mea_pts_rows[2] = r; _mea_pts_cols[2] = c; //right-top
                 _mea_pts_rows[3] = -r; _mea_pts_cols[3] = c; //right-bottom
                 _mea_pts_rows[4] = -r; _mea_pts_cols[4] = -c; //left-bottom
+                _mea_pos_y[1] = pos_y; _mea_pos_x[1] = -pos_x; //left-top
+                _mea_pos_y[2] = pos_y; _mea_pos_x[2] = pos_x; //right-top
+                _mea_pos_y[3] = -pos_y; _mea_pos_x[3] = pos_x; //right-bottom
+                _mea_pos_y[4] = -pos_y; _mea_pos_x[4] = -pos_x; //left-bottom
                 if (pts_cnt > 5) //9 points
                 {
                     r = int.Parse(form.tb_mea_row2.Text);
@@ -1637,13 +1642,36 @@ namespace Velociraptor
                         MessageBox.Show("指定量測的die位置，超出晶圓範圍");
                         return;
                     }
+                    pos_x = TransformDiePos(c, false);
+                    pos_y = TransformDiePos(r, true);
                     _mea_pts_rows[5] = -r; _mea_pts_cols[5] = -c; //left-bottom
                     _mea_pts_rows[6] = r; _mea_pts_cols[6] = -c; //left-top
                     _mea_pts_rows[7] = r; _mea_pts_cols[7] = c; //right-top
                     _mea_pts_rows[8] = -r; _mea_pts_cols[8] = c; //right-bottom
+                    _mea_pos_y[5] = -pos_y; _mea_pos_x[5] = -pos_x; //left-top
+                    _mea_pos_y[6] = pos_y; _mea_pos_x[6] = -pos_x; //right-top
+                    _mea_pos_y[7] = pos_y; _mea_pos_x[7] = pos_x; //right-bottom
+                    _mea_pos_y[8] = -pos_y; _mea_pos_x[8] = pos_x; //left-bottom
                 }
             }
-            _syn_op.DoAutoScan(_wafer_id, _mea_pts_rows, _mea_pts_cols);
+            _syn_op.DoAutoScan(_wafer_id, _mea_pos_x, _mea_pos_y);
+        }
+        private int TransformDiePos(int die_idx, bool is_row)
+        {
+            int idx = (is_row) ? 1 : 0;
+            int base_coor = _center_pos[idx];
+            if (_die_col_count % 2 == 1) //odd number
+            {
+                base_coor = _center_pos[idx] - (int)(die_side[idx] / 2);
+                return (int)(base_coor + die_idx * die_side[idx]);
+            }
+            else //even number
+            {
+                if (die_idx >= 0)
+                    return (int)(base_coor + (die_idx - 1) * die_side[idx]);
+                else
+                    return (int)(base_coor + die_idx * die_side[idx]);
+            }
         }
         #endregion
         #region btn_move_Click
@@ -1704,10 +1732,8 @@ namespace Velociraptor
         #region btn_load/unload_wafer_Click
         private void btn_load_wafer_Click(object sender, EventArgs e)
         {
-            int[] distance = new int[3];
-            _motion.GetCenterPos(ref distance);
             char[] axis = { 'X', 'Y', 'Z' };
-            if (!_motion.MoveTo(axis, distance, false))
+            if (!_motion.MoveTo(axis, _center_pos, false))
                 MessageBox.Show(_motion.GetErrorMsg());
         }
         private void btn_unload_wafer_Click(object sender, EventArgs e)

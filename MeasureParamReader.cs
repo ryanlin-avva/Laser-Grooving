@@ -19,6 +19,7 @@ namespace Velociraptor
         public int SetStartPosition;
         public int SelectEncoderTriggerSource;
         private int isSim;
+        public string SavingPath { get; set; }
         #endregion
         [DllImport("kernel32")]
         private static extern long WritePrivateProfileString(string section, string key, string lpString, string lpFileName);
@@ -33,7 +34,7 @@ namespace Velociraptor
             lpReturnedString = new StringBuilder(bufferSize);
 
             isSim = int.Parse(ReadIniFile("AxisMapping", "Simulate", "0"));
-
+            SavingPath = ReadIniFile("ScanParameter", "SavePath", "C:/Avva");
             #region Gets the trigger parameter
             EnableTriggerDuringReturnMovement = int.Parse(ReadIniFile("TriggerParameter", "EnableTriggerDuringReturnMovement", "0"));
             ChooseAxis = int.Parse(ReadIniFile("TriggerParameter", "ChooseAxis", "0"));
