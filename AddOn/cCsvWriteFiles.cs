@@ -17,14 +17,14 @@ namespace Velociraptor.AddOn
         //sProjectSettings _projectSettings = null;
         List<sCsvWriteFiles> _filelist = new List<sCsvWriteFiles>();
         bool _isOpen = false;
-        
+
         public List<double> data1dlist = new List<double>();
-        cProjectSettings _cprojectSettings = new cProjectSettings();   
+        cProjectSettings _cprojectSettings = new cProjectSettings();
         StreamWriter _streamWriter = null;
         #region Constructor
         public cCsvWriteFiles()
         {
-            
+
         }
         #endregion
         #region Dispose
@@ -48,8 +48,8 @@ namespace Velociraptor.AddOn
         #endregion
 
         #region Open
-        public bool Open(cProjectSettings projectSettings, string directory, string fileName,  double NumberOfSamples, int ScanningMode, int DataDirection, int ZPos)
-        {           
+        public bool Open(cProjectSettings projectSettings, string directory, string fileName, double NumberOfSamples, int ScanningMode, int DataDirection, int ZPos)
+        {
             Close();
             if (projectSettings != null)
             {
@@ -72,12 +72,12 @@ namespace Velociraptor.AddOn
                 if (ScanningMode == 0)
                 {
                     _streamWriter.Write(string.Format("5"));
-                    _streamWriter.WriteLine("");     
+                    _streamWriter.WriteLine("");
                 }
                 else
                 {
                     _streamWriter.Write(string.Format("1"));
-                    _streamWriter.WriteLine("");  
+                    _streamWriter.WriteLine("");
                 }
                 _streamWriter.Write(string.Format("{0}", DataDirection));
                 _streamWriter.WriteLine("");
@@ -113,108 +113,105 @@ namespace Velociraptor.AddOn
             }
             _filelist.Clear();
             data1dlist.Clear();
-            
+
             _isOpen = false;
             return (true);
         }
         #endregion
         #region Add
-        public bool Add(cDataSample dataSample)
+        public bool Add(sSignalData signaldata)
         {
-            
-            if ((dataSample != null) && (dataSample.SignalDataList != null)&&(_streamWriter!=null))
+
+            if ((signaldata != null) && (_streamWriter != null))
             {
-                
-                for (int idx = 0; idx < dataSample.SignalDataList.Count; idx++)
+
+                //for (int idx = 0; idx < dataSample.SignalDataList.Count; idx++)
+                //{
+                //    sSignalData signalData = dataSample.SignalDataList[idx];
+                //    sSodxCommand sodxCommand = dataSample.SodxCommandList[idx];
+                signaldata.DataType = eDataType.LongInt;
+                //sodxCommand.DataType = eDataType.LongInt;
+
+                //foreach (sCsvWriteFiles wFile in _filelist.ToArray())
+                //    {
+                //       if ((wFile.Signal == sodxCommand.Signal) && (wFile.PeakNumber == sodxCommand.PeakNumber))
+                //       {
+
+                switch (signaldata.Signal)
                 {
-                    sSignalData signalData = dataSample.SignalDataList[idx];
-                    sSodxCommand sodxCommand = dataSample.SodxCommandList[idx];
-                    signalData.DataType = eDataType.LongInt;
-                    sodxCommand.DataType = eDataType.LongInt;
-
-                    foreach (sCsvWriteFiles wFile in _filelist.ToArray())
+                    case eSodxSignal.Global_Signal_Start_Position_X:
+                        if (_streamWriter != null)
                         {
-                           if ((wFile.Signal == sodxCommand.Signal) && (wFile.PeakNumber == sodxCommand.PeakNumber))
-                           {
-                            
-                            switch (sodxCommand.Signal)
-                              {
-                                case eSodxSignal.Global_Signal_Start_Position_X:                 
-                                    if (_streamWriter != null) 
-                                    {
-                                        //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
-                                        data1dlist.Add( signalData.DataToDouble );
-                                    }
-                                    break;
-                                case eSodxSignal.Global_Signal_Start_Position_Y:
-                                    if (_streamWriter != null)
-                                    {
-                                        //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
-                                        data1dlist.Add( signalData.DataToDouble);
-                                    }
-                                    break;
-                                //case eSodxSignal.Global_Signal_Start_Position_Z:
-                                //    if (_streamWriter != null)
-                                //    {
-                                //        //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
-                                //        data1dlist.Add(signalData.DataToDouble);
-                                //    }
-                                //    break;
-                                case eSodxSignal.Altitude:
-                                    if ((_streamWriter != null) && (signalData.DataToArrayDouble != null) && (signalData.DataToArrayDouble.Length == 192))
-                                    {
-
-                                        for (int idy = 0; idy < signalData.DataToArrayDouble.Length; idy++)
-                                        {
-                                            if (Math.Round(signalData.AltitudeToArrayDouble(230)[idy]) == 230)
-                                            {
-                                                //_streamWriter.Write(string.Format("0,"));
-                                                data1dlist.Add(0);
-                                            }
-                                            else
-                                            {
-                                                //_streamWriter.Write(string.Format("{0},", Math.Round(signalData.AltitudeToArrayDouble(230)[idy], 2, MidpointRounding.AwayFromZero)));
-                                                data1dlist.Add(signalData.AltitudeToArrayDouble(230)[idy]);
-
-                                            }
-                                        }
-                                        
-                                        //if (Math.Round(signalData.AltitudeToArrayDouble(230)[signalData.DataToArrayDouble.Length - 1]) == 230)
-                                        //{
-                                        //    //_streamWriter.Write(string.Format("0,"));
-
-                                        //    data1dlist.Add(0);
-
-                                        //}
-                                        //else
-                                        //{
-                                        //    //_streamWriter.Write(string.Format("{0},", Math.Round(signalData.AltitudeToArrayDouble(230)[signalData.DataToArrayDouble.Length - 1], 2, MidpointRounding.AwayFromZero)));
-                                        //    data1dlist.Add(signalData.AltitudeToArrayDouble(230)[signalData.DataToArrayDouble.Length - 1]);          
-                                        //}
-
-                                    }
-                                    break;
-                                case eSodxSignal.Intensity_Raw:
-                                    if ((_streamWriter != null))
-                                    {
-
-                                        for (int idy = 0; idy < signalData.DataToArrayDouble.Length; idy++)
-                                        {
-                                            //_streamWriter.Write(string.Format("{0},", signalData.DataToArrayDouble[idy]));
-                                            data1dlist.Add(signalData.DataToArrayDouble[idy]);
-                                        }
-                                        //_streamWriter.Write(string.Format("{0}", signalData.DataToArrayDouble[signalData.DataToArrayDouble.Length - 1]));
-                                        //_streamWriter.WriteLine();
-
-                                    }
-                                    break;
-                            }
-                               
-                            }
+                            //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
+                            data1dlist.Add(signaldata.DataToDouble);
                         }
+                        break;
+                    case eSodxSignal.Global_Signal_Start_Position_Y:
+                        if (_streamWriter != null)
+                        {
+                            //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
+                            data1dlist.Add(signaldata.DataToDouble);
+                        }
+                        break;
+                    //case eSodxSignal.Global_Signal_Start_Position_Z:
+                    //    if (_streamWriter != null)
+                    //    {
+                    //        //_streamWriter.Write(string.Format("{0},", signalData.DataToDouble));
+                    //        data1dlist.Add(signalData.DataToDouble);
+                    //    }
+                    //    break;
+                    case eSodxSignal.Altitude:
+                        if ((_streamWriter != null) && (signaldata.DataToArrayDouble != null) && (signaldata.DataToArrayDouble.Length == 192))
+                        {
+
+                            for (int idy = 0; idy < signaldata.DataToArrayDouble.Length; idy++)
+                            {
+                                if (Math.Round(signaldata.AltitudeToArrayDouble(230)[idy]) == 230)
+                                {
+                                    //_streamWriter.Write(string.Format("0,"));
+                                    data1dlist.Add(0);
+                                }
+                                else
+                                {
+                                    //_streamWriter.Write(string.Format("{0},", Math.Round(signalData.AltitudeToArrayDouble(230)[idy], 2, MidpointRounding.AwayFromZero)));
+                                    data1dlist.Add(Math.Round(signaldata.AltitudeToArrayDouble(230)[idy], 2, MidpointRounding.AwayFromZero));
+
+                                }
+                            }
+
+                            //if (Math.Round(signalData.AltitudeToArrayDouble(230)[signalData.DataToArrayDouble.Length - 1]) == 230)
+                            //{
+                            //    //_streamWriter.Write(string.Format("0,"));
+
+                            //    data1dlist.Add(0);
+
+                            //}
+                            //else
+                            //{
+                            //    //_streamWriter.Write(string.Format("{0},", Math.Round(signalData.AltitudeToArrayDouble(230)[signalData.DataToArrayDouble.Length - 1], 2, MidpointRounding.AwayFromZero)));
+                            //    data1dlist.Add(signalData.AltitudeToArrayDouble(230)[signalData.DataToArrayDouble.Length - 1]);          
+                            //}
+
+                        }
+                        break;
+                    case eSodxSignal.Intensity_Raw:
+                        if ((_streamWriter != null))
+                        {
+
+                            for (int idy = 0; idy < signaldata.DataToArrayDouble.Length; idy++)
+                            {
+                                //_streamWriter.Write(string.Format("{0},", signalData.DataToArrayDouble[idy]));
+                                data1dlist.Add(signaldata.DataToArrayDouble[idy]);
+                            }
+                            //_streamWriter.Write(string.Format("{0}", signalData.DataToArrayDouble[signalData.DataToArrayDouble.Length - 1]));
+                            //_streamWriter.WriteLine();
+
+                        }
+                        break;
                 }
-                
                 return (true);
+
+
             }
             return (false);
 
@@ -227,34 +224,34 @@ namespace Velociraptor.AddOn
         }
         #endregion
         #region WriteList
-        public bool WriteList(cProjectSettings projectSettings,  int NumberOfSamples , int ScanningMode)
+        public bool WriteList(cProjectSettings projectSettings, int NumberOfSamples, int ScanningMode)
         {
 
-           
-                
-                if (ScanningMode == 0)
-                {
+
+
+            if (ScanningMode == 0)
+            {
                 if (data1dlist.Count < NumberOfSamples * 386)
                 {
                     MessageBox.Show("請重掃!!");
                     return (false);
                 }
                 for (int n = 0; n < (data1dlist.Count) / 386; n++)
+                {
+                    for (int i = 0; i < 386; i++)
                     {
-                        for (int i = 0; i < 386; i++)
-                        {              
-                            if (i == 385)
-                            {
-                                _streamWriter.Write(string.Format("{0}", data1dlist[i + n * 386]));
-                            }
-                            else
-                            {
-                                _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
-                            }
+                        if (i == 385)
+                        {
+                            _streamWriter.Write(string.Format("{0}", data1dlist[i + n * 386]));
                         }
-                        _streamWriter.WriteLine("");
+                        else
+                        {
+                            _streamWriter.Write(string.Format("{0},", data1dlist[i + n * 386]));
+                        }
                     }
+                    _streamWriter.WriteLine("");
                 }
+            }
             if (ScanningMode == 1)
             {
                 if (data1dlist.Count < NumberOfSamples * 386 * 5)
@@ -385,13 +382,13 @@ namespace Velociraptor.AddOn
         StreamWriter _streamWriter = null;
         eSodxSignal _signal = eSodxSignal.Unknow;
         eSodxPeakNumber _peakNumber = eSodxPeakNumber.Unknow;
-        
+
         #region Constructor
         public sCsvWriteFiles(eSodxSignal signal, eSodxPeakNumber peakNumber)
         {
             _signal = signal;
             _peakNumber = peakNumber;
-            
+
         }
         #endregion
         #region Dispose
@@ -483,7 +480,7 @@ namespace Velociraptor.AddOn
         {
             if ((_streamWriter != null) && (value != null) && (value.Length > 0))
             {
-                for (int idx = 0; idx < value.Length-1; idx++)
+                for (int idx = 0; idx < value.Length - 1; idx++)
                 {
                     _streamWriter.Write(string.Format("{0},", value[idx]));
                 }
@@ -505,8 +502,8 @@ namespace Velociraptor.AddOn
             get { return (_peakNumber); }
         }
         #endregion
-        
+
     }
-#endregion
+    #endregion
 
 }

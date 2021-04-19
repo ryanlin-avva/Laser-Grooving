@@ -13,10 +13,8 @@ namespace Velociraptor
         #region trigger parameter
         public int EnableTriggerDuringReturnMovement;
         public int ChooseAxis;
-        public int EndlessRountripTrigger;
-        public int SetStopPosition;
-        public int SetTriggerInterval;
-        public int SetStartPosition;
+        public int EndlessRountripTrigger; 
+        public float SetTriggerInterval;        
         public int SelectEncoderTriggerSource;
         private int isSim;
         public string SavingPath { get; set; }
@@ -39,10 +37,8 @@ namespace Velociraptor
             EnableTriggerDuringReturnMovement = int.Parse(ReadIniFile("TriggerParameter", "EnableTriggerDuringReturnMovement", "0"));
             ChooseAxis = int.Parse(ReadIniFile("TriggerParameter", "ChooseAxis", "0"));
             EndlessRountripTrigger = int.Parse(ReadIniFile("TriggerParameter", "EndlessRountripTrigger", "0"));
-            SetStopPosition = int.Parse(ReadIniFile("TriggerParameter", "SetStopPosition", "0"));
-            SetTriggerInterval = int.Parse(ReadIniFile("TriggerParameter", "SetTriggerInterval", "0"));
-            SetStartPosition = int.Parse(ReadIniFile("TriggerParameter", "SetStartPosition", "0"));
-            SelectEncoderTriggerSource = int.Parse(ReadIniFile("TriggerParameter", "SelectEncoderTriggerSource", "0"));
+            SetTriggerInterval = int.Parse(ReadIniFile("TriggerParameter", "SetTriggerInterval", "1"));
+            SelectEncoderTriggerSource = int.Parse(ReadIniFile("TriggerParameter", "SelectEncoderTriggerSource", "1"));
             #endregion
         }
 

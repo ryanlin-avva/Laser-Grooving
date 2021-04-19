@@ -33,20 +33,6 @@ namespace Velociraptor
             eClientDisconnect,
             /// <summary>client settings</summary>
             eClientSettings,
-            /// <summary>Start Record Data Samples.</summary>
-            StartRecordDataSample,
-            /// <summary>Start Record Data Samples.</summary>
-            StartRecordDataSample_0,
-            /// <summary>Stop Record Data Samples.</summary>
-            StopRecordDataSample,
-            /// <summary>Stop Record Data Samples.</summary>
-            StopRecordDataSample_0,
-            /// <summary>Start Move Samples Pitch 5um.</summary>
-            StartMoveSamplePitch5um,
-            /// <summary>Start Move Samples Pitch 1um.</summary>
-            StartMoveSamplePitch1um,
-            /// <summary>FifoDataSample.</summary>
-            DoMultiPointSample,
             /// <summary>close application</summary>
             eCloseApplication,
         }
@@ -124,12 +110,10 @@ namespace Velociraptor
         #endregion
 
         System.Timers.Timer timer;
-        double xpos = -0.1;
-        double ypos = -0.1;
         int counter = 0;
         int counter_end = 0;
         double dataIntensityAverage = 0;
-
+        bool startmeasure = false;
         #region Threads and events
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
@@ -274,10 +258,10 @@ namespace Velociraptor
         {
             InitializeComponent();
 
-            f_splash splash = new f_splash();
-            splash.ShowDialog();
-            splash.Dispose();
-            splash = null;
+            //f_splash splash = new f_splash();
+            //splash.ShowDialog();
+            //splash.Dispose();
+            //splash = null;
             _generalSettings = new cGeneralSettings(null, null);
             _generalSettings.Load();
 
@@ -386,13 +370,10 @@ namespace Velociraptor
             //start display thread 
             _threadGui = new cThreadProcess(Enum.GetValues(typeof(enEventThreadGui)).Length);
             _threadGui.StartThread(new ThreadStart(ThreadGuiLoop));
-            //start display thread 
-            _threadDataSample = new cThreadProcess(Enum.GetValues(typeof(eThreadDataSample)).Length);
-            _threadDataSample.StartThread(new ThreadStart(ThreadDataSample_0));
             //start acquisition thread            
             _threadAcquisitionProcess = new cThreadProcess(Enum.GetValues(typeof(eThreadAcquisition)).Length);
             _threadAcquisitionProcess.StartThread(new ThreadStart(ThreadAcquisitionLoop));
-            _threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eStop].Set();
+            
 
             _threadGui.EventUserList[(int)enEventThreadGui.InitDisplay].Set();
             _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
@@ -423,7 +404,7 @@ namespace Velociraptor
             #endregion
 
             ConnectMeasure();
-            GeneralMode(null, null);
+            
             Control.CheckForIllegalCrossThreadCalls = false;
             if (!_motion.Init(Constants.paraFilename))
             {
@@ -433,13 +414,13 @@ namespace Velociraptor
                 //Application.Exit();
                 return;
             }
-
+            GeneralMode(null, null);
             #region halcon window control init
             hp.SetHWindow(hWindowControl1);
             hp.WinSize = hWindowControl1.Size;
             string backgroud = "../../Images/background.jpg";
-            if (File.Exists(backgroud))
-                cur_img = hp.LoadImage(backgroud);
+            //if (File.Exists(backgroud))
+            //    cur_img = hp.LoadImage(backgroud);
             #endregion
 
             _motion.GetCenterPos(ref _center_pos);
@@ -451,8 +432,10 @@ namespace Velociraptor
             #region Settings
             _cprojectSettings.Save();
             _cprojectSettings.Project.Dispose();
-            if (_client!=null)
+            if (_client != null)
                 _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
+            _client.TriggerStop();
+            _client.Close();
             _generalSettings.SaveSettings();
             #endregion
             #region _client
@@ -526,9 +509,9 @@ namespace Velociraptor
             double dTimeout = _tm.FlashTiming;
             short[,] sBuffer = null;
             int _timoutStatistics = 250, _timoutStatisticsValue = 0; //Display Statistics step 250 mms
-            int _timoutDataSample = 1, _timoutDataSampleValue = 0;
+            int _timoutDataSample = 200, _timoutDataSampleValue = 0;
 
-            while (!_threadGui.EventExitProcessThread.WaitOne(10))
+            while (!_threadGui.EventExitProcessThread.WaitOne(20))
             {
                 //Debug.WriteLine("ThreadGuiLoop");
                 dTimeout = _tm.FlashTiming;
@@ -637,20 +620,24 @@ namespace Velociraptor
                             while (_fifoDataSample.Count > 0)
                             {
                                 dataSample = (cDataSample)_fifoDataSample.Dequeue();    //Display Data Sample
-                                if (dataSample != null)
+                                if (dataSample.FirstDataAfterTriggerStart)
+                                {
+                                    startmeasure = true;
+                                }
+                                if (dataSample != null && startmeasure)
                                 {
                                     if ((_threadAcquisition == eThreadAcquisition.eRun) && ((_dataAcquisitionNumber == -1) || (_dataAcquisitionNumber > 0)))
                                     {
                                         _dataAcquisitionCounter += 1;
                                         foreach (sSignalData signalData in dataSample.SignalDataList)
                                         {
-                                            if ((_selectingFilters != null) && (_selectingFilters.IsSelected(signalData) != null))
-                                            {
+                                            //if ((_selectingFilters != null) && (_selectingFilters.IsSelected(signalData) != null))
+                                            //{
                                                 lock (_fifoDataSodx)
                                                 {
                                                     _fifoDataSodx.Enqueue(signalData);
                                                 }
-                                            }
+                                            //}
                                         }
                                         if (_dataAcquisitionNumber > 0)
                                         {
@@ -658,6 +645,7 @@ namespace Velociraptor
                                             if (_dataAcquisitionNumber == 0)
                                             {
                                                 _threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eStop].Set();
+                                                startmeasure = false;
                                             }
                                         }
                                     }
@@ -739,8 +727,8 @@ namespace Velociraptor
                     if (_client != null)
                     {
                         //calculate statistics Timeout                    
-                        if (timeout.IsTimeout() 
-                            && ((_threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].WaitOne(0)) 
+                        if (timeout.IsTimeout()
+                            && ((_threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].WaitOne(0))
                                 || (_threadActionProcess.EventUserList[(int)eThreadAction.eClientDisconnect].WaitOne(0))))
                         {
                             //GC.Collect();
@@ -809,120 +797,7 @@ namespace Velociraptor
                             }
                         }
                     }
-                    #endregion
-                    #region StartRecordDataSample
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample].WaitOne(0))
-                    {
-                        if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
-                        {
-                            #region Recording = true
-                            _cprojectSettings.Project.Recording = true;
-                            #endregion
-                            _threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample_0].Set();
-                        }
-                    }
-                    #endregion
-                    #region StartRecordDataSample_0
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample_0].WaitOne(0))
-                    {
-                        _client.TriggerStop();
-                        if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
-                        {
-
-                            _cprojectSettings.Project.NumberOfSamples = -1;
-                            _start_measure_pos = int.Parse(ntb_x_cur_pos.Text);
-                            _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
-                            _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
-                            _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
-                            #region set triggerParameter
-                            UInt32[] Re_LongData = new UInt32[3];   // L size register data storage variable
-                            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, Re_LongData[0]);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, measureParamReader.EnableTriggerDuringReturnMovement);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, measureParamReader.ChooseAxis);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, measureParamReader.EndlessRountripTrigger);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, _start_measure_pos + _measure_distance);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, measureParamReader.SetTriggerInterval);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, _start_measure_pos);
-                            _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, measureParamReader.SelectEncoderTriggerSource);
-                            #endregion
-
-                            #region Clear Fifo
-                            if (_fifoDataSample != null)
-                            {
-                                lock (_fifoDataSample)
-                                {
-                                    _fifoDataSample.Clear();         //開始測量前清空
-                                }
-                            }
-                            #endregion
-                            if (_motion.ScanMode() == 0)
-                            {                               
-                                _threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].Set();
-                                
-                            }
-                            else
-                            {                              
-                                _threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch1um].Set();
-                                
-                            }
-                            _acquisitionTab.Recording = true;
-                            
-                        }
-                    }
-                    #endregion
-                    #region StopRecordDataSample
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample].WaitOne(0))
-                    {
-                        if ((_cprojectSettings != null) && (_cprojectSettings.Project != null) /*&& (_cprojectSettings.Project.Recording == false)*/)
-                        {
-                            
-                            _threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample_0].Set();
-
-                        }
-                    }
-                    #endregion
-                    #region StopRecordDataSample_0
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.StopRecordDataSample_0].WaitOne(0))
-                    {
-                        if ((_cprojectSettings != null) && (_cprojectSettings.Project != null))
-                        {
-                            #region Stop Trigger
-                            if ((_client.ClientIsConnected) && (_client.ClientIsConfigured))
-                            {
-                                _client.TriggerStop();
-                            }
-                            #endregion
-                            #region Close Files
-                            if (_ccsvWriteFiles != null)
-                            {
-                                _ccsvWriteFiles.Close();
-                                _ccsvWriteFiles.Dispose();
-                                _ccsvWriteFiles = null;
-                            }
-                            #endregion
-                        }
-                    }
-                    #endregion
-                    #region StartMoveSamplePitch5um
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch5um].WaitOne(0))
-                    {
-                        if (!_motion.Move5um(_measure_distance))
-                        {
-                            MessageBox.Show(_motion.GetErrorMsg());
-                            return;
-                        }
-                    }
-                    #endregion
-                    #region StartMoveSamplePitch1um
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.StartMoveSamplePitch1um].WaitOne(0))
-                    {
-                        if (!_motion.Move1um(Constants.AutoMeasureDistance))
-                        {
-                            MessageBox.Show(_motion.GetErrorMsg());
-                            return;
-                        }
-                    }
-                    #endregion
+                    #endregion                
                 }
                 _threadActionProcess.EventExitProcessThreadDo.Set();
             }
@@ -936,169 +811,141 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region ThreadDataSample_0
-        /// <summary>This method is called when starting the thread.</summary> 
-        public void ThreadDataSample_0()
+        #region ThreadAcquisitionLoop
+        public void ThreadAcquisitionLoop()
         {
-            while (!_threadDataSample.EventExitProcessThread.WaitOne(0))
+            sSignalData signalData = null;
+            int timeout = 20, currentTimeout = 20;
+            _ccsvWriteFiles = new cCsvWriteFiles();
+
+            while (!_threadAcquisitionProcess.EventExitProcessThread.WaitOne(timeout))
             {
-                //Debug.WriteLine("ThreadDataSample_0");
-
-                #region DataSample_0
-                if (_threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].WaitOne(0))  
-                {              
-                    if (_fifoDataSample != null)
+                #region 取fifoDataSodx
+                lock (_fifoDataSodx)
+                {
+                    do
                     {
-                        lock (_fifoDataSample)
+                        signalData = (sSignalData)_fifoDataSodx.Dequeue();
+                        if ((_client != null) && (signalData != null)/* && (_saveFilteredData != null)*/)
                         {
-                            while (_fifoDataSample.Count > 0)
-                            {                            
-                                cDataSample clsDataSample = (cDataSample)_fifoDataSample.Dequeue();     //把_fifoDataSample中的資料取出來到clsDataSample
-                                clsDataSample.SignalDataList[0].DataType = eDataType.LongInt;
-                                clsDataSample.SignalDataList[1].DataType = eDataType.LongInt;
-                                clsDataSample.SignalDataList[2].DataType = eDataType.LongInt;
-                                if ((clsDataSample != null) && (_acquisitionTab != null)  && ((_acquisitionTab.NumberOfSamples == -1) || (_acquisitionTab.NumberOfSamples > _acquisitionTab.NumberOfAcquisition)))
-                                {
-                                    #region Record                                 
-                                    if (clsDataSample.SignalDataList[4].PointCount == 192)
-                                        //if (IsInteger((clsDataSample.SignalDataList[0].DataToDouble - measureParamReader.SetStartPosition) / measureParamReader.SetTriggerInterval) && clsDataSample.SignalDataList[4].PointCount == 192)
-                                    {
-                                        if (xpos != clsDataSample.SignalDataList[0].DataToDouble )
-                                        {
+                            _ccsvWriteFiles.Add(signalData);
 
-                                            if (counter == 0)
-                                            {
-                                                ypos = _acquisitionTab.StartMeasureYPos;
-                                            }
-                                            if (_ccsvWriteFiles != null)
-                                                {
-                                                    lock (_ccsvWriteFiles)
-                                                    {
-                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {                                                         
-                                                            if (_ccsvWriteFiles.Add(clsDataSample))
-                                                            {
-                                                                counter = counter + 1;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                            }                
-                                                        }                                                     
-                                                        if (counter == _acquisitionTab.NumberOfSamples+1 )
-                                                        {
-                                                            if (_ccsvWriteFiles.WriteList(_cprojectSettings, _measure_distance, _motion.ScanMode()))
-                                                            {
-                                                                counter = 0;
-                                                                counter_end = 0;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
-                                                            }
-                                                            else
-                                                            {
-                                                                counter = 0;
-                                                                counter_end = 0;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble - 1;
-                                                            }
-                                                        }
-                                                    }                                                 
-                                                }
-                                                else
-                                                {
-                                                    //_ccsvWriteFiles = new cCsvWriteFiles();
-                                                }
-                                            //}
-                                        }
-                                        else
-                                        {
-                                            ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + _measure_distance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 1)&& counter_end == 0)
-                                            {
-                                                if ((_ccsvWriteFiles != null))
-                                                {
-                                                    lock (_ccsvWriteFiles)
-                                                    {
-                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {
-                                                            if(_ccsvWriteFiles.Add(clsDataSample))
-                                                            {
-                                                                counter = counter + 1;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                                counter_end = 1;
-                                                            }
-                                                            
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 2)&& counter_end == 1)
-                                            {
-                                                if ((_ccsvWriteFiles != null))
-                                                {
-                                                    lock (_ccsvWriteFiles)
-                                                    {
-                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {
-                                                            if (_ccsvWriteFiles.Add(clsDataSample))
-                                                            {
-                                                                counter = counter + 1;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                                counter_end = 2;
-                                                            }                                                           
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + _measure_distance) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 3) && counter_end == 2)
-                                            {
-                                                if ((_ccsvWriteFiles != null))
-                                                {
-                                                    lock (_ccsvWriteFiles)
-                                                    {
-                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {
-                                                            if(_ccsvWriteFiles.Add(clsDataSample))
-                                                            {
-                                                                counter = counter + 1;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                                counter_end = 3;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if ((int)xpos == (_acquisitionTab.StartMeasureXPos + 1) && (int)ypos == (_acquisitionTab.StartMeasureYPos + 4) && counter_end == 3)
-                                            {
-                                                if ((_ccsvWriteFiles != null))
-                                                {
-                                                    lock (_ccsvWriteFiles)
-                                                    {
-                                                        if (counter < _acquisitionTab.NumberOfSamples + 1)
-                                                        {
-                                                            if(_ccsvWriteFiles.Add(clsDataSample))
-                                                            {
-                                                                counter = counter + 1;
-                                                                xpos = clsDataSample.SignalDataList[0].DataToDouble;
-                                                                ypos = clsDataSample.SignalDataList[1].DataToDouble;
-                                                                counter_end = 0;
-                                                            }                                                           
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    #endregion                                
-                                    
-                                }
-                                dataIntensityAverage = clsDataSample.SignalDataList[6].Average(0, true);                              
-                            }
                         }
-                    }
+                    } while (signalData != null);
                 }
                 #endregion
+                #region eStop
+                if (_threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eStop].WaitOne(0))
+                {
+                    if (_ccsvWriteFiles.WriteList(_cprojectSettings,  _measure_distance, _motion.ScanMode()))
+                    {
+                        _ccsvWriteFiles.Close();
+                        //_ccsvWriteFiles.Dispose();
+                        //_ccsvWriteFiles = null;
+                    }
+                    _threadAcquisition = eThreadAcquisition.eStop;
+                    btn_start_mea.Image = Properties.Resources.right_arrow;
+                    _client.TriggerStop();
+                    #region show data
+                    //if (rb_showdata_x.Checked)
+                    //{
+                        //ProcessStartInfo Info2 = new ProcessStartInfo();
+
+                        //Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+
+                        //Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
+
+                        //Info2.Arguments = string.Format(@"{0} 1 0", _cprojectSettings.Project.DataDirectoryFilename);
+
+                        //Process.Start(Info2);
+
+                        //if (ck_multi_point_mea.Checked)
+                        //{
+                        //    CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
+                        //    _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
+                        //    if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
+                        //    {
+                        //        _acquisitionTab.DoNextMeasure = true;
+                        //    }
+                        //    else
+                        //    {
+                        //        MessageBox.Show("結束多點測量!!");
+                        //        _acquisitionTab.DoNextMeasure = true;
+                        //        _acquisitionTab.Recording = false;
+                        //    }
+                        //}
+                        //else
+                        //{
+
+                        //}
+                        //sw.Stop();//碼錶停止
+
+                        ////印出所花費的總毫秒數
+
+                        //string result1 = sw.Elapsed.TotalMilliseconds.ToString();
+                    //}
+                    //if (rb_showdata_y.Checked)
+                    //{
+                    //    ProcessStartInfo Info2 = new ProcessStartInfo();
+
+                    //    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+
+                    //    Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
+
+                    //    Info2.Arguments = string.Format(@"{0} 1 1", _cprojectSettings.Project.DataDirectoryFilename);
+
+                    //    Process.Start(Info2);
+
+                    //    if (ck_multi_point_mea.Checked)
+                    //    {
+                    //        CheckDoNextPosMeasure _checkdonextposmeasure = new CheckDoNextPosMeasure();
+                    //        _checkdonextposmeasure.StartPosition = FormStartPosition.Manual;
+                    //        if (_checkdonextposmeasure.ShowDialog() == DialogResult.OK)
+                    //        {
+                    //            _acquisitionTab.DoNextMeasure = true;
+                    //        }
+                    //        else
+                    //        {
+                    //            MessageBox.Show("結束多點測量!!");
+                    //            _acquisitionTab.DoNextMeasure = true;
+                    //            _acquisitionTab.Recording = false;
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+
+                    //    }
+                    //}
+                    #endregion
+                    this.Invoke(this.DisplaySodxAcquisitionDelegate, new object[] { this });
+                }
+                #endregion
+                #region eRun
+                if ((_client != null) && (_threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eRun].WaitOne(0)))
+                {
+                    if (_ccsvWriteFiles != null)
+                    {
+                        _ccsvWriteFiles.Close();
+                    }
+
+
+                    //if (rb_showdata_x.Checked)
+                    //{
+                          _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, _dataAcquisitionNumber, _motion.ScanMode(), 0, _acquisitionTab.StartMeasureZPos);
+                    //}
+                    //else if (rb_showdata_y.Checked)
+                    //{
+                    //    _ccsvWriteFiles.Open(_cprojectSettings, _cprojectSettings.Project.DataDirectory, _cprojectSettings.Project.Filename, _dataAcquisitionNumber, _motion.ScanMode(), 1, _acquisitionTab.StartMeasureZPos);
+                    //}
+                    startmeasure = false;
+                    _threadAcquisition = eThreadAcquisition.eRun;
+                    btn_start_mea.Image = Properties.Resources.FUNC_RUN;
+                    this.Invoke(this.DisplaySodxAcquisitionDelegate, new object[] { this });
+                }
+                #endregion
+                currentTimeout = (_fifoDataSodx.Count > 0) ? timeout : 0;
             }
-            _threadDataSample.EventExitProcessThreadDo.Set();
+            _threadAcquisitionProcess.EventExitProcessThreadDo.Set();
         }
         #endregion
         #endregion
@@ -1245,7 +1092,7 @@ namespace Velociraptor
             ntb_y_cur_motorpos.Text = _motion.GetPos('Y').ToString();
             ntb_z_cur_motorpos.Text = _motion.GetPos('Z').ToString();
             ntb_r_cur_motorpos.Text = _motion.GetPos('R').ToString();
-        }      
+        }
         #endregion
         #region cb_SelectMeasureDistance_SelectedIndexChanged
         private void cb_SelectMeasureDistance_SelectedIndexChanged(object sender, EventArgs e)
@@ -1558,7 +1405,7 @@ namespace Velociraptor
         #region btn_origin_return_Click
         private void btn_origin_return_Click(object sender, EventArgs e)
         {
-            if (!_motion.GoHome()) 
+            if (!_motion.GoHome())
                 MessageBox.Show(_motion.GetErrorMsg());
         }
         #endregion
@@ -1617,7 +1464,7 @@ namespace Velociraptor
             {
                 int r = int.Parse(form.tb_mea_row1.Text);
                 int c = int.Parse(form.tb_mea_col1.Text);
-                if (r > _die_row_count/2 || c > _die_col_count / 2)
+                if (r > _die_row_count / 2 || c > _die_col_count / 2)
                 {
                     MessageBox.Show("指定量測的die位置，超出晶圓範圍");
                     return;
@@ -1920,7 +1767,7 @@ namespace Velociraptor
 
                         else if (numericTextBox == ntb_threshold)//Threshold
                         {
-                        _client.Threshold = (float)ntb_threshold.Value;
+                            _client.Threshold = (float)ntb_threshold.Value;
                         }
                         Invoke((Action)(() => { numericTextBox.SelectAll(); }));
                     }
@@ -2336,50 +2183,7 @@ namespace Velociraptor
         #endregion
 
 
-        #region ThreadAcquisitionLoop
-        public void ThreadAcquisitionLoop()
-        {
-            sSignalData signalData = null;
-            int timeout = 20, currentTimeout = 20;
-
-            while (!_threadAcquisitionProcess.EventExitProcessThread.WaitOne(timeout))
-            {
-                //Debug.WriteLine("ThreadAquisitionLoop");
-                lock (_fifoDataSodx)
-                {
-                    do
-                    {
-                        signalData = (sSignalData)_fifoDataSodx.Dequeue();
-                        if ((_client != null) && (signalData != null) && (_saveFilteredData != null))
-                        {
-                            _saveFilteredData.WriteFile(signalData, _generalSettings.General.SeparatorCharacter);
-                        }
-                    } while (signalData != null);
-                }
-                if (_threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eStop].WaitOne(0))
-                {
-                    if (_saveFilteredData != null)
-                    {
-                        _saveFilteredData.CloseFiles();
-                    }
-                    _threadAcquisition = eThreadAcquisition.eStop;
-                    this.Invoke(this.DisplaySodxAcquisitionDelegate, new object[] { this });
-                }
-                if ((_client != null) && (_threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eRun].WaitOne(0)))
-                {
-                    if (_saveFilteredData != null)
-                    {
-                        _saveFilteredData.CloseFiles();
-                    }
-                    _saveFilteredData.OpenFiles(_generalSettings.General.DataDirectory);
-                    _threadAcquisition = eThreadAcquisition.eRun;
-                    this.Invoke(this.DisplaySodxAcquisitionDelegate, new object[] { this });
-                }
-                currentTimeout = (_fifoDataSodx.Count > 0) ? timeout : 0;
-            }
-            _threadAcquisitionProcess.EventExitProcessThreadDo.Set();
-        }
-        #endregion
+      
         #region _OnFiltersRemove
         private void _OnFiltersRemove(object sender)
         {
@@ -2452,19 +2256,19 @@ namespace Velociraptor
         #region  FocusClimbing
         private void FocusClimbing()
         {
-            int zpos = _motion.GetPos('Z');       
+            int zpos = _motion.GetPos('Z');
             List<int> zpos_List = new List<int>();
-            _motion.MoveTo('Z', -48000, false); 
+            _motion.MoveTo('Z', -48000, false);
             for (int i = 0; i < 1500; i++)
             {
                 _motion.MoveTo('Z', -1);
-                if (dataIntensityAverage != 0 )
+                if (dataIntensityAverage != 0)
                 {
                     zpos = _motion.GetPos('Z');
-                    zpos_List.Add(zpos);                       
-                } 
+                    zpos_List.Add(zpos);
+                }
             }
-            _motion.MoveTo('Z', zpos_List[zpos_List.Count/2], false);  
+            _motion.MoveTo('Z', zpos_List[zpos_List.Count / 2], false);
         }
         #endregion
         #region btn_ClearAlarm_Click
@@ -2529,7 +2333,7 @@ namespace Velociraptor
             }
         }
         private void ConnectMeasure()
-        { 
+        {
             if (_client != null)
             {
                 if (_generalSettings.General.IpAddress == "")
@@ -2584,7 +2388,7 @@ namespace Velociraptor
 
         private void btn_find_angle_Click(object sender, EventArgs e)
         {
-            double w=0, h=0, angle=0;
+            double w = 0, h = 0, angle = 0;
             int threshold = Int32.Parse(tbThreshold.Text);
             if (_syn_op.find_angle(cur_img, threshold, ref die_side, ref angle))
             {
@@ -2626,8 +2430,8 @@ namespace Velociraptor
                                 _cprojectSettings.Project.DataDirectory = strFilePath.Substring(0, strFilePath.LastIndexOf("\\"));
                                 _cprojectSettings.Project.Filename = strFilePath.Substring(strFilePath.LastIndexOf("\\") + 1);
 
-                                _threadActionProcess.EventUserList[(int)eThreadAction.StartRecordDataSample].Set();
 
+                                TestMeasure();
                                 sw.Reset();//碼表歸零
                                 sw.Start();//碼表開始計時
                             }
@@ -2647,6 +2451,80 @@ namespace Velociraptor
         {
             //NOT USE YET
         }
+
+        
+
+        #region Set_EncoderParameter
+        private bool Set_EncoderParameter(int StartPos, float TrigInterval, int StopPos, int Axis, int TrigReturn, int EncoderTrigger, int PosNow, int RountripTrigger)
+        {
+            #region set triggerParameter
+            _client.TriggerStop();
+            bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, EncoderTrigger);
+            bool SetPositionImmediately = _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, PosNow);
+            //bool SetCountSourceForCounter = _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetCountSourceForCounter, 15);
+            //bool SetPreloadValue = _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPreloadValue, 20);
+            //bool SetPreloadEvent = _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPreloadEvent, 191);
+            bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, TrigReturn);
+            bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, Axis);
+            bool EndlessRountripTrigger = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, RountripTrigger);
+            bool SetStopPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, StopPos);
+            bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);
+            bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
+            if (EnableTriggerDuringReturnMovement != true || ChooseAxis != true || EndlessRountripTrigger != true || SetStopPosition != true || SetTriggerInterval != true || SetStartPosition != true || SelectEncoderTriggerSource != true || SetPositionImmediately != true)
+            {
+                return false;
+            }
+            if (_client.ClientIsConnected != true)
+            {
+                return false;
+            }
+            _client.TriggerEach();
+            return true;
+            #endregion
+        }
+        #endregion
+
+
+
+        private void TestMeasure()
+        {
+            //HomePosition(ReadParameter.OriginReturnVelocity, ReadParameter.OriginReturnApproachVelocity, ReadParameter.OriginReturnCreepVelocity, 0);
+            //movePositionAbsolute(-50000, 0, 0);
+
+
+            _acquisitionTab.Recording = true;
+            _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
+            _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
+            _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
+            _dataAcquisitionNumber = _measure_distance / (int)measureParamReader.SetTriggerInterval;
+          
+
+
+            _fifoDataSodx.CalculationOfFifo.Reset();
+            _client.ClearDataSampleFifo();
+
+            bool set_EncoderParameter = Set_EncoderParameter(_acquisitionTab.StartMeasureXPos,
+                                 measureParamReader.SetTriggerInterval,
+                                _acquisitionTab.StartMeasureXPos + _measure_distance,
+                                  measureParamReader.ChooseAxis,
+                                 measureParamReader.EnableTriggerDuringReturnMovement,
+                                 measureParamReader.SelectEncoderTriggerSource,
+                                 _acquisitionTab.StartMeasureXPos,
+                                 measureParamReader.EndlessRountripTrigger);
+            if (set_EncoderParameter != true)
+            {
+                return;
+            }
+            _threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eRun].Set();
+
+           
+            if (!_motion.MoveTo('X', -1000))
+                MessageBox.Show(_motion.GetErrorMsg());
+
+            if (!_motion.MoveTo('X', _measure_distance + 1000))
+                MessageBox.Show(_motion.GetErrorMsg());
+        }
+
     }
 }
 

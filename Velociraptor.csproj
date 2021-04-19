@@ -66,6 +66,10 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Automation.BDaq4, Version=4.0.0.0, Culture=neutral, PublicKeyToken=463f5928d60183a0, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Automation.BDaq\4.0.0.0\Automation.BDaq4.dll</HintPath>
+    </Reference>
     <Reference Include="DevComponents.DotNetBar2">
       <HintPath>..\..\..\..\..\..\LaserGrooving\CLS_SDK\ClsExplorer\DevComponents.DotNetBar2.dll</HintPath>
     </Reference>
@@ -180,6 +184,7 @@
     <Compile Include="ImageProc\MyPair.cs" />
     <Compile Include="ImageProc\ParamMgr.cs" />
     <Compile Include="ImageProc\VisionCalibrator.cs" />
+    <Compile Include="WaferChuck.cs" />
     <Compile Include="MeasureParamReader.cs" />
     <Compile Include="MotionParamReader.cs" />
     <Compile Include="Constants.cs" />
@@ -311,6 +316,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Images\48\FUNC_RUN.png" />
+    <None Include="Images\48\right_arrow.png" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />
     <None Include="Resources\folder.png" />
