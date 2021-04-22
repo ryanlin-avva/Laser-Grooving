@@ -1,23 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
-#if (_CLS_CALIBRATION_BENCH)
-namespace ClsCalibrationBench.Ihm
-#elif (_MPS_CALIBRATION_BENCH)
-namespace MpsCalibrationBench.Ihm
-#elif (_CLS) && (!_CLS_CALIBRATION_BENCH)
-namespace MagicAddOn
-#elif (_MPS) && (!_MPS_CALIBRATION_BENCH)
-namespace MpsAddOn
-#else
+//#if (_CLS_CALIBRATION_BENCH)
+//namespace ClsCalibrationBench.Ihm
+//#elif (_MPS_CALIBRATION_BENCH)
+//namespace MpsCalibrationBench.Ihm
+//#elif (_CLS) && (!_CLS_CALIBRATION_BENCH)
+//namespace MagicAddOn
+//#elif (_MPS) && (!_MPS_CALIBRATION_BENCH)
+//namespace MpsAddOn
+//#else
 namespace AddOn
-#endif
+//#endif
 {
     public partial class f_dark : Form
     {

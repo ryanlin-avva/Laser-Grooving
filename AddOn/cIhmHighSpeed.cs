@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using MagicCommonLibrary;
 using MagicGraphicLibrary;
 using MagicServerLibrary;
+using AddOn;
 
 namespace MagicAddOn
 {

@@ -13,7 +13,6 @@ namespace Velociraptor
         private HWindowControl hWindow;
         private HTuple HvDefaultWinHandle;
 
-        private double targetScaleValue = 1;
         private Point startPoint;
         private Point lastMousePos;
         private bool mousePressed = false;
@@ -296,9 +295,36 @@ namespace Velociraptor
             if (h_channel == 1) Gray2Rgb(img, out cur_img);
             else cur_img = img.Clone();
             int[] orange = { 238, 147, 40 };
-            int[] light_blue = { 51, 220, 255 };
+            int[] red = { 255, 0, 0 };
             if (color==null) color = new HTuple(orange);
             HOperatorSet.OverpaintRegion(cur_img, h_region, color, "fill");
+            //如果找到角點，標出中心點位置
+            if (hlines.Count >= 1 && vlines.Count >= 1)
+            {
+                HObject h_cross;
+                //double t1 = hlines[(hlines.Count + 1) / 2 - 1].GetComparePropAvg();
+                //double t2 = vlines[(vlines.Count + 1) / 2 - 1].GetComparePropAvg();
+                //求十字長度
+                double cross_len = 1200;
+                if (hlines.Count > 1)
+                {
+                    cross_len = hlines[1].GetCompareProp(0) - hlines[0].GetCompareProp(0);
+                }
+                if (vlines.Count > 1)
+                {
+                    double temp = vlines[1].GetCompareProp(0) - vlines[0].GetCompareProp(0);
+                    if (temp < cross_len) cross_len = temp;
+                }
+                cross_len /= 10;
+                HOperatorSet.GenCrossContourXld(out h_cross
+                    , hlines[(hlines.Count + 1) / 2 - 1].GetComparePropAvg()
+                    , vlines[(vlines.Count + 1) / 2 - 1].GetComparePropAvg(), cross_len, 0);
+                HOperatorSet.GenRegionContourXld(h_cross, out h_region, "margin");
+                HOperatorSet.DilationCircle(h_region, out h_region, 5);
+                color = new HTuple(red);
+                HOperatorSet.OverpaintRegion(cur_img, h_region, color, "fill");
+                h_cross.Dispose();
+            }            
             Display(cur_img);
             //HOperatorSet.DispObj(cur_img, HvDefaultWinHandle);
             my_img = cur_img.Clone();

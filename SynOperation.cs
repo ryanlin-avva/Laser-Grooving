@@ -21,7 +21,7 @@ namespace Velociraptor
         {
             double angle = 0;
             if (!find_angle(cur_img, threshold, ref die_side, ref angle)) return false;
-            if (!_motion.MoveTo('R', angle))
+            if (!_motion.MoveTo('R', (int)(angle*1000.0)))
             {
                 Err_msg = "轉正失敗：請重新調整焦距或切割道閥值\n" + _motion.GetErrorMsg();
                 return false;

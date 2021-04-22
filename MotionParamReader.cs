@@ -75,7 +75,8 @@ namespace Velociraptor
             return axis_num;
         }
         
-        public void SetAxisData(ref CMotionAPI.MOTION_DATA[] MotionDataForMea
+        public void SetAxisData(ref int[] units
+                              , ref CMotionAPI.MOTION_DATA[] MotionDataForMea
                               , ref CMotionAPI.MOTION_DATA[] MotionDataForMove
                               , ref CMotionAPI.MOTION_DATA[] MotionDataForJogY
                               , ref CMotionAPI.MOTION_DATA[] MotionDataForHome
@@ -85,6 +86,8 @@ namespace Velociraptor
             for (int i = 0; i < axis_num; i++)
             {
                 #region Measure Motion Data Setting
+                string unitphrase = "unit_" + i.ToString();
+                units[i] = int.Parse(ReadIniFile("AxisMapping", unitphrase, "1"));
                 string phrase = "measAxis" + i.ToString();
                 MotionDataForMea[i].Velocity = int.Parse(ReadIniFile("PositioningParameter", phrase + "VelData", "0"));
                 MotionDataForMea[i].Acceleration = int.Parse(ReadIniFile("PositioningParameter", phrase + "AccData", "0"));

@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\AddOn"
   ],
-  "SelectedNode": "\\Velociraptor.sln",
+  "SelectedNode": "\\f_main.cs",
   "PreviewInSolutionExplorer": false
 }

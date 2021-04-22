@@ -2,6 +2,7 @@
 using MotionAPI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 namespace Velociraptor
@@ -15,6 +16,7 @@ namespace Velociraptor
     {
         private bool isSimulate;
         private Dictionary<char, int> axis_map = new Dictionary<char, int>();
+        private int[] units;
         private int _axis_num;
         private int _scan_mode;
         private MotionParamReader _paraReader;
@@ -36,13 +38,19 @@ namespace Velociraptor
         #endregion
         public bool Init(string filename)
         {
-            string cur_path = AppDomain.CurrentDomain.BaseDirectory;
-            _paraReader = new MotionParamReader(cur_path+filename);
+            string path = Path.Combine(Constants.appConfigFolder, filename);
+            if (!File.Exists(path))
+            {
+                err_msg = "找不到設定檔" + path;
+                return false;
+            }
+            _paraReader = new MotionParamReader(path);
             isSimulate = _paraReader.IsSimulate();
             if (isSimulate) return true;
             _axis_num = _paraReader.SetAxes(ref axis_map);
             _scan_mode = _paraReader.ScanningMode;
             #region Variables allocation
+            units = new int[_axis_num];
             MotionDataForMea = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
             MotionDataForMove = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
             MotionDataForJogY = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
@@ -55,7 +63,8 @@ namespace Velociraptor
             #endregion
             #region variables initialization
             //Set variables from parameter files
-            _paraReader.SetAxisData(ref MotionDataForMea
+            _paraReader.SetAxisData(ref units
+                        , ref MotionDataForMea
                         , ref MotionDataForMove
                         , ref MotionDataForJogY
                         , ref MotionDataForHome
@@ -91,12 +100,6 @@ namespace Velociraptor
         {
             return _scan_mode;
         }
-        public bool MoveTo(char axis_char, double distance, bool isRelative = true)
-        {
-            if (isSimulate) return true;
-            //TO-DO 加上轉動的double
-            return true;
-        }
         public bool MoveTo(char axis_char, int distance, bool isRelative = true)
         {
             if (isSimulate) return true;
@@ -107,7 +110,7 @@ namespace Velociraptor
                 return false;
             }
             CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
-            move_pos[my_axis].PositionData = distance;
+            move_pos[my_axis].PositionData = distance*units[my_axis];
             //Keep other axis to be relative, and pos = 0
             //=> No impact on axis except the assigned one
             for (int i = 0; i < _axis_num; i++)
@@ -139,7 +142,7 @@ namespace Velociraptor
                     err_msg = "Axis " + axis_char[i] + " NOT Found";
                     return false;
                 }
-                move_pos[my_axis].PositionData = distance[i];
+                move_pos[my_axis].PositionData = distance[i] * units[my_axis];
                 if (!isRelative)
                     MotionDataForMove[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
             }
@@ -171,14 +174,14 @@ namespace Velociraptor
                 err_msg = String.Format("Error ymcGetRegisterData OLy \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return 0;
             }
-            return RegData[0];
+            return RegData[0]/units[my_axis];
         }
         public bool Move5um(int measureDistance)
         {
             if (isSimulate) return true;
             CMotionAPI.POSITION_DATA[] pos = new CMotionAPI.POSITION_DATA[_axis_num];
             pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
-            pos[0].PositionData = measureDistance;
+            pos[0].PositionData = measureDistance * units[0];
             rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea
                                 , PosForMove, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
@@ -199,7 +202,7 @@ namespace Velociraptor
             PosForMeaMoveDownY[1].PositionData = 1;
             for (int i=0; i< 5; i++)
             {
-                PosForMeaMoveX[0].PositionData = move_x[i];
+                PosForMeaMoveX[0].PositionData = move_x[i] * units[0];
                 rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveX, 0, "Start", WaitForCompletion, 0);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {

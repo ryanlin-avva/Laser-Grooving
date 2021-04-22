@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.Windows.Forms;
 
 namespace Velociraptor
 {
@@ -9,6 +11,9 @@ namespace Velociraptor
         private string filePath;
         private StringBuilder lpReturnedString;
         private int bufferSize;
+        private int isSim;
+        public int DataDirection { get; set; }
+        public string SavingPath { get; set; }
 
         #region trigger parameter
         public int EnableTriggerDuringReturnMovement;
@@ -18,8 +23,6 @@ namespace Velociraptor
         public int SetTriggerInterval;
         public int SetStartPosition;
         public int SelectEncoderTriggerSource;
-        private int isSim;
-        public string SavingPath { get; set; }
         #endregion
         [DllImport("kernel32")]
         private static extern long WritePrivateProfileString(string section, string key, string lpString, string lpFileName);
@@ -29,12 +32,18 @@ namespace Velociraptor
 
         public MeasureParamReader(string iniPath)
         {
-            filePath = System.Environment.CurrentDirectory + "//" + iniPath;
+            if (!File.Exists(iniPath))
+            {
+                MessageBox.Show("找不到設定檔" + iniPath);
+                return;
+            }
+            filePath = iniPath;
             bufferSize = 512;
             lpReturnedString = new StringBuilder(bufferSize);
 
             isSim = int.Parse(ReadIniFile("AxisMapping", "Simulate", "0"));
             SavingPath = ReadIniFile("ScanParameter", "SavePath", "C:/Avva");
+            DataDirection = int.Parse(ReadIniFile("ScanParameter", "DataDirection", "0"));
             #region Gets the trigger parameter
             EnableTriggerDuringReturnMovement = int.Parse(ReadIniFile("TriggerParameter", "EnableTriggerDuringReturnMovement", "0"));
             ChooseAxis = int.Parse(ReadIniFile("TriggerParameter", "ChooseAxis", "0"));

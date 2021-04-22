@@ -38,8 +38,7 @@ namespace Velociraptor.AddOn
             SqliteDataReader s_reader=null;
             try
             {
-                string data_source = "Data source=" + Application.StartupPath
-                                    + "/wafer.db";
+                string data_source = "Data source=" + Constants.appConfigFolder + "wafer.db";
                 conn = new SqliteConnection(data_source);
                 conn.Open();
                 SqliteCommand sql_cmd = conn.CreateCommand();
