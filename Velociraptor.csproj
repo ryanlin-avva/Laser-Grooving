@@ -85,12 +85,7 @@
   <ItemGroup>
     <Compile Include="AddOn\cClientIhm.cs" />
     <Compile Include="AddOn\CsvWriteFile.cs" />
-    <Compile Include="AddOn\cDisplayDataSodx.cs" />
     <Compile Include="AddOn\CHRDLLFunctionWrapper.cs" />
-    <Compile Include="AddOn\cIhmHighSpeed.cs" />
-    <Compile Include="AddOn\cIhmSelectingFilters.cs" />
-    <Compile Include="AddOn\cSaveFilteredData.cs" />
-    <Compile Include="AddOn\cSelectingFilters.cs" />
     <Compile Include="AddOn\DBKeeper.cs" />
     <Compile Include="AddOn\f_dark.cs">
       <SubType>Form</SubType>
@@ -161,7 +156,6 @@
     <Compile Include="MyForm\PasswordEngineer.Designer.cs">
       <DependentUpon>PasswordEngineer.cs</DependentUpon>
     </Compile>
-    <Compile Include="AddOn\sSelectingFilter.cs" />
     <Compile Include="f_main.cs">
       <SubType>Form</SubType>
     </Compile>

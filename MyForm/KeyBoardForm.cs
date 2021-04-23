@@ -29,8 +29,8 @@ namespace Velociraptor.AddOn
 
         private void b0_Click(object sender, EventArgs e)
         {
-            if(T.Text == "0") { T.Text = ""; }
-            T.Text += ((Button)sender).Text;
+            if(tb_result.Text == "0") { tb_result.Text = ""; }
+            tb_result.Text += ((Button)sender).Text;
         }
 
         private void KeyBoardForm_Load(object sender, EventArgs e)
@@ -48,19 +48,19 @@ namespace Velociraptor.AddOn
 
         private void bClear_Click(object sender, EventArgs e)
         {
-            T.Text = "0";
+            tb_result.Text = "0";
         }
 
         private void bBack_Click(object sender, EventArgs e)
         {
-            String S = T.Text;
+            String S = tb_result.Text;
             if(S.Length > 1)
             {
-                T.Text = (int.Parse(S.Substring(0, S.Length - 1))).ToString();
+                tb_result.Text = (int.Parse(S.Substring(0, S.Length - 1))).ToString();
             }
             else
             {
-                T.Text = "0";
+                tb_result.Text = "0";
             }
         }
 
