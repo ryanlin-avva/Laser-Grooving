@@ -24,12 +24,10 @@ namespace Velociraptor
         #region YASKAWA servor parameter control
         UInt32 g_hController = 0; // Controller handle				
         UInt32 g_hDevice;  // Device handle
-        private CMotionAPI.MOTION_DATA[] MotionDataForMove = null;
+        private CMotionAPI.MOTION_DATA[] MotionData = null;
         private CMotionAPI.MOTION_DATA[] MotionDataForJogY = null;
-        private CMotionAPI.MOTION_DATA[] MotionDataForMea = null;
-        private CMotionAPI.MOTION_DATA[] MotionDataForHome = null;
         private CMotionAPI.POSITION_DATA[] PosForMove = null;
-        private String[] _registerName = { "IL8010", "IL8090", "IL8110" };
+        private String[] _registerName = { "IL8010", "IL8090", "IL8110", "IL818E" };
         private UInt16[] Direction = null; // Moving direction
         private UInt16[] WaitForCompletion = null;
         private UInt16[] WaitForStart = null;
@@ -51,10 +49,7 @@ namespace Velociraptor
             _scan_mode = _paraReader.ScanningMode;
             #region Variables allocation
             units = new int[_axis_num];
-            MotionDataForMea = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
-            MotionDataForMove = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
-            MotionDataForJogY = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
-            MotionDataForHome = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
+            MotionData = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
             PosForMove = new CMotionAPI.POSITION_DATA[_axis_num];
             Direction = new UInt16[_axis_num]; 
             WaitForCompletion = new UInt16[_axis_num]; 
@@ -63,12 +58,7 @@ namespace Velociraptor
             #endregion
             #region variables initialization
             //Set variables from parameter files
-            _paraReader.SetAxisData(ref units
-                        , ref MotionDataForMea
-                        , ref MotionDataForMove
-                        , ref MotionDataForJogY
-                        , ref MotionDataForHome
-                        );
+            _paraReader.SetAxisData(ref units, ref MotionData);
             //Set variables with frequently used values
             int my_y = axis_map['Y'];
             if (my_y == -1)
@@ -77,6 +67,7 @@ namespace Velociraptor
                 return false;
             }
 
+            MotionDataForJogY = (CMotionAPI.MOTION_DATA[])MotionData.Clone();
             for (int i=0; i<_axis_num; i++)
             {
                 PosForMove[i].DataType = (UInt16)CMotionAPI.ApiDefs.DATATYPE_IMMEDIATE;
@@ -114,10 +105,10 @@ namespace Velociraptor
             //Keep other axis to be relative, and pos = 0
             //=> No impact on axis except the assigned one
             for (int i = 0; i < _axis_num; i++)
-                MotionDataForMove[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
+                MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
             if (!isRelative)
-                MotionDataForMove[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMove, move_pos, 0, "Start", WaitForStart, 0);
+                MotionData[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0, "Start", WaitForStart, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -132,7 +123,7 @@ namespace Velociraptor
             if (isSimulate) return true;
             CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             for (int i = 0; i < _axis_num; i++)
-                MotionDataForMove[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
+                MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
 
             for (int i = 0; i < axis_char.Length; i++)
             {
@@ -144,9 +135,9 @@ namespace Velociraptor
                 }
                 move_pos[my_axis].PositionData = distance[i] * units[my_axis];
                 if (!isRelative)
-                    MotionDataForMove[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
+                    MotionData[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
             }
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMove, move_pos, 0, "Start", WaitForStart, 0);
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0, "Start", WaitForStart, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -182,7 +173,7 @@ namespace Velociraptor
             CMotionAPI.POSITION_DATA[] pos = new CMotionAPI.POSITION_DATA[_axis_num];
             pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             pos[0].PositionData = measureDistance * units[0];
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData
                                 , PosForMove, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
@@ -203,14 +194,14 @@ namespace Velociraptor
             for (int i=0; i< 5; i++)
             {
                 PosForMeaMoveX[0].PositionData = move_x[i] * units[0];
-                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveX, 0, "Start", WaitForCompletion, 0);
+                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveX, 0, "Start", WaitForCompletion, 0);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {
                     err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                     return false;
                 }
                 Thread.Sleep(80);
-                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionDataForMea, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
+                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {
                     err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -256,11 +247,12 @@ namespace Velociraptor
             if (isSimulate) return true;
             UInt16[] WaitForCompletion = new UInt16[_axis_num];
             UInt16[] HomeMethod = new UInt16[_axis_num];
+
             for (int i=0; i<_axis_num; i++)
             {
                 HomeMethod[i] = (UInt16)CMotionAPI.ApiDefs.HMETHOD_POT_ONLY; // Zero point return method
             }
-            rc = CMotionAPI.ymcMoveHomePosition(g_hDevice, MotionDataForHome, PosForMove, HomeMethod, Direction, 0, "Start", WaitForCompletion, 0);
+            rc = CMotionAPI.ymcMoveHomePosition(g_hDevice, MotionData, PosForMove, HomeMethod, Direction, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error ymcMoveHomePositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -283,7 +275,7 @@ namespace Velociraptor
         public bool StopMove()
         {
             if (isSimulate) return true;
-            rc = CMotionAPI.ymcStopMotion(g_hDevice, MotionDataForMove, "Stop", WaitForCompletion, 0);
+            rc = CMotionAPI.ymcStopMotion(g_hDevice, MotionData, "Stop", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error ymcStopMotion \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -331,8 +323,9 @@ namespace Velociraptor
             ComDevice.NetworkNumber = 0;
             ComDevice.StationNumber = 0;
             ComDevice.UnitNumber = 0;
-            ComDevice.IPAddress = "";    //ctrl_ip_address.Text
+            ComDevice.IPAddress = "";
             ComDevice.Timeout = 10000;
+
 
             //在執行任何其他API之前，必須執行此API
             rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
@@ -344,7 +337,7 @@ namespace Velociraptor
             #endregion
             #region Sets the motion API timeout                               
             // Sets the motion API timeout.			
-            rc = CMotionAPI.ymcSetAPITimeoutValue(50000);
+            rc = CMotionAPI.ymcSetAPITimeoutValue(30000);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error SetAPITimeoutValue \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -372,7 +365,7 @@ namespace Velociraptor
             }
             #endregion
             #region Gets the device handle
-            rc = CMotionAPI.ymcDeclareDevice((ushort)_axis_num, hAxis, ref g_hDevice);
+            rc = CMotionAPI.ymcDeclareDevice((UInt16)_axis_num, hAxis, ref g_hDevice);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));

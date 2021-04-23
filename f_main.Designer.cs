@@ -75,6 +75,8 @@
             this.tbp_main = new System.Windows.Forms.TabPage();
             this.pic_switch = new System.Windows.Forms.PictureBox();
             this.grp_mea_para = new System.Windows.Forms.GroupBox();
+            this.ntb_frequency = new MagicGraphicLibrary.NumericTextBox(this.components);
+            this.label4 = new System.Windows.Forms.Label();
             this.btn_connection_ip = new System.Windows.Forms.Button();
             this.label37 = new System.Windows.Forms.Label();
             this.btn_dark = new System.Windows.Forms.Button();
@@ -119,7 +121,7 @@
             this.label35 = new System.Windows.Forms.Label();
             this.btn_moveto_WaferCenter_point = new System.Windows.Forms.Button();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btn_move_distance_r = new System.Windows.Forms.Button();
             this.btn_moveR_cw = new System.Windows.Forms.Button();
             this.btn_moveR_ccw = new System.Windows.Forms.Button();
             this.btn_move_distance_z = new System.Windows.Forms.Button();
@@ -160,8 +162,6 @@
             this.hWindowControl1 = new HalconDotNet.HWindowControl();
             this.button3 = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.ntb_frequency = new MagicGraphicLibrary.NumericTextBox(this.components);
-            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -808,6 +808,69 @@
             this.grp_mea_para.TabStop = false;
             this.grp_mea_para.Visible = false;
             // 
+            // ntb_frequency
+            // 
+            this.ntb_frequency.AutoValidate = false;
+            this.ntb_frequency.AutoValidationTime = 1000;
+            this.ntb_frequency.BackColor = System.Drawing.Color.White;
+            this.ntb_frequency.DecimalPlaces = 0;
+            this.ntb_frequency.EnableErrorValue = false;
+            this.ntb_frequency.EnableWarningValue = false;
+            this.ntb_frequency.ErrorColor = System.Drawing.Color.OrangeRed;
+            this.ntb_frequency.ErrorValue = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
+            this.ntb_frequency.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.ntb_frequency.HideSelection = false;
+            this.ntb_frequency.ImeMode = System.Windows.Forms.ImeMode.On;
+            this.ntb_frequency.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.ntb_frequency.InterceptArrowKeys = true;
+            this.ntb_frequency.Location = new System.Drawing.Point(6, 158);
+            this.ntb_frequency.Maximum = new decimal(new int[] {
+            20000,
+            0,
+            0,
+            0});
+            this.ntb_frequency.Minimum = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
+            this.ntb_frequency.Name = "ntb_frequency";
+            this.ntb_frequency.Size = new System.Drawing.Size(82, 22);
+            this.ntb_frequency.TabIndex = 126;
+            this.ntb_frequency.Text = "2000";
+            this.ntb_frequency.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.ntb_frequency.ThousandsSeparator = false;
+            this.ntb_frequency.Value = new decimal(new int[] {
+            2000,
+            0,
+            0,
+            0});
+            this.ntb_frequency.WarningColor = System.Drawing.Color.Gold;
+            this.ntb_frequency.WarningValue = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
+            this.ntb_frequency.WordWrap = false;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label4.Location = new System.Drawing.Point(9, 136);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(60, 17);
+            this.label4.TabIndex = 127;
+            this.label4.Text = "取樣頻率";
+            // 
             // btn_connection_ip
             // 
             this.btn_connection_ip.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -1292,7 +1355,7 @@
             // 
             // groupBox7
             // 
-            this.groupBox7.Controls.Add(this.button1);
+            this.groupBox7.Controls.Add(this.btn_move_distance_r);
             this.groupBox7.Controls.Add(this.btn_moveR_cw);
             this.groupBox7.Controls.Add(this.btn_moveR_ccw);
             this.groupBox7.Controls.Add(this.btn_move_distance_z);
@@ -1309,17 +1372,18 @@
             this.groupBox7.TabIndex = 157;
             this.groupBox7.TabStop = false;
             // 
-            // button1
+            // btn_move_distance_r
             // 
-            this.button1.BackColor = System.Drawing.Color.White;
-            this.button1.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(274, 74);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(55, 29);
-            this.button1.TabIndex = 167;
-            this.button1.Text = "0";
-            this.button1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.button1.UseVisualStyleBackColor = false;
+            this.btn_move_distance_r.BackColor = System.Drawing.Color.White;
+            this.btn_move_distance_r.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_move_distance_r.Location = new System.Drawing.Point(274, 74);
+            this.btn_move_distance_r.Name = "btn_move_distance_r";
+            this.btn_move_distance_r.Size = new System.Drawing.Size(55, 29);
+            this.btn_move_distance_r.TabIndex = 167;
+            this.btn_move_distance_r.Text = "1";
+            this.btn_move_distance_r.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btn_move_distance_r.UseVisualStyleBackColor = false;
+            this.btn_move_distance_r.Click += new System.EventHandler(this.btn_move_distance_Click);
             // 
             // btn_moveR_cw
             // 
@@ -1355,10 +1419,10 @@
             this.btn_move_distance_z.Name = "btn_move_distance_z";
             this.btn_move_distance_z.Size = new System.Drawing.Size(56, 29);
             this.btn_move_distance_z.TabIndex = 164;
-            this.btn_move_distance_z.Text = "0";
+            this.btn_move_distance_z.Text = "1000";
             this.btn_move_distance_z.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btn_move_distance_z.UseVisualStyleBackColor = false;
-            this.btn_move_distance_z.Click += new System.EventHandler(this.btn_move_distance_z_Click);
+            this.btn_move_distance_z.Click += new System.EventHandler(this.btn_move_distance_Click);
             // 
             // btn_move_distance
             // 
@@ -1368,7 +1432,7 @@
             this.btn_move_distance.Name = "btn_move_distance";
             this.btn_move_distance.Size = new System.Drawing.Size(63, 29);
             this.btn_move_distance.TabIndex = 162;
-            this.btn_move_distance.Text = "0";
+            this.btn_move_distance.Text = "10000";
             this.btn_move_distance.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btn_move_distance.UseVisualStyleBackColor = false;
             this.btn_move_distance.Click += new System.EventHandler(this.btn_move_distance_Click);
@@ -1781,69 +1845,6 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
-            // ntb_frequency
-            // 
-            this.ntb_frequency.AutoValidate = false;
-            this.ntb_frequency.AutoValidationTime = 1000;
-            this.ntb_frequency.BackColor = System.Drawing.Color.White;
-            this.ntb_frequency.DecimalPlaces = 0;
-            this.ntb_frequency.EnableErrorValue = false;
-            this.ntb_frequency.EnableWarningValue = false;
-            this.ntb_frequency.ErrorColor = System.Drawing.Color.OrangeRed;
-            this.ntb_frequency.ErrorValue = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.ntb_frequency.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_frequency.HideSelection = false;
-            this.ntb_frequency.ImeMode = System.Windows.Forms.ImeMode.On;
-            this.ntb_frequency.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.ntb_frequency.InterceptArrowKeys = true;
-            this.ntb_frequency.Location = new System.Drawing.Point(6, 158);
-            this.ntb_frequency.Maximum = new decimal(new int[] {
-            20000,
-            0,
-            0,
-            0});
-            this.ntb_frequency.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.ntb_frequency.Name = "ntb_frequency";
-            this.ntb_frequency.Size = new System.Drawing.Size(82, 22);
-            this.ntb_frequency.TabIndex = 126;
-            this.ntb_frequency.Text = "2000";
-            this.ntb_frequency.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.ntb_frequency.ThousandsSeparator = false;
-            this.ntb_frequency.Value = new decimal(new int[] {
-            2000,
-            0,
-            0,
-            0});
-            this.ntb_frequency.WarningColor = System.Drawing.Color.Gold;
-            this.ntb_frequency.WarningValue = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.ntb_frequency.WordWrap = false;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label4.Location = new System.Drawing.Point(9, 136);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(60, 17);
-            this.label4.TabIndex = 127;
-            this.label4.Text = "取樣頻率";
-            // 
             // f_main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -2011,7 +2012,7 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox tb_dieX;
         private System.Windows.Forms.TextBox tb_dieY;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btn_move_distance_r;
         private System.Windows.Forms.Button btn_moveR_cw;
         private System.Windows.Forms.Button btn_moveR_ccw;
         private System.Windows.Forms.GroupBox grp_mea_para;

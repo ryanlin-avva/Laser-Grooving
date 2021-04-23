@@ -78,15 +78,6 @@ namespace Velociraptor
             DataSample,
         }
         #endregion
-        #region eThreadAcquisition
-        enum eThreadAcquisition
-        {
-            /// <summary>run acquisition</summary>
-            eRun,
-            /// <summary>stop acquisition</summary>
-            eStop,
-        }
-        #endregion
         #region eThreadMeasure
         enum eThreadMeasure
         {
@@ -129,8 +120,6 @@ namespace Velociraptor
         /// <summary>thread to the display refresh</summary>
         cThreadProcess _threadGui = null;
         /// <summary>thread to the display refresh</summary>
-        cThreadProcess _threadDataSample = null;
-        cThreadProcess _threadAcquisitionProcess = null;
         cThreadProcess _threadMeasure = null;
         //CCD Range
         sCCDRange _ccd_range = null;
@@ -138,9 +127,6 @@ namespace Velociraptor
         #endregion
         #region acquisition thread
         int _dataAcquisitionNumber = 0;
-        int _dataAcquisitionCounter = 0;
-        eThreadAcquisition _threadAcquisition = eThreadAcquisition.eStop;
-        eThreadDisplayAcquisition _threadDisplayAcquisition = eThreadDisplayAcquisition.eRun;
         #endregion
         #region Fifo
         //Command Data Fifo
@@ -212,8 +198,6 @@ namespace Velociraptor
         CloseFormDelegate _eventCloseForm;
         List<cErrorEventArgs> _errorList = null;
         cErrorEventArgs.OnErrorEventHandler _eventOnError = null;
-        cSelectingFilters.OnFiltersRemoveEventHandler _eventOnFiltersRemove = null;
-        cSelectingFilters.OnFiltersAddEventHandler _eventOnFiltersAdd = null;
         #endregion
 
         #region cls_components
@@ -356,11 +340,8 @@ namespace Velociraptor
             //start display thread 
             _threadGui = new cThreadProcess(Enum.GetValues(typeof(enEventThreadGui)).Length);
             _threadGui.StartThread(new ThreadStart(ThreadGuiLoop));
-            //start acquisition thread            
-            _threadAcquisitionProcess = new cThreadProcess(Enum.GetValues(typeof(eThreadAcquisition)).Length);
-            _threadAcquisitionProcess.StartThread(new ThreadStart(ThreadAcquisitionLoop));
             //start measurement triggered thread            
-            _threadMeasure = new cThreadProcess(Enum.GetValues(typeof(eThreadAcquisition)).Length);
+            _threadMeasure = new cThreadProcess(Enum.GetValues(typeof(eThreadMeasure)).Length);
             _threadMeasure.StartThread(new ThreadStart(ThreadMeasureLoop));
 
             _threadGui.EventUserList[(int)enEventThreadGui.InitDisplay].Set();
@@ -422,18 +403,6 @@ namespace Velociraptor
             _client.TriggerStop();
             _client.Close();
             _generalSettings.SaveSettings();
-            #endregion
-            #region _threadDataSample
-            if (_threadDataSample != null)
-            {
-                if (_threadDataSample != null)
-                {
-                    _threadDataSample.StopThread(50);
-                    _threadDataSample.Dispose();
-                    _threadDataSample = null;
-                }
-                _threadDataSample = null;
-            }
             #endregion
             _motion.MotorOff();
             #region _fifoCommandData
@@ -557,7 +526,8 @@ namespace Velociraptor
                         {
                             sSpectraRaw spectra = new sSpectraRaw(_client.DnldCommand.SpectrumRaw, sBuffer, _client.FibersParameters);
                             clsRawImage.Data = spectra.Data;
-                            this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
+                            if (spectra.Data != null)
+                                this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
                         }
                     }
                 }
@@ -679,27 +649,6 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region ThreadAcquisitionLoop
-        public void ThreadAcquisitionLoop()
-        {
-            sSignalData signalData = null;
-            int timeout = 20, currentTimeout = 20;
-            while (!_threadAcquisitionProcess.EventExitProcessThread.WaitOne(timeout))
-            {
-                #region 取fifoDataSodx
-                lock (_fifoDataSodx)
-                {
-                    while (!_fifoDataSodx.IsEmpty)
-                    {
-                        signalData = (sSignalData)_fifoDataSodx.Dequeue();
-                    }
-                }
-                #endregion
-                currentTimeout = (_fifoDataSodx.Count > 0) ? timeout : 0;
-            }
-            _threadAcquisitionProcess.EventExitProcessThreadDo.Set();
-        }
-        #endregion
         #region ThreadMeasureLoop
         public void ThreadMeasureLoop()
         {
@@ -730,12 +679,12 @@ namespace Velociraptor
                         }
                     }
                 }
-                if ((_client != null) && (_threadAcquisitionProcess.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
+                if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
                     _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, _motion.ScanMode());
                 }
             }
-            _threadAcquisitionProcess.EventExitProcessThreadDo.Set();
+            _threadMeasure.EventExitProcessThreadDo.Set();
         }
         #endregion
         #endregion
@@ -817,28 +766,20 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region btn_move_distance_Click
+        #region btn_move_distance
         private void btn_move_distance_Click(object sender, EventArgs e)
         {
             KeyBoardForm _keyboardForm = new KeyBoardForm();//例項化一個Form2視窗
+            Button btn_distance = (Button)sender;
             _keyboardForm.StartPosition = FormStartPosition.CenterScreen;
+            _keyboardForm.T.Text = btn_distance.Text;
             if (_keyboardForm.ShowDialog() == DialogResult.OK)
             {
-                btn_move_distance.Text = _keyboardForm.T.Text;
+                btn_distance.Text = _keyboardForm.T.Text;
             }
         }
         #endregion
-        #region btn_move_distance_z_Click
-        private void btn_move_distance_z_Click(object sender, EventArgs e)
-        {
-            KeyBoardForm _keyboardForm = new KeyBoardForm();//例項化一個Form2視窗
-            _keyboardForm.StartPosition = FormStartPosition.CenterScreen;
-            if (_keyboardForm.ShowDialog() == DialogResult.OK)
-            {
-                btn_move_distance_z.Text = _keyboardForm.T.Text;
-            }
-        }
-        #endregion
+
         #region btn_AutoFocus_Click
         private void btn_AutoFocus_Click(object sender, EventArgs e)
         {
@@ -1410,25 +1351,9 @@ namespace Velociraptor
             Invalidate();
         }
         #endregion     
-        #region OnUpdateDataSample
+        #region -OnUpdateDataSample
         /// <summary>Event receive new data sample</summary>
         /// <param name="clsCommand"> The <see cref="cDataSample"/> instance containing the data sample.</param>
-        private void OnUpdateDataSample(cDataSample dataSample)
-        {
-            if ((_fifoDataSample != null) && (dataSample != null))
-            {
-                lock (_fifoDataSample)
-                {
-                    _fifoDataSample.Enqueue(dataSample);    //定期收集資料 用event的方式執行
-                    if (_threadDataSample != null)
-                    {
-                        _threadDataSample.EventUserList[(int)eThreadDataSample.DataSample].Set();
-                    }
-                }
-            }
-        }
-        #endregion
-        #region _OnUpdateDataSample
         private void _OnUpdateDataSample(cDataSample dataSample)
         {
             if (_in_trigger && (_fifoDataSample != null) && (dataSample != null))
@@ -1919,9 +1844,9 @@ namespace Velociraptor
             bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, TrigReturn);
             bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, Axis);
             bool EndlessRountripTrigger = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, RountripTrigger);
+            bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
             bool SetStopPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, StopPos);
             bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);
-            bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
             if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis 
                 && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition 
                 && SelectEncoderTriggerSource && SetPositionImmediately)) return false;
@@ -1954,7 +1879,7 @@ namespace Velociraptor
                                  _acquisitionTab.StartMeasureXPos,
                                  measureParamReader.EndlessRountripTrigger);
             if (set_EncoderParameter != true) return;
-            _threadAcquisitionProcess.EventUserList[(int)eThreadAcquisition.eRun].Set();
+            _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
 
             if (!_motion.MoveTo('X', -100))
                 MessageBox.Show(_motion.GetErrorMsg());
