@@ -203,7 +203,7 @@ namespace Velociraptor
         private string _measure_filename;
         private bool _in_trigger = false;
         private bool _cancelFormClosing = true;
-
+        bool startmeasure = false;
         #region wafer info
         private int _wafer_size = 12;
         private string _wafer_id;
@@ -340,6 +340,7 @@ namespace Velociraptor
             timer1 = new System.Timers.Timer(300000);//定時週期300秒
             timer1.Elapsed += GeneralMode;
             timer1.AutoReset = false; //是否不斷重複定時器操作
+      
 
             #region Tool Tips
             ToolTip tips = new ToolTip();
@@ -568,7 +569,7 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                if (_threadGui!=null) _threadGui.EventExitProcessThreadDo.Set();
+                if (_threadGui != null) _threadGui.EventExitProcessThreadDo.Set();
             }
         }
         #endregion     
@@ -696,15 +697,19 @@ namespace Velociraptor
                             while (_fifoDataSample.Count > 0)
                             {
                                 cDataSample dataSample = (cDataSample)_fifoDataSample.Dequeue();    //Display Data Sample
-                                if (_ccsvWriteFiles != null)
+                                if (dataSample.FirstDataAfterTriggerStart) startmeasure = true;
+                                if (_ccsvWriteFiles != null && startmeasure == true)
+                                {
                                     _ccsvWriteFiles.Add(dataSample.SignalDataList);
-                                _dataAcquisitionNumber--;
-                                if (_dataAcquisitionNumber <= 0)
+                                    _dataAcquisitionNumber--;
+                                }                                  
+                                if (_dataAcquisitionNumber <= 0 && startmeasure == true)
                                 {
                                     _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
                                     _ccsvWriteFiles.Close();
                                     _client.TriggerStop();
                                     _in_trigger = false;
+                                    startmeasure = false;
                                 }
                             }
                         }
@@ -1652,7 +1657,8 @@ namespace Velociraptor
                     {
                         Debug.WriteLine("->> {0} : Error {1}"
                             , sender.GetType().FullName.ToString(), e.Message.Text);
-                    } else
+                    }
+                    else
                     {
                         _threadGui.EventUserList[(int)enEventThreadGui.DisplayError].Set();
                         Debug.WriteLine("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text);
@@ -1663,7 +1669,7 @@ namespace Velociraptor
             {
                 return;
             }
-       }
+        }
         #endregion
         #region Record Panel
         #region sEventActionProcessControl
@@ -1887,16 +1893,16 @@ namespace Velociraptor
         {
             #region set triggerParameter
             _client.TriggerStop();
-            int StopPos = (int)(StartPos + TrigInterval * (TrigNum-1));
-            bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, EncoderTrigger); 
+            int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));
+            bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, EncoderTrigger);
             bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, TrigReturn);
             bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, Axis);
             bool EndlessRountripTrigger = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, RountripTrigger);
             bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
             bool SetStopPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, StopPos);
             bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);
-            if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis 
-                && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition 
+            if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis
+                && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition
                 && SelectEncoderTriggerSource)) return false;
             _client.TriggerEach();
             return true;
@@ -1931,16 +1937,16 @@ namespace Velociraptor
                                  measureParamReader.EndlessRountripTrigger);
             if (set_EncoderParameter != true) return;
             _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
-            _in_trigger = true;
+
 
             if (_motion.ScanMode() == 5)
             {
-                if (!_motion.Move5um(_measure_distance ))
+                if (!_motion.Move5um(_measure_distance))
                     MessageBox.Show(_motion.GetErrorMsg());
             }
             if (_motion.ScanMode() == 1)
             {
-                if (!_motion.Move1um(_measure_distance ))
+                if (!_motion.Move1um(_measure_distance))
                     MessageBox.Show(_motion.GetErrorMsg());
             }
         }
