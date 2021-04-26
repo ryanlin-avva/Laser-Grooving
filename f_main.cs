@@ -1887,7 +1887,7 @@ namespace Velociraptor
         {
             #region set triggerParameter
             _client.TriggerStop();
-            int StopPos = (int)(StartPos + TrigInterval * TrigNum-1);
+            int StopPos = (int)(StartPos + TrigInterval * (TrigNum-1));
             bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, EncoderTrigger); 
             bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, TrigReturn);
             bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, Axis);
