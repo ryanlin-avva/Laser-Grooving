@@ -29,7 +29,11 @@ namespace Velociraptor.AddOn
         {
             Close();
             _scan_mode = ScanningMode;
-            _line_cnt = (_scan_mode == 0) ? 5 : 1;
+            _line_cnt = (_scan_mode == 5) ? 1 : 5;
+            for (int i = 0; i < _line_cnt; i++)
+            {
+                line_keeper[i] = new LineKeeper();
+            }
 
             sCsvWriteFiles _file = new sCsvWriteFiles();
             return _file.Open(Path.Combine(directory, fileName));
@@ -51,6 +55,7 @@ namespace Velociraptor.AddOn
         public bool Add(List<sSignalData> signalDataList, int line=0)
         {
             if (signalDataList == null || signalDataList.Count == 0) return false;
+            //if (line_keeper[line] == null) return false;
             line_keeper[line].Add(signalDataList);
             return (true);
         }
@@ -69,6 +74,7 @@ namespace Velociraptor.AddOn
                     return (false);
                 }
             }
+            _file = new sCsvWriteFiles();
             _file.WriteLine(cnt);
             _file.WriteLine(_line_cnt);
             _file.WriteLine(DataDirection);

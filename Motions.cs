@@ -16,7 +16,7 @@ namespace Velociraptor
     {
         private bool isSimulate;
         private Dictionary<char, int> axis_map = new Dictionary<char, int>();
-        private int[] units;
+        public int[] units;
         private int _axis_num;
         private int _scan_mode;
         private MotionParamReader _paraReader;
@@ -24,6 +24,7 @@ namespace Velociraptor
         #region YASKAWA servor parameter control
         UInt32 g_hController = 0; // Controller handle				
         UInt32 g_hDevice;  // Device handle
+        private CMotionAPI.COM_DEVICE ComDevice;
         private CMotionAPI.MOTION_DATA[] MotionData = null;
         private CMotionAPI.MOTION_DATA[] MotionDataForJogY = null;
         private CMotionAPI.POSITION_DATA[] PosForMove = null;
@@ -151,6 +152,13 @@ namespace Velociraptor
             int my_axis = axis_map[axis_char];
             if (my_axis == -1) return 0;
             UInt32 hRegister = 0;
+            //在執行任何其他API之前，必須執行此API
+            rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
+            if (rc != CMotionAPI.MP_SUCCESS)
+            {
+                err_msg = String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                return 0;
+            }
             rc = CMotionAPI.ymcGetRegisterDataHandle(_registerName[my_axis], ref hRegister);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
@@ -174,7 +182,7 @@ namespace Velociraptor
             pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             pos[0].PositionData = measureDistance * units[0];
             rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData
-                                , PosForMove, 0, "Start", WaitForCompletion, 0);
+                                , pos, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
                 err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
@@ -186,11 +194,12 @@ namespace Velociraptor
         public bool Move1um(int measureDistance)
         {
             if (isSimulate) return true;
-            int[] move_x = { measureDistance, -measureDistance + 1 , measureDistance - 1
-                            , -measureDistance + 1 , measureDistance - 1};
+            int[] move_x = { measureDistance+200, -measureDistance -200 , measureDistance +200
+                            , -measureDistance -200 , measureDistance + 100};
             CMotionAPI.POSITION_DATA[] PosForMeaMoveX = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
-            PosForMeaMoveDownY[1].PositionData = 1;
+            PosForMeaMoveDownY[1].PositionData = 1 * units[1];
+            if (!MoveTo('X', -100)) return false;
             for (int i=0; i< 5; i++)
             {
                 PosForMeaMoveX[0].PositionData = move_x[i] * units[0];
@@ -200,7 +209,7 @@ namespace Velociraptor
                     err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                     return false;
                 }
-                Thread.Sleep(80);
+                //Thread.Sleep(80);
                 rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {
@@ -316,7 +325,7 @@ namespace Velociraptor
             //YASKAWA servor setting
             #region ymcOpenController
             //Sets the ymcOpenController parameters                             
-            CMotionAPI.COM_DEVICE ComDevice;
+            
             ComDevice.ComDeviceType = (UInt16)CMotionAPI.ApiDefs.COMDEVICETYPE_PCIe_MODE;
             ComDevice.PortNumber = 1;
             ComDevice.CpuNumber = 1;    //cpuno;
