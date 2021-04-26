@@ -100,23 +100,11 @@ namespace Velociraptor.AddOn
     #region sCsvWriteFiles
     public class sCsvWriteFiles : IDisposable
     {
-        bool _disposed = false;
         bool _isOpen = false;
         StreamWriter _streamWriter = null;
         public string ErrMsg = "";
         #region Dispose
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-
-                }
-                // Free your own state (unmanaged objects).  
-                _disposed = true;
-            }
-        }
+        protected virtual void Dispose(bool disposing) { }
         public void Dispose()
         {
             Dispose(true);
