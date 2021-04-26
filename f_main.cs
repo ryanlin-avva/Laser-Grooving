@@ -1923,7 +1923,7 @@ namespace Velociraptor
             _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureYPos);
             _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureZPos);
             _dataAcquisitionNumber = _measure_distance / measureParamReader.SetTriggerInterval;
-            if (_motion.ScanMode() == 1) _dataAcquisitionNumber *= 5;
+            
 
             _fifoDataSodx.CalculationOfFifo.Reset();
             _client.ClearDataSampleFifo();
@@ -1936,6 +1936,7 @@ namespace Velociraptor
                                  measureParamReader.SelectEncoderTriggerSource,
                                  measureParamReader.EndlessRountripTrigger);
             if (set_EncoderParameter != true) return;
+            if (_motion.ScanMode() == 1) _dataAcquisitionNumber *= 5;//1um測量時set_EncoderParameter參數TrigNum不必*5
             _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
 
 
