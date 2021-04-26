@@ -87,6 +87,7 @@ namespace Velociraptor
         #endregion
 
         System.Timers.Timer timer;
+        System.Timers.Timer timer1;
         double dataIntensityAverage = 0;
 
         #region Threads and events
@@ -100,10 +101,11 @@ namespace Velociraptor
         object _lockActionProcess = new object();
         /// <summary>thread action process</summary>
         public cThreadProcess _threadActionProcess = null;
-        /// <summary>thread to the display refresh</summary>
         cThreadProcess _threadGui = null;
-        /// <summary>thread to the display refresh</summary>
         cThreadProcess _threadMeasure = null;
+        //public MyThread _threadActionProcess = null;
+        //MyThread _threadGui = null;
+        //MyThread _threadMeasure = null;
         //CCD Range
         sCCDRange _ccd_range = null;
         cGeneralSettings _generalSettings = null;
@@ -200,6 +202,7 @@ namespace Velociraptor
         private DBKeeper _db;
         private string _measure_filename;
         private bool _in_trigger = false;
+        private bool _cancelFormClosing = true;
 
         #region wafer info
         private int _wafer_size = 12;
@@ -317,20 +320,26 @@ namespace Velociraptor
 
             #region start thread
             //start process thread 
-            _threadActionProcess = new cThreadProcess(Enum.GetValues(typeof(eThreadAction)).Length);
+            _threadActionProcess = new cThreadProcess("_threadActionProcess", Enum.GetValues(typeof(eThreadAction)).Length);
             _threadActionProcess.StartThread(new ThreadStart(ThreadLoop));
             //start display thread 
-            _threadGui = new cThreadProcess(Enum.GetValues(typeof(enEventThreadGui)).Length);
+            _threadGui = new cThreadProcess("_threadGui", Enum.GetValues(typeof(enEventThreadGui)).Length);
             _threadGui.StartThread(new ThreadStart(ThreadGuiLoop));
             //start measurement triggered thread            
-            _threadMeasure = new cThreadProcess(Enum.GetValues(typeof(eThreadMeasure)).Length);
+            _threadMeasure = new cThreadProcess("_threadMeasure", Enum.GetValues(typeof(eThreadMeasure)).Length);
             _threadMeasure.StartThread(new ThreadStart(ThreadMeasureLoop));
-
             _threadGui.EventUserList[(int)enEventThreadGui.InitDisplay].Set();
             _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
 
             #endregion
             Text = string.Format("Velociraptor Version : {0}", Assembly.GetExecutingAssembly().GetName().Version);
+
+            timer = new System.Timers.Timer(1);//定時週期0.001秒
+            timer.Elapsed += ntb_cur_pos;//定時時間到的時候的回撥函式
+            timer.AutoReset = true; //是否不斷重複定時器操作
+            timer1 = new System.Timers.Timer(300000);//定時週期300秒
+            timer1.Elapsed += GeneralMode;
+            timer1.AutoReset = false; //是否不斷重複定時器操作
 
             #region Tool Tips
             ToolTip tips = new ToolTip();
@@ -358,9 +367,7 @@ namespace Velociraptor
             if (!_motion.Init(Constants.paraFilename))
             {
                 MessageBox.Show(_motion.GetErrorMsg());
-                _threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].Set();
                 this.Close();
-                //Application.Exit();
                 return;
             }
 
@@ -379,13 +386,38 @@ namespace Velociraptor
         #region Form Closing
         private void f_main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            timer.Stop();
-            #region Settings
+            if (_cancelFormClosing)
+            {
+                Debug.WriteLine("_cancelFormClosing");
+                timer.Enabled = false;
+                timer.Dispose();
+                if ((_client != null) && (_client.ClientIsConnected))
+                {
+                    _client.TriggerStop();
+                    _client.Close();
+                }
+                _cancelFormClosing = false;
+                _threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].Set();
+                e.Cancel = true;
+                return;
+            }
+
+            Debug.WriteLine("f_main_FormClosing");
+            #region _client
             if (_client != null)
+            {
+                _client.OnReceiveCommandData -= _eventOnUpdateCommandData;
+                _client.OnReceiveDataFormat -= _eventOnUpdateDataFormatEntry;
+                _client.OnReceiveDataSample -= _eventOnUpdateDataSample;
+                _client.OnError -= _eventOnError;
+                _client.OnUpdateIhm -= _eventOnUpdateIhm;
+                _client.OnClientConnect -= _eventOnClientConnect;
+                _client.OnClientDisconnect -= _eventOnClientDisconnect;
                 _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
-            _client.TriggerStop();
-            _client.Close();
-            _generalSettings.SaveSettings();
+                _generalSettings.Save();
+                _client.Dispose();
+                _client = null;
+            }
             #endregion
             _motion.MotorOff();
             #region _fifoCommandData
@@ -412,38 +444,15 @@ namespace Velociraptor
                 _fifoDataSample = null;
             }
             #endregion
-            Thread.Sleep(1000);
-            if (_threadGui != null)
+            if (_controlUpdate != null) _controlUpdate.Dispose();
+            #region _threadProcess
+            if (_threadActionProcess != null)
             {
-                _threadGui.StopThread(500);
-                _threadGui.Dispose();
-                _threadGui = null;
-            }
-            if (_threadMeasure != null)
-            {
-                _threadMeasure.StopThread(500);
-                _threadMeasure.Dispose();
-                _threadMeasure = null;
-            }
-            _threadActionProcess.EventExitProcessThread.Set();
-            /*
-            Thread.Sleep(1000);
-            #region _client
-            if (_client != null)
-            {
-                _client.OnReceiveCommandData -= _eventOnUpdateCommandData;
-                _client.OnReceiveDataFormat -= _eventOnUpdateDataFormat;
-                _client.OnReceiveDataSample -= _eventOnUpdateDataSample;
-                _client.OnError -= _eventOnError;
-                _client.OnUpdateIhm -= _eventOnUpdateIhm;
-                _client.OnClientConnect -= _eventOnClientConnect;
-                _client.OnClientDisconnect -= _eventOnClientDisconnect;
-                _client.Dispose();
-                _client = null;
+                _threadActionProcess.StopThread(500);
+                _threadActionProcess.Dispose();
+                _threadActionProcess = null;
             }
             #endregion
-            if (_controlUpdate != null) _controlUpdate.Dispose();
-            */
         }
         #endregion
         #endregion
@@ -464,7 +473,7 @@ namespace Velociraptor
             {
                 while (!_threadGui.EventExitProcessThread.WaitOne(20))
                 {
-                    Debug.WriteLine("ThreadGuiLoop");
+                    //Debug.WriteLine("ThreadGuiLoop");
                     dTimeout = _tm.FlashTiming;
                     _timoutStatisticsValue += (int)dTimeout;
                     _timoutDataSampleValue += (int)dTimeout;
@@ -559,7 +568,7 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                _threadGui.EventExitProcessThreadDo.Set();
+                if (_threadGui!=null) _threadGui.EventExitProcessThreadDo.Set();
             }
         }
         #endregion     
@@ -574,8 +583,25 @@ namespace Velociraptor
             {
                 while (_threadActionProcess.EventExitProcessThread.WaitOne(timeoutValue) == false)
                 {
-                    Debug.WriteLine("ThreadLoop");
-
+                    //Debug.WriteLine("ThreadLoop");
+                    if (_threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].WaitOne(0))
+                    {
+                        Debug.WriteLine("_threadActionProcess EventExitProcessThread");
+                        if (_threadMeasure != null)
+                        {
+                            _threadMeasure.StopThread(500);
+                            _threadMeasure.Dispose();
+                            _threadMeasure = null;
+                        }
+                        if (_threadGui != null)
+                        {
+                            _threadGui.StopThread(500);
+                            _threadGui.Dispose();
+                            _threadGui = null;
+                        }
+                        _threadActionProcess.EventExitProcessThread.Set();
+                        continue;
+                    }
                     #region Connect/Disconnect
                     if (_client != null)
                     {
@@ -660,7 +686,7 @@ namespace Velociraptor
             _ccsvWriteFiles = new CsvWriteFile();
             while (!_threadMeasure.EventExitProcessThread.WaitOne(timeout))
             {
-                Debug.WriteLine("ThreadMeasureLoop");
+                //Debug.WriteLine("ThreadMeasureLoop");
                 if (_threadMeasure.EventUserList[(int)eThreadMeasure.eData].WaitOne(0))
                 {
                     if (_fifoDataSample != null)
@@ -721,10 +747,8 @@ namespace Velociraptor
             if (psForm.ShowDialog() == DialogResult.OK)
             {
                 is_advanced_mode = true;
-                timer = new System.Timers.Timer(300000);//定時週期300秒
-                timer.Elapsed += GeneralMode;//定時時間到的時候的回撥函式
-                timer.AutoReset = false; //是否不斷重複定時器操作
-                timer.Enabled = true; //定時器啟動
+                timer.Enabled = false;
+                timer1.Enabled = true; //定時器啟動
 
                 tabControlMain.TabPages.Add(tbp_motion); //Add a tab page
                 grp_cursor.Visible = true;
@@ -740,7 +764,10 @@ namespace Velociraptor
         #region general mode
         public void GeneralMode(object sender, EventArgs e)
         {
+            Debug.WriteLine("GeneralMode");
             is_advanced_mode = false;
+            timer.Enabled = true;
+            timer1.Enabled = false;
 
             tabControlMain.TabPages.Remove(tbp_motion); //Remove a tab page
             grp_cursor.Visible = false;
@@ -750,11 +777,6 @@ namespace Velociraptor
             //chk_cursor_v1.Visible = true;
             //label_cursor_v1.Visible = true;
             //nud_cursor_v1.Visible = true;
-
-            timer = new System.Timers.Timer(1);//定時週期0.001秒
-            timer.Elapsed += ntb_cur_pos;//定時時間到的時候的回撥函式
-            timer.AutoReset = true; //是否不斷重複定時器操作
-            timer.Enabled = true; //定時器啟動
         }
         #endregion
         #endregion
@@ -801,6 +823,7 @@ namespace Velociraptor
         #region ntb_cur_pos
         public void ntb_cur_pos(object sender, EventArgs e)
         {
+            Debug.WriteLine("ntb_cur_pos start");
             ntb_x_cur_pos.Text = _motion.GetPos('X').ToString();
             ntb_y_cur_pos.Text = _motion.GetPos('Y').ToString();
             ntb_z_cur_pos.Text = _motion.GetPos('Z').ToString();
@@ -1624,8 +1647,15 @@ namespace Velociraptor
                     {
                         _errorList.Add(e);
                     }
-                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayError].Set();
-                    Debug.WriteLine("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text);
+                    if (_threadGui == null)
+                    {
+                        Debug.WriteLine("->> {0} : Error {1}"
+                            , sender.GetType().FullName.ToString(), e.Message.Text);
+                    } else
+                    {
+                        _threadGui.EventUserList[(int)enEventThreadGui.DisplayError].Set();
+                        Debug.WriteLine("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text);
+                    }
                 }
             }
             catch (Exception)

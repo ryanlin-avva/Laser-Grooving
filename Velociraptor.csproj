@@ -99,6 +99,7 @@
     <Compile Include="AddOn\f_selected_sodx.Designer.cs">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </Compile>
+    <Compile Include="AddOn\MyThread.cs" />
     <Compile Include="ImageProc\GMList.cs" />
     <Compile Include="ImageProc\GridBuilder.cs" />
     <Compile Include="ImageProc\Grouper.cs" />
@@ -244,6 +245,7 @@
   <ItemGroup>
     <None Include="Images\48\green.ico" />
     <None Include="Images\48\red.ico" />
+    <None Include="Images\48\backspace.png" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />
