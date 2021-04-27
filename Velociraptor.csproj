@@ -190,6 +190,7 @@
     <Compile Include="SynOperation.cs" />
     <Compile Include="Tuner.cs" />
     <Compile Include="TuningData.cs" />
+    <Compile Include="WaferChuck.cs" />
     <EmbeddedResource Include="AddOn\f_dark.resx">
       <DependentUpon>f_dark.cs</DependentUpon>
     </EmbeddedResource>
@@ -319,6 +320,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Automation.BDaq4, Version=4.0.0.0, Culture=neutral, PublicKeyToken=463f5928d60183a0, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Automation.BDaq\4.0.0.0\Automation.BDaq4.dll</HintPath>
+    </Reference>
     <Reference Include="DevComponents.DotNetBar2">
       <HintPath>..\..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.DotNetBar2.dll</HintPath>
     </Reference>
