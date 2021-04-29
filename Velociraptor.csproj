@@ -100,6 +100,8 @@
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </Compile>
     <Compile Include="AddOn\MyThread.cs" />
+    <Compile Include="ImageProc\FastPixel.cs" />
+    <Compile Include="ImageProc\FindScribe.cs" />
     <Compile Include="ImageProc\GMList.cs" />
     <Compile Include="ImageProc\GridBuilder.cs" />
     <Compile Include="ImageProc\Grouper.cs" />
@@ -319,6 +321,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="AvvaCamera">
+      <HintPath>AddOn\AvvaCamera.dll</HintPath>
+    </Reference>
     <Reference Include="DevComponents.DotNetBar2">
       <HintPath>..\..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.DotNetBar2.dll</HintPath>
     </Reference>
@@ -327,6 +332,9 @@
     </Reference>
     <Reference Include="halcondotnet">
       <HintPath>..\..\..\..\..\Program Files\MVTec\HALCON-12.0\bin\dotnet35\halcondotnet.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="MagicCommonLibrary">
       <HintPath>..\..\..\..\..\Program Files (x86)\CLS_SDK\SDK\MagicCommonLibrary.dll</HintPath>
@@ -366,9 +374,11 @@
       <HintPath>packages\SQLitePCLRaw.provider.dynamic_cdecl.2.0.4\lib\netstandard2.0\SQLitePCLRaw.provider.dynamic_cdecl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />

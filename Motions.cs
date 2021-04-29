@@ -16,7 +16,9 @@ namespace Velociraptor
     {
         private bool isSimulate;
         private Dictionary<char, int> axis_map = new Dictionary<char, int>();
-        public int[] units;
+        private int[] units;
+        private int[] _2_mea = new int[3];
+
         private int _axis_num;
         private int _scan_mode;
         private MotionParamReader _paraReader;
@@ -48,6 +50,7 @@ namespace Velociraptor
             if (isSimulate) return true;
             _axis_num = _paraReader.SetAxes(ref axis_map);
             _scan_mode = _paraReader.ScanningMode;
+            _paraReader.GetDistance2Measure(ref _2_mea);
             #region Variables allocation
             units = new int[_axis_num];
             MotionData = new CMotionAPI.MOTION_DATA[_axis_num]; // MOTION_DATA structure
@@ -174,6 +177,11 @@ namespace Velociraptor
                 return 0;
             }
             return RegData[0]/units[my_axis];
+        }
+        public bool MoveToMeasurePos()
+        {
+            char[] axes = { 'X', 'Y', 'Z' };
+            return MoveTo(axes, _2_mea, true);
         }
         public bool Move5um(int measureDistance)
         {

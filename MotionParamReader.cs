@@ -53,9 +53,9 @@ namespace Velociraptor
             #endregion
 
             //Get Wafer Center Position
-            moveToWaferCenterPointXDistance = int.Parse(ReadIniFile("PositioningParameter", "moveToWaferCenterPointXDistance", "0"));
-            moveToWaferCenterPointYDistance = int.Parse(ReadIniFile("PositioningParameter", "moveToWaferCenterPointYDistance", "0"));
-            moveToWaferCenterPointZDistance = int.Parse(ReadIniFile("PositioningParameter", "moveToWaferCenterPointZDistance", "0"));
+            moveToWaferCenterPointXDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointXDistance", "0"));
+            moveToWaferCenterPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointYDistance", "0"));
+            moveToWaferCenterPointZDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointZDistance", "0"));
 
             //Gets the Scan parameter
             ScanningMode = int.Parse(ReadIniFile("ScanParameter", "ScanningMode", "0"));
@@ -74,7 +74,12 @@ namespace Velociraptor
             axis_map.Add('B', axis_b);
             return axis_num;
         }
-        
+        public void GetDistance2Measure(ref int[] dist)
+        {
+            dist[0] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraX", "0"));
+            dist[1] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraY", "0"));
+            dist[2] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraZ", "0"));
+        }
         public void SetAxisData(ref int[] units, ref CMotionAPI.MOTION_DATA[] MotionData)
         {
             //sets the positioning parameter

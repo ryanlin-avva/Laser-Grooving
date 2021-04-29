@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using HalconDotNet;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -56,6 +57,16 @@ namespace Velociraptor
         {
             hWindow = win;
             HvDefaultWinHandle = hWindow.HalconWindow;
+        }
+        public void ConvertImage(byte[] img, int image_width, int image_height, ref HObject cur_img)
+        {
+            GCHandle hobject = GCHandle.Alloc(img, GCHandleType.Pinned);
+            IntPtr pobject = hobject.AddrOfPinnedObject();
+            cur_img.Dispose();
+            HOperatorSet.GenImageInterleaved(out cur_img, pobject, "bgr",
+                image_width, image_height, -1, "byte",
+                image_width, image_height, 0, 0, -1, 0);
+            Display(cur_img);
         }
         public HObject LoadImage(string fname)
         {

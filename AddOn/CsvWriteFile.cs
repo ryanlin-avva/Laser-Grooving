@@ -55,8 +55,10 @@ namespace Velociraptor.AddOn
         public bool Add(List<sSignalData> signalDataList, int line=0)
         {
             if (signalDataList == null || signalDataList.Count == 0) return false;
-            //if (line_keeper[line] == null) return false;
-            line_keeper[line].Add(signalDataList);
+            if ((line % 2) == 0)
+                line_keeper[line].Add(signalDataList);
+            else
+                line_keeper[line].Insert(0, signalDataList);
             return (true);
         }
         #endregion
@@ -265,6 +267,13 @@ namespace Velociraptor.AddOn
             dk.Add(signalList);
             data.Add(dk);
         }
+        public void Insert(int idx, List<sSignalData> signalList)
+        {
+            DataKeeper dk = new DataKeeper();
+            dk.Add(signalList);
+            data.Insert(idx, dk);
+        }
+
         public int Count { get { return data.Count; } }
         public int PosX(int idx) { return data[idx].Pos_x; }
         public int PosY(int idx) { return data[idx].Pos_y; }
