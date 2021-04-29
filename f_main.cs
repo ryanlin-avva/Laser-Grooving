@@ -212,8 +212,7 @@ namespace Velociraptor
         private string _measure_filename;
         private bool _in_trigger = false;
         private bool _cancelFormClosing = true;
-        private double _trigger_end;
-
+        bool startmeasure = false;
         #region wafer info
         private int _wafer_size = 12;
         private string _wafer_id;
@@ -371,6 +370,7 @@ namespace Velociraptor
             timer1.Elapsed += GeneralMode;
             timer1.AutoReset = false; //是否不斷重複定時器操作
 
+
             #region Tool Tips
             ToolTip tips = new ToolTip();
 
@@ -498,10 +498,11 @@ namespace Velociraptor
             cClsCommandData clsCommandData = null;
             cTimeMeasurement _tm = new cTimeMeasurement(cTimeMeasurement.enTimeStepType.MILLISECOND, false);
             cDataFormat dataFormat = null;
+            cDataSample dataSample = null;
             double dTimeout = _tm.FlashTiming;
             short[,] sBuffer = null;
             int _timoutStatistics = 250, _timoutStatisticsValue = 0; //Display Statistics step 250 mms
-            int _timoutDataSampleValue = 0;
+            int _timoutDataSample = 200, _timoutDataSampleValue = 0;
             try
             {
                 while (!_threadGui.EventExitProcessThread.WaitOne(20))
@@ -573,7 +574,35 @@ namespace Velociraptor
                         }
                     }
                     #endregion
-
+                    #region Display Data Sample
+                    //Display Data Sample
+                    if ((_timoutDataSampleValue > _timoutDataSample) && (_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].WaitOne(0)))
+                    {
+                        _timoutDataSampleValue = 0;
+                        if (_fifoDataSample != null)
+                        {
+                            lock (_fifoDataSample)
+                            {
+                                while (_fifoDataSample.Count > 0)
+                                {
+                                    dataSample = (cDataSample)_fifoDataSample.Dequeue();    //Display Data Sample
+                                    if (dataSample.FirstDataAfterTriggerStart) startmeasure = true;
+                                    if (dataSample != null && startmeasure)
+                                    {
+                                        if (_in_trigger && _dataAcquisitionNumber > 0)
+                                        {
+                                            lock (_fifoDataSodx)
+                                            {
+                                                _fifoDataSodx.Enqueue(dataSample);
+                                            }
+                                            _dataAcquisitionNumber -= 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    #endregion
                     #region Display Data Format
                     if ((_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].WaitOne(0)))
                     {
@@ -601,7 +630,7 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                if (_threadGui!=null) _threadGui.EventExitProcessThreadDo.Set();
+                if (_threadGui != null) _threadGui.EventExitProcessThreadDo.Set();
             }
         }
         #endregion     
@@ -716,47 +745,52 @@ namespace Velociraptor
         public void ThreadMeasureLoop()
         {
             int timeout = 20;
+            cDataSample data = null;
             _ccsvWriteFiles = new CsvWriteFile();
+
             while (!_threadMeasure.EventExitProcessThread.WaitOne(timeout))
             {
                 //Debug.WriteLine("ThreadMeasureLoop");
-                if (_threadMeasure.EventUserList[(int)eThreadMeasure.eData].WaitOne(0))
+                #region 取fifoDataSodx
+                lock (_fifoDataSodx)
                 {
-                    if (_fifoDataSample != null)
+                    do
                     {
-                        lock (_fifoDataSample)
+                        data = (cDataSample)_fifoDataSodx.Dequeue();
+                        if ((_client != null) && (data != null))
                         {
-                            while (_fifoDataSample.Count > 0)
-                            {
-                                cDataSample dataSample = (cDataSample)_fifoDataSample.Dequeue();    //Display Data Sample
-                                if (_ccsvWriteFiles != null)
-                                    _ccsvWriteFiles.Add(dataSample.SignalDataList);
-                                _dataAcquisitionNumber--;
-                                double pos_x = 0;
-                                foreach (sSignalData signalData in dataSample.SignalDataList)
-                                {
-                                    signalData.DataType = eDataType.LongInt;
-                                    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
-                                    {
-                                        pos_x = (int)signalData.DataToDouble;
-                                        break;
-                                    }
-                                    if (_dataAcquisitionNumber <= 0 || pos_x >= _trigger_end)
-                                    {
-                                        _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
-                                        _ccsvWriteFiles.Close();
-                                        _client.TriggerStop();
-                                        _in_trigger = false;
-                                    }
-                                }
-                            }
+                            _ccsvWriteFiles.Add(data.SignalDataList);
                         }
-                    }
+                    } while (data != null);
+                }
+                #endregion
+                if (_dataAcquisitionNumber <= 0 && startmeasure == true)
+                {
+                    _in_trigger = false;
+                    startmeasure = false;
+                    _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
+                    _ccsvWriteFiles.Close();
+                    _client.TriggerStop();
+                    
+                    #region show data
+
+                    ProcessStartInfo Info2 = new ProcessStartInfo();
+
+                    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+
+                    Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
+
+                    Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
+
+                    Process.Start(Info2);
+
+                    #endregion
                 }
                 if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
+                    
                     _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, _motion.ScanMode());
-                    _in_trigger = true;
+                    
                 }
             }
             _threadMeasure.EventExitProcessThreadDo.Set();
@@ -1436,7 +1470,10 @@ namespace Velociraptor
                 {
                     _fifoDataSample.Enqueue(dataSample);
                 }
-                _threadMeasure.EventUserList[(int)eThreadMeasure.eData].Set();
+                if (_threadGui != null)
+                {
+                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].Set();
+                }
             }
         }
         #endregion
@@ -1691,7 +1728,8 @@ namespace Velociraptor
                     {
                         Debug.WriteLine("->> {0} : Error {1}"
                             , sender.GetType().FullName.ToString(), e.Message.Text);
-                    } else
+                    }
+                    else
                     {
                         _threadGui.EventUserList[(int)enEventThreadGui.DisplayError].Set();
                         Debug.WriteLine("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text);
@@ -1702,7 +1740,7 @@ namespace Velociraptor
             {
                 return;
             }
-       }
+        }
         #endregion
         #region Record Panel
         #region sEventActionProcessControl
@@ -1942,16 +1980,16 @@ namespace Velociraptor
         {
             #region set triggerParameter
             _client.TriggerStop();
-            int StopPos = (int)(StartPos + TrigInterval * (TrigNum-1));
-            bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, EncoderTrigger); 
+            int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));
+            bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, EncoderTrigger);
             bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, TrigReturn);
             bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, Axis);
             bool EndlessRountripTrigger = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, RountripTrigger);
             bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
             bool SetStopPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, StopPos);
             bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);
-            if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis 
-                && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition 
+            if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis
+                && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition
                 && SelectEncoderTriggerSource)) return false;
             _trigger_end = StopPos;
             _client.TriggerEach();
@@ -1965,7 +2003,8 @@ namespace Velociraptor
         private void DoMeasurement()
         {
 
-            _acquisitionTab.Recording = true;
+
+            _in_trigger = true;
             _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
             _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
             _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
@@ -1973,10 +2012,9 @@ namespace Velociraptor
             _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureYPos);
             _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureZPos);
             _dataAcquisitionNumber = _measure_distance / measureParamReader.SetTriggerInterval;
-            if (_motion.ScanMode() == 1) _dataAcquisitionNumber *= 5;
 
-            _fifoDataSodx.CalculationOfFifo.Reset();
-            _client.ClearDataSampleFifo();
+
+            
 
             bool set_EncoderParameter = Set_EncoderParameter(_acquisitionTab.StartMeasureXPos,
                                  measureParamReader.SetTriggerInterval,
@@ -1986,17 +2024,22 @@ namespace Velociraptor
                                  measureParamReader.SelectEncoderTriggerSource,
                                  measureParamReader.EndlessRountripTrigger);
             if (set_EncoderParameter != true) return;
+
+            _fifoDataSodx.CalculationOfFifo.Reset();
+            _client.ClearDataSampleFifo();
+
+            if (_motion.ScanMode() == 1) _dataAcquisitionNumber *= 5;
             _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
-            _in_trigger = true;
+
 
             if (_motion.ScanMode() == 5)
             {
-                if (!_motion.Move5um(_measure_distance ))
+                if (!_motion.Move5um(_measure_distance))
                     MessageBox.Show(_motion.GetErrorMsg());
             }
             if (_motion.ScanMode() == 1)
             {
-                if (!_motion.Move1um(_measure_distance ))
+                if (!_motion.Move1um(_measure_distance))
                     MessageBox.Show(_motion.GetErrorMsg());
             }
         }

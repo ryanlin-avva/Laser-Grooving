@@ -11,6 +11,7 @@ namespace Velociraptor.AddOn
     #region cCsvWriteFiles
     public class CsvWriteFile : IDisposable
     {
+
         sCsvWriteFiles _file = null;
         int _scan_mode;
         int _line_cnt = 1;
@@ -35,7 +36,7 @@ namespace Velociraptor.AddOn
                 line_keeper[i] = new LineKeeper();
             }
 
-            sCsvWriteFiles _file = new sCsvWriteFiles();
+            _file = new sCsvWriteFiles();
             return _file.Open(Path.Combine(directory, fileName));
         }
         #endregion
@@ -67,7 +68,7 @@ namespace Velociraptor.AddOn
         {
             //檢查資料正確性
             int cnt = line_keeper[0].Count;
-            for (int i = 1; i < _line_cnt; i++)
+            for (int i = 0; i < 1; i++)
             {
                 if (cnt != line_keeper[i].Count)
                 {
@@ -76,7 +77,7 @@ namespace Velociraptor.AddOn
                     return (false);
                 }
             }
-            _file = new sCsvWriteFiles();
+            
             _file.WriteLine(cnt);
             _file.WriteLine(_line_cnt);
             _file.WriteLine(DataDirection);
@@ -86,11 +87,11 @@ namespace Velociraptor.AddOn
             {
                 _file.Write(line_keeper[0].PosX(j));
                 _file.Write(line_keeper[0].PosY(j));
-                for (int i = 0; i < _line_cnt; i++)
+                for (int i = 0; i < 1; i++)
                     _file.WriteList(line_keeper[i].Altitude(j));
-                for (int i = 0; i < _line_cnt-1; i++)
+                for (int i = 0; i < 1; i++)
                     _file.WriteList(line_keeper[i].Intensity(j));
-                _file.WriteList(line_keeper[_line_cnt - 1].Intensity(j), true);
+                _file.WriteList(line_keeper[0].Intensity(j), true);
             }
             return true;
         }

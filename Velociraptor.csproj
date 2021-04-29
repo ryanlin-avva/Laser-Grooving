@@ -192,6 +192,7 @@
     <Compile Include="SynOperation.cs" />
     <Compile Include="Tuner.cs" />
     <Compile Include="TuningData.cs" />
+    <Compile Include="WaferChuck.cs" />
     <EmbeddedResource Include="AddOn\f_dark.resx">
       <DependentUpon>f_dark.cs</DependentUpon>
     </EmbeddedResource>

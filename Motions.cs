@@ -186,28 +186,24 @@ namespace Velociraptor
         public bool Move5um(int measureDistance)
         {
             if (isSimulate) return true;
-            CMotionAPI.POSITION_DATA[] pos = new CMotionAPI.POSITION_DATA[_axis_num];
-            pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
-            pos[0].PositionData = measureDistance * units[0];
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData
-                                , pos, 0, "Start", WaitForCompletion, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
+            if (!MoveTo('X', -100)) return false;
+
+            if (MoveTo('X', measureDistance + 100, true) != true)
             {
-                err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                 return false;
             }
-            err_msg = "Move succeeded";
             return true;
         }
         public bool Move1um(int measureDistance)
         {
             if (isSimulate) return true;
-            int[] move_x = { measureDistance+200, -measureDistance -200 , measureDistance +200
-                            , -measureDistance -200 , measureDistance + 100};
+            int[] move_x = { measureDistance+200, -measureDistance-200 , measureDistance+200
+                            , -measureDistance-200  , measureDistance+100 };
             CMotionAPI.POSITION_DATA[] PosForMeaMoveX = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             PosForMeaMoveDownY[1].PositionData = 1 * units[1];
             if (!MoveTo('X', -100)) return false;
+            Thread.Sleep(40);
             for (int i=0; i< 5; i++)
             {
                 PosForMeaMoveX[0].PositionData = move_x[i] * units[0];
@@ -217,12 +213,16 @@ namespace Velociraptor
                     err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                     return false;
                 }
-                //Thread.Sleep(80);
-                rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
-                if (rc != CMotionAPI.MP_SUCCESS)
+                //Thread.Sleep(50);
+                if(i<4)
                 {
-                    err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                    return false;
+                    rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
+                    if (rc != CMotionAPI.MP_SUCCESS)
+                    {
+                        err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
+                        return false;
+                    }
+                    //Thread.Sleep(50);
                 }
             }
             err_msg = "Move succeeded";
