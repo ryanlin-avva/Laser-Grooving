@@ -1991,7 +1991,7 @@ namespace Velociraptor
             if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis
                 && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition
                 && SelectEncoderTriggerSource)) return false;
-            _trigger_end = StopPos;
+            //_trigger_end = StopPos;
             _client.TriggerEach();
             return true;
             #endregion

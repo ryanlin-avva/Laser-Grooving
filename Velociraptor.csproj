@@ -322,6 +322,12 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Automation.BDaq4">
+      <HintPath>Automation.BDaq\4.0.0.0\Automation.BDaq4.dll</HintPath>
+    </Reference>
+    <Reference Include="Automation.BDaq4.Design">
+      <HintPath>Automation.BDaq\4.0.0.0\Automation.BDaq4.Design.dll</HintPath>
+    </Reference>
     <Reference Include="AvvaCamera">
       <HintPath>AddOn\AvvaCamera.dll</HintPath>
     </Reference>

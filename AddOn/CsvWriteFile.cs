@@ -68,7 +68,7 @@ namespace Velociraptor.AddOn
         {
             //檢查資料正確性
             int cnt = line_keeper[0].Count;
-            for (int i = 0; i < 1; i++)
+            for (int i = 1; i < _line_cnt; i++)
             {
                 if (cnt != line_keeper[i].Count)
                 {
@@ -87,11 +87,11 @@ namespace Velociraptor.AddOn
             {
                 _file.Write(line_keeper[0].PosX(j));
                 _file.Write(line_keeper[0].PosY(j));
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < _line_cnt; i++)
                     _file.WriteList(line_keeper[i].Altitude(j));
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < _line_cnt-1; i++)
                     _file.WriteList(line_keeper[i].Intensity(j));
-                _file.WriteList(line_keeper[0].Intensity(j), true);
+                _file.WriteList(line_keeper[_line_cnt-1].Intensity(j), true);
             }
             return true;
         }
