@@ -16,10 +16,9 @@ using MagicAddOn;
 using AddOn;
 using System.Windows.Forms;
 using Velociraptor.Form;
-using Avva.CameraFramework;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using Velociraptor.ImageProc;
+using Avva.CameraFramework;
 
 namespace Velociraptor
 {
@@ -89,9 +88,8 @@ namespace Velociraptor
         private HObject cur_img;
         private string ImageFullPath;
         bool isGarpping;
-        bool crosshairs;
+        bool crosshairs=false;
         Bitmap _cur_bitmap = null;
-        bool isAligning = false;
         IAvvaCamera basler = new BaslerCamera();
         AvvaCamera camera;
         #endregion
@@ -1915,8 +1913,8 @@ namespace Velociraptor
             {
                 w = vc.Pixel2Um_X(die_side[0]);
                 h = vc.Pixel2Um_Y(die_side[1]);
-                lb_die_side.Text = "邊長: " + w.ToString("0.###")
-                    + " X " + h.ToString("0.###");
+                lb_die_side.Text = "邊長: " + w.ToString("0.#")
+                    + " X " + h.ToString("0.#");
                 lb_angle.Text = "角度: " + angle.ToString("0.####");
             }
             else
@@ -1924,17 +1922,23 @@ namespace Velociraptor
                 MessageBox.Show("Halcon Find Angle Error:" + _syn_op.Err_msg);
             }
             FindScribe fs = new FindScribe();
-            if (fs.find_angle(_cur_bitmap))
+            int threshold1;
+            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 4;
+            if (fs.find_angle(_cur_bitmap, threshold1))
             {
-                lb_die_side.Text = "邊長: " + die_side[0].ToString("0.###")
-                    + " X " + die_side[1].ToString("0.###");
-                lb_angle.Text = "角度: " + fs.AngleAverage.ToString("0.####");
-                fs.Draw(ref _cur_bitmap);
-                pic_camera.Image = _cur_bitmap;
+                lb_die_side1.Text = "邊長: " + die_side[0].ToString("0.#")
+                    + " X " + die_side[1].ToString("0.#");
+                lb_angle1.Text = "角度: " + fs.AngleAverage.ToString("0.####");
+                //Bitmap bmp = new Bitmap(_cur_bitmap.Width, _cur_bitmap.Height);
+                Bitmap bmp = _cur_bitmap.Clone(
+                                new Rectangle(0, 0, _cur_bitmap.Width, _cur_bitmap.Height)
+                                , PixelFormat.Format24bppRgb);
+                fs.Draw(ref bmp);
+                pic_camera.Image = bmp;
             }
             else
             {
-                MessageBox.Show("Opencv Find Angle Error:" + _syn_op.Err_msg);
+                MessageBox.Show("Opencv Find Angle Error:" + fs.Err_msg);
             }
         }
         private void btn_start_mea_Click(object sender, EventArgs e)
@@ -2109,11 +2113,11 @@ namespace Velociraptor
                 Bitmap bitmapOld = pic_camera.Image as Bitmap;
                 _cur_bitmap = bitmap;
                 pic_camera.Image = bitmap;
-                if (crosshairs)
+                if (is_advanced_mode)
                 {
                     using (Graphics g = Graphics.FromImage(pic_camera.Image))
                     {
-                        Pen pen = new Pen(Color.White, 2);
+                        Pen pen = new Pen(Color.SkyBlue, 4);
 
                         g.DrawLine(pen, 0, camera.ImageHeight / 2 - 1, camera.ImageWidth, camera.ImageHeight / 2 - 1);
                         g.DrawLine(pen, camera.ImageWidth / 2 - 1, 0, camera.ImageWidth / 2 - 1, camera.ImageHeight);

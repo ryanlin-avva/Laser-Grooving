@@ -329,7 +329,7 @@
       <HintPath>Automation.BDaq\4.0.0.0\Automation.BDaq4.Design.dll</HintPath>
     </Reference>
     <Reference Include="AvvaCamera">
-      <HintPath>AddOn\AvvaCamera.dll</HintPath>
+      <HintPath>.\AvvaCamera.dll</HintPath>
     </Reference>
     <Reference Include="DevComponents.DotNetBar2">
       <HintPath>..\..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.DotNetBar2.dll</HintPath>
