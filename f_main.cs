@@ -818,10 +818,10 @@ namespace Velociraptor
         }
         private void AdvancedMode()
         {
-            PasswordBox psForm = new PasswordBox();
+            //PasswordBox psForm = new PasswordBox();
 
-            if (psForm.ShowDialog() == DialogResult.OK)
-            {
+            //if (psForm.ShowDialog() == DialogResult.OK)
+            //{
                 is_advanced_mode = true;
                 timer.Enabled = false;
                 timer1.Enabled = true; //定時器啟動
@@ -831,11 +831,11 @@ namespace Velociraptor
                 grp_align_test.Visible = true;
                 btn_connection_ip.Visible = true;
                 grp_mea_para.Visible = true;
-            }
-            else
-            {
-                MessageBox.Show("密碼錯誤!!");
-            }
+            //}
+            //else
+            //{
+            //    MessageBox.Show("密碼錯誤!!");
+            //}
         }
         #region general mode
         public void GeneralMode(object sender, EventArgs e)
