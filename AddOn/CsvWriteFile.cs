@@ -56,7 +56,7 @@ namespace Velociraptor.AddOn
         public bool Add(List<sSignalData> signalDataList, int line=0)
         {
             if (signalDataList == null || signalDataList.Count == 0) return false;
-            if ((line % 2) == 0)
+            if ((line % 2) != 0)
                 line_keeper[line].Add(signalDataList);
             else
                 line_keeper[line].Insert(0, signalDataList);
@@ -82,16 +82,27 @@ namespace Velociraptor.AddOn
             _file.WriteLine(_line_cnt);
             _file.WriteLine(DataDirection);
             _file.WriteLine(ZPos);
+            int line_points = line_keeper[0].Altitude(0).Count;
             //寫入每一列
-            for (int j=0; j<cnt; j++)
+            for (int j = 0; j < cnt; j++)
             {
                 _file.Write(line_keeper[0].PosX(j));
                 _file.Write(line_keeper[0].PosY(j));
-                for (int i = 0; i < _line_cnt; i++)
-                    _file.WriteList(line_keeper[i].Altitude(j));
-                for (int i = 0; i < _line_cnt-1; i++)
-                    _file.WriteList(line_keeper[i].Intensity(j));
-                _file.WriteList(line_keeper[_line_cnt-1].Intensity(j), true);
+                for (int k = 0; k < line_points; k++)
+                {
+                    for (int i = 0; i < _line_cnt; i++)
+                        _file.Write(line_keeper[i].Altitude(j)[k]);
+                }
+                for (int k = 0; k < line_points; k++)
+                {
+                    for (int i = 0; i < _line_cnt; i++)
+                    {
+                        if (k == line_points - 1 && i == _line_cnt - 1)
+                            _file.WriteEnd(line_keeper[i].Intensity(j)[k]);
+                        else
+                            _file.Write(line_keeper[i].Intensity(j)[k]);
+                    }
+                }              
             }
             return true;
         }
@@ -157,6 +168,7 @@ namespace Velociraptor.AddOn
                 _streamWriter.WriteLine(string.Format("{0}", value));
             return (true);
         }
+       
         public bool WriteArray(int[] value)
         {
             if ((_streamWriter != null) && (value != null) && (value.Length > 0))
@@ -175,6 +187,12 @@ namespace Velociraptor.AddOn
         {
             if ((_streamWriter != null))
                 _streamWriter.Write(string.Format("{0},", value));
+            return (true);
+        }
+        public bool WriteEnd(double value)
+        {
+            if ((_streamWriter != null))
+                _streamWriter.Write(string.Format("{0}", value));
             return (true);
         }
         public bool WriteList(List<double> values, bool with_end = false)

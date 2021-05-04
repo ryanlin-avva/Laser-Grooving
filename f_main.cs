@@ -574,35 +574,7 @@ namespace Velociraptor
                         }
                     }
                     #endregion
-                    #region Display Data Sample
-                    //Display Data Sample
-                    if ((_timoutDataSampleValue > _timoutDataSample) && (_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].WaitOne(0)))
-                    {
-                        _timoutDataSampleValue = 0;
-                        if (_fifoDataSample != null)
-                        {
-                            lock (_fifoDataSample)
-                            {
-                                while (_fifoDataSample.Count > 0)
-                                {
-                                    dataSample = (cDataSample)_fifoDataSample.Dequeue();    //Display Data Sample
-                                    if (dataSample.FirstDataAfterTriggerStart) startmeasure = true;
-                                    if (dataSample != null && startmeasure)
-                                    {
-                                        if (_in_trigger && _dataAcquisitionNumber > 0)
-                                        {
-                                            lock (_fifoDataSodx)
-                                            {
-                                                _fifoDataSodx.Enqueue(dataSample);
-                                            }
-                                            _dataAcquisitionNumber -= 1;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    #endregion
+
                     #region Display Data Format
                     if ((_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].WaitOne(0)))
                     {
@@ -745,58 +717,74 @@ namespace Velociraptor
         public void ThreadMeasureLoop()
         {
             int timeout = 20;
-            cDataSample data = null;
             _ccsvWriteFiles = new CsvWriteFile();
-
             while (!_threadMeasure.EventExitProcessThread.WaitOne(timeout))
             {
                 //Debug.WriteLine("ThreadMeasureLoop");
-                #region 取fifoDataSodx
-                lock (_fifoDataSodx)
+                if (_threadMeasure.EventUserList[(int)eThreadMeasure.eData].WaitOne(0))
                 {
-                    do
+                    if (_fifoDataSample != null)
                     {
-                        data = (cDataSample)_fifoDataSodx.Dequeue();
-                        if ((_client != null) && (data != null))
+                        lock (_fifoDataSample)
                         {
-                            _ccsvWriteFiles.Add(data.SignalDataList);
+                            while (_fifoDataSample.Count > 0)
+                            {
+                                cDataSample dataSample = (cDataSample)_fifoDataSample.Dequeue();    //Display Data Sample
+                                if (dataSample.FirstDataAfterTriggerStart) startmeasure = true;
+                                if (_ccsvWriteFiles != null && startmeasure == true)
+                                {
+                                    if (_dataAcquisitionNumber > 4 * _measure_distance) _ccsvWriteFiles.Add(dataSample.SignalDataList, 0);
+                                    else if (_dataAcquisitionNumber > 3 * _measure_distance) _ccsvWriteFiles.Add(dataSample.SignalDataList, 1);
+                                    else if (_dataAcquisitionNumber > 2 * _measure_distance) _ccsvWriteFiles.Add(dataSample.SignalDataList, 2);
+                                    else if (_dataAcquisitionNumber > 1 * _measure_distance) _ccsvWriteFiles.Add(dataSample.SignalDataList, 3);
+                                    else if (_dataAcquisitionNumber > 0)
+                                    {
+                                        if (_motion.ScanMode() == 1) _ccsvWriteFiles.Add(dataSample.SignalDataList, 4);
+                                        else _ccsvWriteFiles.Add(dataSample.SignalDataList, 0);
+                                    }
+                                    _dataAcquisitionNumber--;
+                                }
+                                if (_dataAcquisitionNumber <= 0 && startmeasure == true)
+                                {
+                                    _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
+                                    _ccsvWriteFiles.Close();
+                                    _client.TriggerStop();
+                                    _in_trigger = false;
+                                    startmeasure = false;
+                                    sSpectrumRaw spectrumRaw = new sSpectrumRaw();
+                                    spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
+                                    spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
+                                    spectrumRaw.SpectraId = (uint)eSpectraId.SpectraIdRawSpectrum;
+                                    _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
+                                    #region show data
+
+                                    ProcessStartInfo Info2 = new ProcessStartInfo();
+
+                                    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+
+                                    Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
+
+                                    Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
+
+                                    Process.Start(Info2);
+
+                                    #endregion
+                                }
+                            }
                         }
-                    } while (data != null);
-                }
-                #endregion
-                if (_dataAcquisitionNumber <= 0 && startmeasure == true)
-                {
-                    _in_trigger = false;
-                    startmeasure = false;
-                    _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
-                    _ccsvWriteFiles.Close();
-                    _client.TriggerStop();
-                    
-                    #region show data
-
-                    ProcessStartInfo Info2 = new ProcessStartInfo();
-
-                    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-
-                    Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-
-                    Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
-
-                    Process.Start(Info2);
-
-                    #endregion
+                    }
                 }
                 if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
-                    
                     _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, _motion.ScanMode());
-                    
+                    _in_trigger = true;
                 }
             }
             _threadMeasure.EventExitProcessThreadDo.Set();
         }
         #endregion
         #endregion
+       
 
         #region 按鈕Click事件
         #region btn_dark_Click
@@ -1458,7 +1446,7 @@ namespace Velociraptor
             _threadGui.EventUserList[(int)enEventThreadGui.DisplaySampleRate].Set();
             Invalidate();
         }
-        #endregion     
+        #endregion
         #region -OnUpdateDataSample
         /// <summary>Event receive new data sample</summary>
         /// <param name="clsCommand"> The <see cref="cDataSample"/> instance containing the data sample.</param>
@@ -1470,10 +1458,7 @@ namespace Velociraptor
                 {
                     _fifoDataSample.Enqueue(dataSample);
                 }
-                if (_threadGui != null)
-                {
-                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataSample].Set();
-                }
+                _threadMeasure.EventUserList[(int)eThreadMeasure.eData].Set();
             }
         }
         #endregion
@@ -2003,8 +1988,7 @@ namespace Velociraptor
         private void DoMeasurement()
         {
 
-
-            _in_trigger = true;
+            _acquisitionTab.Recording = true;
             _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
             _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
             _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
@@ -2014,7 +1998,9 @@ namespace Velociraptor
             _dataAcquisitionNumber = _measure_distance / measureParamReader.SetTriggerInterval;
 
 
-            
+            _fifoDataSample.CalculationOfFifo.Reset();
+            _client.ClearDataSampleFifo();
+            _client.DnldCommand.StopDownloadRaw();
 
             bool set_EncoderParameter = Set_EncoderParameter(_acquisitionTab.StartMeasureXPos,
                                  measureParamReader.SetTriggerInterval,
@@ -2024,11 +2010,7 @@ namespace Velociraptor
                                  measureParamReader.SelectEncoderTriggerSource,
                                  measureParamReader.EndlessRountripTrigger);
             if (set_EncoderParameter != true) return;
-
-            _fifoDataSodx.CalculationOfFifo.Reset();
-            _client.ClearDataSampleFifo();
-
-            if (_motion.ScanMode() == 1) _dataAcquisitionNumber *= 5;
+            if (_motion.ScanMode() == 1) _dataAcquisitionNumber *= 5;//1um測量時set_EncoderParameter參數TrigNum不必*5
             _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
 
 
