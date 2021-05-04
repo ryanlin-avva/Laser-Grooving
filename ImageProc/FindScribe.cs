@@ -545,7 +545,9 @@ namespace Velociraptor.ImageProc
             if (c == 0) return -1;
 
             angle = (float)Math.Acos((dx1 * dx2 + dy1 * dy2) / c);
-            return angle;
+
+
+            return (second.Y > first.Y) ? angle : -angle;
         }
         public void Draw(ref Bitmap bmp)
         {

@@ -76,7 +76,8 @@ namespace Velociraptor
         }
         public void GetDistance2Measure(ref int[] dist)
         {
-            dist[0] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraX", "0"));
+            //X軸必須位移500um，做為相對起始掃描位置
+            dist[0] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraX", "0"))-500;
             dist[1] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraY", "0"));
             dist[2] = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraZ", "0"));
         }

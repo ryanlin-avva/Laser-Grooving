@@ -1,6 +1,7 @@
 ﻿using HalconDotNet;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,18 +29,6 @@ namespace Velociraptor
             }
             return true;
         }
-        public bool DoAutoScan(string datafilename, int[]pos_x, int[]pos_y)
-        {
-            char[] axis = { 'X', 'Y' };
-            for (int i=0; i< pos_x.Length; i++)
-            {
-                int[] distance = { pos_x[i], pos_y[i] };
-                _motion.MoveTo(axis, distance, false);
-                DoPointScan();
-            }
-            return true;
-        }
-        private void DoPointScan() { }
         public bool find_angle(HObject cur_img, int threshold, ref double[] die_side, ref double angle)
         {
             if (die_side[0] == 0 || die_side[1] == 0)

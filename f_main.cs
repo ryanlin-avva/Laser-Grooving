@@ -38,6 +38,7 @@ namespace Velociraptor
             eAlignment,
             /// <summary>close application</summary>
             eCloseApplication,
+            eSnap,
         }
         #endregion
         #region enEventThreadGui
@@ -88,7 +89,6 @@ namespace Velociraptor
         private HObject cur_img;
         private string ImageFullPath;
         bool isGarpping;
-        bool crosshairs=false;
         Bitmap _cur_bitmap = null;
         IAvvaCamera basler = new BaslerCamera();
         AvvaCamera camera;
@@ -211,6 +211,8 @@ namespace Velociraptor
         private bool _in_trigger = false;
         private bool _cancelFormClosing = true;
         bool startmeasure = false;
+        private static AutoResetEvent _event_measure_complete = new AutoResetEvent(false);
+
         #region wafer info
         private int _wafer_size = 12;
         private string _wafer_id;
@@ -725,7 +727,11 @@ namespace Velociraptor
                             }
                         }
                     }
-                    #endregion                
+                    #endregion  
+                    if (_threadActionProcess.EventUserList[(int)eThreadAction.eSnap].WaitOne(0))
+                    {
+                        _cur_bitmap.Save(_measure_filename + "bmp", ImageFormat.Bmp);
+                    }
                 }
                 _threadActionProcess.EventExitProcessThreadDo.Set();
             }
@@ -768,27 +774,26 @@ namespace Velociraptor
                     startmeasure = false;
                     _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
                     _ccsvWriteFiles.Close();
+                    _event_measure_complete.Set();
                     _client.TriggerStop();
                     
-                    #region show data
+                    //#region show data
 
-                    ProcessStartInfo Info2 = new ProcessStartInfo();
+                    //ProcessStartInfo Info2 = new ProcessStartInfo();
 
-                    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+                    //Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
 
-                    Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
+                    //Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
 
-                    Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
+                    //Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
 
-                    Process.Start(Info2);
+                    //Process.Start(Info2);
 
-                    #endregion
+                    //#endregion
                 }
                 if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
-                {
-                    
+                {                    
                     _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, _motion.ScanMode());
-                    
                 }
             }
             _threadMeasure.EventExitProcessThreadDo.Set();
@@ -850,9 +855,6 @@ namespace Velociraptor
             grp_align_test.Visible = false;
             btn_connection_ip.Visible = false;
             grp_mea_para.Visible = false;
-            //chk_cursor_v1.Visible = true;
-            //label_cursor_v1.Visible = true;
-            //nud_cursor_v1.Visible = true;
         }
         #endregion
         #endregion
@@ -920,7 +922,6 @@ namespace Velociraptor
         private void cb_SelectMeasureDistance_SelectedIndexChanged(object sender, EventArgs e)
         {
             _measure_distance = int.Parse(cb_SelectMeasureDistance.Text);
-            //if (_motion.ScanMode() == 1) _measure_distance *= 5;
         }
         #endregion
         #endregion
@@ -1243,6 +1244,17 @@ namespace Velociraptor
                 MessageBox.Show("請先輸入影像分割閥值");
                 return;
             }
+            if (!_client.ClientIsConnected)
+            {
+                MessageBox.Show("量測相機未連線，請先連結相機");
+                return;
+            }
+            if ((_client == null) && (_client.DnldCommand == null))
+            {
+                MessageBox.Show("量測相機初始化失敗，請重新啟動系統");
+                return;
+            }
+
             DoAlignment();
             AutoParamsForm form = new AutoParamsForm();
             if (form.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
@@ -1315,7 +1327,11 @@ namespace Velociraptor
                 }
             }
             _measure_distance = 1000;
-            if (_syn_op.DoAutoScan(_wafer_id, _mea_pos_x, _mea_pos_y))
+            DateTime dt = DateTime.Now;
+            string dt_str = string.Format("_{0:yy_MM_dd_HH_mm}", dt);
+            string path = Path.Combine(measureParamReader.SavingPath, _wafer_id+dt_str);
+            Directory.CreateDirectory(path);
+            if (DoAutoScan(path, _mea_pos_x, _mea_pos_y))
                 data.scan_ok = 1;
             else
                 data.scan_ok = 0;
@@ -1967,7 +1983,6 @@ namespace Velociraptor
                     }
                     MoveBackFromMeaCamera();
                 }
-
             }
             catch (Exception ex)
             {
@@ -2053,7 +2068,6 @@ namespace Velociraptor
             _pos_keep[0] = _motion.GetPos('X');
             _pos_keep[1] = _motion.GetPos('Y');
             _pos_keep[2] = _motion.GetPos('Z');
-            char[] axes = { 'X', 'Y', 'Z' };
             if (!_motion.MoveToMeasurePos())
             {
                 MessageBox.Show(_motion.GetErrorMsg());
@@ -2111,6 +2125,7 @@ namespace Velociraptor
                 if (badImageData == true) return;
 
                 Bitmap bitmapOld = pic_camera.Image as Bitmap;
+
                 _cur_bitmap = bitmap;
                 pic_camera.Image = bitmap;
                 if (is_advanced_mode)
@@ -2193,6 +2208,55 @@ namespace Velociraptor
             }
             die_side[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(die_side[Constants.WAY_HORIZONTAL]);
             die_side[Constants.WAY_VERTICAL] = vc.Pixel2Um_Y(die_side[Constants.WAY_VERTICAL]);
+        }
+        private bool DoAutoScan(string pathname, int[] pos_x, int[] pos_y)
+        {
+            GrabOff();
+            if (!Directory.Exists(pathname)) Directory.CreateDirectory(pathname);
+            char[] axis = { 'X', 'Y' };
+            for (int i = 0; i < pos_x.Length; i++)
+            {
+                string filename = Path.Combine(pathname, "Data_" + i.ToString());
+                _measure_filename = filename;
+                int[] distance = { pos_x[i], pos_y[i] };
+                if (!DoSnapAndSave(filename)) return false;
+                _motion.MoveTo(axis, distance, false);
+                MoveToMeaCamera();
+                DoMeasurement();
+                //MoveBackFromMeaCamera();
+                int retry = 0;
+                while (!_event_measure_complete.WaitOne(0) && retry < 20)
+                {
+                    Thread.Sleep(100);
+                    retry++;
+                }
+                if (retry >= 20)
+                {
+                    MessageBox.Show("取得第"+i.ToString()+"點量測結果逾時");
+                    return false;
+                }
+            }
+            return true;
+        }
+        private bool DoSnapAndSave(string fname)
+        {
+            _cur_bitmap = null;
+            if (cur_img != null) cur_img.Dispose();
+            cur_img = null;
+            camera.SnapImage();
+            int retry = 0;
+            while (_cur_bitmap == null && retry < 20)
+            {
+                Thread.Sleep(100);
+                retry++;
+            }
+            if (_cur_bitmap == null)
+            {
+                MessageBox.Show(fname + " 取像失敗:逾時");
+                return false;
+            }
+            _threadActionProcess.EventUserList[(int)eThreadAction.eSnap].Set();
+            return true;
         }
     }
 }
