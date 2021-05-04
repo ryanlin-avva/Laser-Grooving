@@ -249,6 +249,7 @@
     <None Include="Images\48\green.ico" />
     <None Include="Images\48\red.ico" />
     <None Include="Images\48\backspace.png" />
+    <Content Include="AvvaCamera.dll" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />

@@ -56,7 +56,7 @@ namespace Velociraptor.AddOn
         public bool Add(List<sSignalData> signalDataList, int line=0)
         {
             if (signalDataList == null || signalDataList.Count == 0) return false;
-            if ((line % 2) == 0)
+            if ((line % 2) != 0)
                 line_keeper[line].Add(signalDataList);
             else
                 line_keeper[line].Insert(0, signalDataList);
@@ -102,7 +102,7 @@ namespace Velociraptor.AddOn
                         else
                             _file.Write(line_keeper[i].Intensity(j)[k]);
                     }
-                }
+                }              
             }
             return true;
         }
@@ -168,6 +168,7 @@ namespace Velociraptor.AddOn
                 _streamWriter.WriteLine(string.Format("{0}", value));
             return (true);
         }
+       
         public bool WriteArray(int[] value)
         {
             if ((_streamWriter != null) && (value != null) && (value.Length > 0))

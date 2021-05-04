@@ -202,8 +202,7 @@ namespace Velociraptor
             CMotionAPI.POSITION_DATA[] PosForMeaMoveX = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             PosForMeaMoveDownY[1].PositionData = 1 * units[1];
-            if (!MoveTo('X', -100)) return false;
-            Thread.Sleep(40);
+            if (!MoveTo('X', -100)) return false;          
             for (int i=0; i< 5; i++)
             {
                 PosForMeaMoveX[0].PositionData = move_x[i] * units[0];
@@ -213,7 +212,6 @@ namespace Velociraptor
                     err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                     return false;
                 }
-                //Thread.Sleep(50);
                 if(i<4)
                 {
                     rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
@@ -222,7 +220,6 @@ namespace Velociraptor
                         err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
                         return false;
                     }
-                    //Thread.Sleep(50);
                 }
             }
             err_msg = "Move succeeded";
