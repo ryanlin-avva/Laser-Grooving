@@ -9,13 +9,13 @@ namespace Velociraptor.ImageProc
     class FindScribe
     {
         int _img_height, _img_width;
-        string ErrMsg;
+        public string Err_msg { get; set; }
         List<List<Point>> Hor_Line = new List<List<Point>>();
         List<List<Point>> Ver_Line = new List<List<Point>>();
         List<List<Point>> centerpoint_list = new List<List<Point>>();
-        List<Point> _target_points;
+        List<Point> _target_points = new List<Point>();
         public double AngleAverage { get; set; }
-        public bool find_angle(Bitmap bitmap)
+        public bool find_angle(Bitmap bitmap, int threshold)
         {
             _img_height = bitmap.Height;
             _img_width = bitmap.Width;
@@ -24,15 +24,14 @@ namespace Velociraptor.ImageProc
             _fast_pixel.Bmp2RGB(bitmap); //讀取RGB亮度陣列
             _fast_pixel.array_Gray = _fast_pixel.array_Green;//灰階陣列為綠光陣列
 
-            byte[,] array_Outline = GetScribeLine(_fast_pixel);
+            byte[,] array_Outline = GetScribeLine(_fast_pixel, threshold);
             return Targets(array_Outline, _fast_pixel.nx, _fast_pixel.ny);
         }
         //建立切割道陣列
-        private byte[,] GetScribeLine(FastPixel f)
+        private byte[,] GetScribeLine(FastPixel f, int offset)
         {
             byte[,] b = f.array_Green;
             byte[,] Q = new byte[f.nx, f.ny];
-            int offset = 4;
             for (int i = 1; i < f.nx - 1; i++)
             {
                 for (int j = 1; j < f.ny - 1; j++)
@@ -78,7 +77,7 @@ namespace Velociraptor.ImageProc
             }
             if (C.Count == 0)
             {
-                ErrMsg = "找不到切割道交點";
+                Err_msg = "找不到切割道交點";
                 return false;
             }
             Filter(C, nx, ny);
@@ -154,11 +153,8 @@ namespace Velociraptor.ImageProc
             _target.top_centerpoint_list = new List<Point>();
             _target.down_centerpoint_list = new List<Point>();
 
-            #region 輪廓點內補滿 
+            //輪廓點內補滿 
             byte[,] Tbin = Fill(_target.P, nx, ny);
-            //pictureBox1.Image = f.BWImg(Fill(T.P));//繪製二值化圖
-            //return;
-            #endregion
             #region 找出左右上下點集合
             for (int m = 0; m < _target.P.Count; m++)
             {
@@ -396,6 +392,7 @@ namespace Velociraptor.ImageProc
                 angle_Average = angle_Average + angle_List[i];
             }
             AngleAverage = angle_Average / angle_List.Count;
+            _target_points = _target.P;
         }
         private byte[,] Fill(List<Point> a, int nx, int ny)
         {
@@ -548,8 +545,6 @@ namespace Velociraptor.ImageProc
             if (c == 0) return -1;
 
             angle = (float)Math.Acos((dx1 * dx2 + dy1 * dy2) / c);
-
-
             return angle;
         }
         public void Draw(ref Bitmap bmp)
@@ -563,7 +558,11 @@ namespace Velociraptor.ImageProc
             Graphics g = Graphics.FromImage(bmp);
             for (int i = 0; i < Ver_Line.Count; i++)
             {
-                g.DrawLine(new Pen(Color.Red), Ver_Line[i][0], Ver_Line[i][1]);
+                g.DrawLine(new Pen(Color.Red,5), Ver_Line[i][0], Ver_Line[i][1]);
+            }
+            for (int i = 0; i < Hor_Line.Count; i++)
+            {
+                g.DrawLine(new Pen(Color.Red, 5), Hor_Line[i][0], Hor_Line[i][1]);
             }
             //找直線交點
             Point centerpoint = new Point();
