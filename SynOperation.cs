@@ -21,10 +21,14 @@ namespace Velociraptor
         public bool DoAlignment(HObject cur_img, int threshold, ref double[] die_side)
         {
             double angle = 0;
-            if (!find_angle(cur_img, threshold, ref die_side, ref angle)) return false;
-            if (!_motion.MoveTo('R', (int)(angle*1000.0)))
+            try
             {
-                Err_msg = "轉正失敗：請重新調整焦距或切割道閥值\n" + _motion.GetErrorMsg();
+                if (!find_angle(cur_img, threshold, ref die_side, ref angle)) return false;
+                _motion.MoveTo('R', (int)(angle * 1000.0));
+            }
+            catch (Exception ex)
+            {
+                Err_msg = "轉正失敗：請重新調整焦距或切割道閥值\n" + ex.Message;
                 return false;
             }
             return true;

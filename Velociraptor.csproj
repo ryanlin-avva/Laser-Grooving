@@ -28,7 +28,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <CodeAnalysisLogFile>bin\Debug\Sample_1.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
@@ -83,6 +83,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AddOn\AvvaException.cs" />
     <Compile Include="AddOn\cClientIhm.cs" />
     <Compile Include="AddOn\CsvWriteFile.cs" />
     <Compile Include="AddOn\CHRDLLFunctionWrapper.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="ImageProc\GrouperMgr.cs" />
     <Compile Include="ImageProc\HalconProc.cs" />
     <Compile Include="ImageProc\Hints.cs" />
+    <Compile Include="ImageProc\ImageKeeper.cs" />
     <Compile Include="ImageProc\LinePair.cs" />
     <Compile Include="ImageProc\MyLine.cs" />
     <Compile Include="ImageProc\MyPair.cs" />

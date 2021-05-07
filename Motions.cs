@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Velociraptor.AddOn;
 
 namespace Velociraptor
 {
@@ -22,7 +23,6 @@ namespace Velociraptor
         private int _axis_num;
         private int _scan_mode;
         private MotionParamReader _paraReader;
-        private string err_msg = "";
         #region YASKAWA servor parameter control
         UInt32 g_hController = 0; // Controller handle				
         UInt32 g_hDevice;  // Device handle
@@ -33,21 +33,20 @@ namespace Velociraptor
         private String[] _registerName = { "IL8010", "IL8090", "IL8110", "IL818E" };
         private UInt16[] Direction = null; // Moving direction
         private UInt16[] WaitForCompletion = null;
-        private UInt16[] WaitForStart = null;
+        //private UInt16[] WaitForStart = null;
         private UInt32[] hAxis = null;  // Axis handle
         private UInt32 rc; // Motion API return value
         #endregion
-        public bool Init(string filename)
+        public void Init(string filename)
         {
             string path = Path.Combine(Constants.appConfigFolder, filename);
             if (!File.Exists(path))
             {
-                err_msg = "找不到設定檔" + path;
-                return false;
+                throw new AvvaMotionException("找不到設定檔" + path);
             }
             _paraReader = new MotionParamReader(path);
             isSimulate = _paraReader.IsSimulate();
-            if (isSimulate) return true;
+            if (isSimulate) return;
             _axis_num = _paraReader.SetAxes(ref axis_map);
             _scan_mode = _paraReader.ScanningMode;
             _paraReader.GetDistance2Measure(ref _2_mea);
@@ -57,7 +56,7 @@ namespace Velociraptor
             PosForMove = new CMotionAPI.POSITION_DATA[_axis_num];
             Direction = new UInt16[_axis_num]; 
             WaitForCompletion = new UInt16[_axis_num]; 
-            WaitForStart = new UInt16[_axis_num]; 
+            //WaitForStart = new UInt16[_axis_num]; 
             hAxis = new UInt32[_axis_num];
             #endregion
             #region variables initialization
@@ -67,8 +66,7 @@ namespace Velociraptor
             int my_y = axis_map['Y'];
             if (my_y == -1)
             {
-                err_msg = "Axis Y NOT Found";
-                return false;
+                throw new AvvaMotionException("Axis Y NOT Found");
             }
 
             MotionDataForJogY = (CMotionAPI.MOTION_DATA[])MotionData.Clone();
@@ -79,30 +77,28 @@ namespace Velociraptor
                 WaitForCompletion[i] = (UInt16)CMotionAPI.ApiDefs.POSITIONING_COMPLETED;
                 // By setting the completion attribute to "COMMAND_STARTED (starting the command)," 
                 // the control returns to the application immediately after positioning command execution.
-                WaitForStart[i] = (UInt16)CMotionAPI.ApiDefs.COMMAND_STARTED;
+                //WaitForStart[i] = (UInt16)CMotionAPI.ApiDefs.COMMAND_STARTED;
                 Direction[i] = (UInt16)CMotionAPI.ApiDefs.DIRECTION_POSITIVE;
                 //將非Y方向的JOG速度都設為0
                 if (i != my_y) MotionDataForJogY[i].Velocity = 0;
             }
             #endregion
             #region H/W initialization
-            if (!SetMotorOn()) return false;
+            SetMotorOn();
             #endregion
-            return true;
         }
 
         public int ScanMode()
         {
             return _scan_mode;
         }
-        public bool MoveTo(char axis_char, int distance, bool isRelative = true)
+        public void MoveTo(char axis_char, int distance, bool isRelative = true)
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             int my_axis = axis_map[axis_char];
             if (my_axis == -1)
             {
-                err_msg = "Axis " + axis_char + " NOT Found";
-                return false;
+                throw new AvvaMotionException("Axis " + axis_char + " NOT Found");
             }
             CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             move_pos[my_axis].PositionData = distance*units[my_axis];
@@ -112,19 +108,18 @@ namespace Velociraptor
                 MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
             if (!isRelative)
                 MotionData[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0, "Start", WaitForStart, 0);
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
-            return true;
         }
         //Default use relative move
         //If use absolute move, ONLY SPECIFIED AXIS ARE SET TO ABS
-        public bool MoveTo(char[] axis_char, int[] distance, bool isRelative)
+        public void MoveTo(char[] axis_char, int[] distance, bool isRelative)
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             for (int i = 0; i < _axis_num; i++)
                 MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
@@ -134,20 +129,18 @@ namespace Velociraptor
                 int my_axis = axis_map[axis_char[i]];
                 if (my_axis == -1)
                 {
-                    err_msg = "Axis " + axis_char[i] + " NOT Found";
-                    return false;
+                    throw new AvvaMotionException("Axis " + axis_char[i] + " NOT Found");
                 }
                 move_pos[my_axis].PositionData = distance[i] * units[my_axis];
                 if (!isRelative)
                     MotionData[my_axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
             }
-            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0, "Start", WaitForStart, 0);
+            rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
-            return true;
         }
         public int GetPos(char axis_char)
         {
@@ -159,75 +152,68 @@ namespace Velociraptor
             rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return 0;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             rc = CMotionAPI.ymcGetRegisterDataHandle(_registerName[my_axis], ref hRegister);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcGetRegisterDataHandle OL \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return 0;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcGetRegisterDataHandle OL \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             Int32[] RegData = new Int32[1];
             UInt32 ReadDataNumber = 0;
             rc = CMotionAPI.ymcGetRegisterData(hRegister, 1, RegData, ref ReadDataNumber);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcGetRegisterData OLy \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return 0;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcGetRegisterData OLy \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             return RegData[0]/units[my_axis];
         }
-        public bool MoveToMeasurePos()
+        public void MoveToMeasurePos()
         {
             char[] axes = { 'X', 'Y', 'Z' };
-            return MoveTo(axes, _2_mea, true);
+            MoveTo(axes, _2_mea, true);
         }
-        public bool Move5um(int measureDistance)
+        public void Move5um(int measureDistance)
         {
-            if (isSimulate) return true;
-            if (!MoveTo('X', -100)) return false;
-
-            if (MoveTo('X', measureDistance + 100, true) != true)
-            {
-                return false;
-            }
-            return true;
+            if (isSimulate) return;
+            MoveTo('X', -100);
+            MoveTo('X', measureDistance + 100, true);
         }
-        public bool Move1um(int measureDistance)
+        public void Move1um(int measureDistance)
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             int[] move_x = { measureDistance+200, -measureDistance-200 , measureDistance+200
                             , -measureDistance-200  , measureDistance+100 };
             CMotionAPI.POSITION_DATA[] PosForMeaMoveX = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             CMotionAPI.POSITION_DATA[] PosForMeaMoveDownY = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
             PosForMeaMoveDownY[1].PositionData = 1 * units[1];
-            if (!MoveTo('X', -100)) return false;          
+            MoveTo('X', -100);          
             for (int i=0; i< 5; i++)
             {
                 PosForMeaMoveX[0].PositionData = move_x[i] * units[0];
                 rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveX, 0, "Start", WaitForCompletion, 0);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {
-                    err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                    return false;
+                    throw new AvvaMotionException(String.Format(
+                        "Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 }
                 if(i<4)
                 {
                     rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, PosForMeaMoveDownY, 0, "Start", WaitForCompletion, 0);
                     if (rc != CMotionAPI.MP_SUCCESS)
                     {
-                        err_msg = String.Format("Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                        return false;
+                        throw new AvvaMotionException(String.Format(
+                            "Error ymcMoveDriverPositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                     }
                 }
             }
-            err_msg = "Move succeeded";
-            return true;
         }
-        public bool JogY(bool toStart, bool isPositive=true)
+        public void JogY(bool toStart, bool isPositive=true)
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             if (toStart)
             {
                 ushort[] timeout = new ushort[_axis_num];
@@ -235,8 +221,7 @@ namespace Velociraptor
                 int my_axis = axis_map['Y'];
                 if (my_axis == -1)
                 {
-                    err_msg = "Axis Y NOT Found";
-                    return false;
+                    throw new AvvaMotionException("Axis Y NOT Found");
                 }
 
                 timeout[my_axis] = 1;
@@ -251,14 +236,13 @@ namespace Velociraptor
             }
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcMoveJOG/StopJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcMoveJOG/StopJOG Board 1 \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
-            return true;
         }
-        public bool GoHome()
+        public void GoHome()
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             UInt16[] WaitForCompletion = new UInt16[_axis_num];
             UInt16[] HomeMethod = new UInt16[_axis_num];
 
@@ -269,10 +253,9 @@ namespace Velociraptor
             rc = CMotionAPI.ymcMoveHomePosition(g_hDevice, MotionData, PosForMove, HomeMethod, Direction, 0, "Start", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcMoveHomePositioning \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcMoveHomePositioning \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
-            return true;
         }
         public void GetCenterPos(ref int[] distance)
         {
@@ -286,27 +269,25 @@ namespace Velociraptor
             distance[1] = -128500;
             distance[2] = 0;
         }
-        public bool StopMove()
+        public void StopMove()
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             rc = CMotionAPI.ymcStopMotion(g_hDevice, MotionData, "Stop", WaitForCompletion, 0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcStopMotion \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcStopMotion \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
-            return true;
         }
-        public bool ClearAlarm()
+        public void ClearAlarm()
         {
-            if (isSimulate) return true;
+            if (isSimulate) return;
             rc = CMotionAPI.ymcClearAlarm(0);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcClearAlarm \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcClearAlarm \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
-            return true;
         }
         public void MotorOff()
         {
@@ -321,11 +302,7 @@ namespace Velociraptor
             rc = CMotionAPI.ymcCloseController(g_hController);
             if (rc != CMotionAPI.MP_SUCCESS) return;
         }
-        public string GetErrorMsg()
-        {
-            return err_msg;
-        }
-        private bool SetMotorOn()
+        private void SetMotorOn()
         {
             //YASKAWA servor setting
             #region ymcOpenController
@@ -345,8 +322,8 @@ namespace Velociraptor
             rc = CMotionAPI.ymcOpenController(ref ComDevice, ref g_hController);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcOpenController  \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             #endregion
             #region Sets the motion API timeout                               
@@ -354,8 +331,8 @@ namespace Velociraptor
             rc = CMotionAPI.ymcSetAPITimeoutValue(30000);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error SetAPITimeoutValue \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error SetAPITimeoutValue \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             #endregion
             #region Clear and reCreates the axis handle      
@@ -364,8 +341,8 @@ namespace Velociraptor
             //rc = CMotionAPI.ymcClearAxis(hAxis[0]);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ClearAllAxes \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ClearAllAxes \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             for (int i = 0; i < _axis_num; i++)
             {
@@ -373,8 +350,8 @@ namespace Velociraptor
                 rc = CMotionAPI.ymcDeclareAxis(1, 0, 3, (UInt16)(i + 1), (UInt16)(i + 1), (UInt16)CMotionAPI.ApiDefs.REAL_AXIS, AxisName, ref hAxis[i]);
                 if (rc != CMotionAPI.MP_SUCCESS)
                 {
-                    err_msg = String.Format("Error ymcDeclareAxis \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                    return false;
+                    throw new AvvaMotionException(String.Format(
+                        "Error ymcDeclareAxis \nErrorCode [ 0x{0} ]", rc.ToString("X")));
                 }
             }
             #endregion
@@ -382,8 +359,8 @@ namespace Velociraptor
             rc = CMotionAPI.ymcDeclareDevice((UInt16)_axis_num, hAxis, ref g_hDevice);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcDeclareDevice \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             #endregion
             #region Executes servo ON
@@ -391,11 +368,19 @@ namespace Velociraptor
             rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_ON, 5000);
             if (rc != CMotionAPI.MP_SUCCESS)
             {
-                err_msg = String.Format("Error ymcServoControl \nErrorCode [ 0x{0} ]", rc.ToString("X"));
-                return false;
+                throw new AvvaMotionException(String.Format(
+                    "Error ymcServoControl \nErrorCode [ 0x{0} ]", rc.ToString("X")));
             }
             #endregion
-            return true;
         }
+    }
+    [Serializable]
+    class AvvaMotionException : AvvaException
+    {
+        public AvvaMotionException(string description)
+            : base(description) { }
+
+        public AvvaMotionException(string description, Exception inner)
+            : base(description, inner) { }
     }
 }

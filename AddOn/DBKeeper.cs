@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using System;
 using System.Windows.Forms;
 
 namespace Velociraptor.AddOn
@@ -6,7 +7,6 @@ namespace Velociraptor.AddOn
     class DBKeeper
     {
         private SqliteConnection conn = null;
-        public string Message { get; set; }
         public struct SCAN_DATA
         {
             public string wafer_id;
@@ -27,6 +27,7 @@ namespace Velociraptor.AddOn
 	        "col1"	INTEGER,
 	        "row2"	INTEGER,
 	        "col2"	INTEGER,
+            "notch_way" INTEGER,
 	        "scan_type"	INTEGER DEFAULT 1,
             "scan_ok" INTEGER DEFAULT 1,
 	        PRIMARY KEY("wafer_id")
@@ -34,7 +35,6 @@ namespace Velociraptor.AddOn
          */
         public DBKeeper()
         {
-            Message = "";
             SqliteDataReader s_reader=null;
             try
             {
@@ -49,36 +49,31 @@ namespace Velociraptor.AddOn
                     string temp = s_reader["name"].ToString();
                     if (temp != "scan_data")
                     {
-                        Message = "[Sql] 找不到資料表";
+                        throw new AvvaDBException("DB Exception: Table Not Found");
                     }
                 }
                 else
                 {
-                    Message = "[Sql] 查詢資料表失敗";
+                    throw new AvvaDBException("DB Exception: Metadata Query Failed");
                 }
                 s_reader.Close();
             }
             catch (SqliteException ex)
             {
-                Message = "[Sql] 資料庫連線失敗 -- error code " + ex.Message;
                 if (s_reader != null) s_reader.Close();
                 if (conn != null) conn.Close();
+                throw new AvvaDBException("DB Connection Exception", ex);
             }
-        }
-        public bool OpenSucceeded()
-        {
-            return Message == "";
         }
         ~DBKeeper()
         {
             conn.Close();
         }
-        public bool Insert(ref SCAN_DATA data)
+        public void Insert(ref SCAN_DATA data)
         {
             if (data.wafer_id == "" || data.points_cnt == 0)
             {
-                Message = "[Sql] wafer儲存資料不完整";
-                return false;
+                throw new AvvaDBException("DB Exception: Insert Wafer data incomplete");
             }
 
             SqliteCommand sql_cmd = conn.CreateCommand();
@@ -97,28 +92,24 @@ namespace Velociraptor.AddOn
                                         + data.scan_ok.ToString() 
                                         + ");";
                 sql_cmd.ExecuteNonQuery();
-                return true;
             }
             catch (SqliteException ex)
             {
-                Message = "Insert DB failed -- error code " + ex.Message;
-                return false;
+                throw new AvvaDBException("DB Exception", ex);
             }
 
         }
-        public bool Query(string wafer_id, ref SCAN_DATA data)
+        public void Query(string wafer_id, ref SCAN_DATA data)
         {
             if (wafer_id == "")
             {
-                Message = "無wafer ID";
-                return false;
+                throw new AvvaDBException("DB Exception: Wafer ID Not Found");
             }
 
             SqliteCommand sql_cmd = conn.CreateCommand();
             sql_cmd.CommandText = "SELECT * FROM main.scan_data WHERE wafer_id = '"
                                 + wafer_id + "' AND scan_ok=1;";
             SqliteDataReader s_reader = sql_cmd.ExecuteReader();
-            bool query_ok = true;
             try
             {
                 while (s_reader.Read())
@@ -136,15 +127,22 @@ namespace Velociraptor.AddOn
             }
             catch (SqliteException ex)
             {
-                Message = "Select DB failed -- error code " + ex.Message;
-                query_ok = false;
+                throw new AvvaDBException("DB Exception", ex);
             }
             finally
             {
                 s_reader.Close();
             }
-            return query_ok;
         }
+    }
 
+    [Serializable]
+    class AvvaDBException : AvvaException
+    {
+        public AvvaDBException(string description)
+            : base(description) { }
+
+        public AvvaDBException(string description, Exception inner)
+            : base(description, inner) { }
     }
 }

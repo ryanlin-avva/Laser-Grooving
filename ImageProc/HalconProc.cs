@@ -62,7 +62,11 @@ namespace Velociraptor
         {
             GCHandle hobject = GCHandle.Alloc(img, GCHandleType.Pinned);
             IntPtr pobject = hobject.AddrOfPinnedObject();
-            cur_img.Dispose();
+            if (cur_img != null)
+            {
+                cur_img.Dispose();
+                cur_img = null;
+            }
             HOperatorSet.GenImageInterleaved(out cur_img, pobject, "bgr",
                 image_width, image_height, -1, "byte",
                 image_width, image_height, 0, 0, -1, 0);

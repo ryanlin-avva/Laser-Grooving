@@ -141,6 +141,8 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.btn_grab = new System.Windows.Forms.Button();
             this.grp_pic_test = new System.Windows.Forms.GroupBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.tbThreshold1 = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.lb_die_side1 = new System.Windows.Forms.Label();
@@ -172,8 +174,6 @@
             this.hWindowControl1 = new HalconDotNet.HWindowControl();
             this.button3 = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.tbThreshold1 = new System.Windows.Forms.TextBox();
-            this.label13 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -983,7 +983,7 @@
             this.btn_download.TabIndex = 126;
             this.btn_download.Text = "開始取像";
             this.btn_download.UseVisualStyleBackColor = true;
-            this.btn_download.Click += new System.EventHandler(this.btn_trigger_Click);
+            this.btn_download.Click += new System.EventHandler(this.btn_download_Click);
             // 
             // tbp_status
             // 
@@ -1543,7 +1543,7 @@
             this.btn_moveR_cw.TabIndex = 166;
             this.btn_moveR_cw.Text = "CW";
             this.btn_moveR_cw.UseVisualStyleBackColor = true;
-            this.btn_moveR_cw.Click += new System.EventHandler(this.btn_moveR_ccw_Click);
+            this.btn_moveR_cw.Click += new System.EventHandler(this.btn_moveR_Click);
             // 
             // btn_moveR_ccw
             // 
@@ -1557,7 +1557,7 @@
             this.btn_moveR_ccw.TabIndex = 165;
             this.btn_moveR_ccw.Text = "CCW";
             this.btn_moveR_ccw.UseVisualStyleBackColor = true;
-            this.btn_moveR_ccw.Click += new System.EventHandler(this.btn_moveR_cw_Click);
+            this.btn_moveR_ccw.Click += new System.EventHandler(this.btn_moveR_Click);
             // 
             // btn_move_distance_z
             // 
@@ -1598,7 +1598,7 @@
             this.btn_movex_negative.TabIndex = 123;
             this.btn_movex_negative.Text = "X-";
             this.btn_movex_negative.UseVisualStyleBackColor = true;
-            this.btn_movex_negative.Click += new System.EventHandler(this.btn_movex_negative_Click);
+            this.btn_movex_negative.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_movex_positive
             // 
@@ -1611,7 +1611,7 @@
             this.btn_movex_positive.TabIndex = 90;
             this.btn_movex_positive.Text = "X+";
             this.btn_movex_positive.UseVisualStyleBackColor = true;
-            this.btn_movex_positive.Click += new System.EventHandler(this.btn_movex_positive_Click);
+            this.btn_movex_positive.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_movey_negative
             // 
@@ -1624,7 +1624,7 @@
             this.btn_movey_negative.TabIndex = 126;
             this.btn_movey_negative.Text = "Y-";
             this.btn_movey_negative.UseVisualStyleBackColor = true;
-            this.btn_movey_negative.Click += new System.EventHandler(this.btn_movey_negative_Click);
+            this.btn_movey_negative.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_movey_positive
             // 
@@ -1637,7 +1637,7 @@
             this.btn_movey_positive.TabIndex = 125;
             this.btn_movey_positive.Text = "Y+";
             this.btn_movey_positive.UseVisualStyleBackColor = true;
-            this.btn_movey_positive.Click += new System.EventHandler(this.btn_movey_positive_Click);
+            this.btn_movey_positive.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_movez_positive
             // 
@@ -1650,7 +1650,7 @@
             this.btn_movez_positive.TabIndex = 128;
             this.btn_movez_positive.Text = "Z+";
             this.btn_movez_positive.UseVisualStyleBackColor = true;
-            this.btn_movez_positive.Click += new System.EventHandler(this.btn_movez_positive_Click);
+            this.btn_movez_positive.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_movez_negative
             // 
@@ -1663,7 +1663,7 @@
             this.btn_movez_negative.TabIndex = 127;
             this.btn_movez_negative.Text = "Z-";
             this.btn_movez_negative.UseVisualStyleBackColor = true;
-            this.btn_movez_negative.Click += new System.EventHandler(this.btn_movez_negative_Click);
+            this.btn_movez_negative.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_manual_mode
             // 
@@ -1770,6 +1770,26 @@
             this.grp_pic_test.Size = new System.Drawing.Size(197, 169);
             this.grp_pic_test.TabIndex = 187;
             this.grp_pic_test.TabStop = false;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label13.Location = new System.Drawing.Point(11, 84);
+            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(36, 18);
+            this.label13.TabIndex = 191;
+            this.label13.Text = "閥值";
+            // 
+            // tbThreshold1
+            // 
+            this.tbThreshold1.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tbThreshold1.Location = new System.Drawing.Point(59, 81);
+            this.tbThreshold1.Margin = new System.Windows.Forms.Padding(2);
+            this.tbThreshold1.Name = "tbThreshold1";
+            this.tbThreshold1.Size = new System.Drawing.Size(63, 29);
+            this.tbThreshold1.TabIndex = 190;
             // 
             // button1
             // 
@@ -2110,26 +2130,6 @@
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // tbThreshold1
-            // 
-            this.tbThreshold1.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tbThreshold1.Location = new System.Drawing.Point(59, 81);
-            this.tbThreshold1.Margin = new System.Windows.Forms.Padding(2);
-            this.tbThreshold1.Name = "tbThreshold1";
-            this.tbThreshold1.Size = new System.Drawing.Size(63, 29);
-            this.tbThreshold1.TabIndex = 190;
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label13.Location = new System.Drawing.Point(11, 84);
-            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(36, 18);
-            this.label13.TabIndex = 191;
-            this.label13.Text = "閥值";
             // 
             // f_main
             // 
