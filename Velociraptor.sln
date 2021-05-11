@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Velociraptor", "Velociraptor.csproj", "{18384F98-244B-4EC1-9DB4-FAA33D52FCB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvvaCamera", "..\..\AvvaCamera\AvvaCamera\AvvaCamera.csproj", "{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvvaMotion", "..\..\AvvaMotion\AvvaMotion\AvvaMotion.csproj", "{B6556C40-6C7E-49FB-A24F-B346FD45941A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,22 @@ Global
 		{18384F98-244B-4EC1-9DB4-FAA33D52FCB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18384F98-244B-4EC1-9DB4-FAA33D52FCB3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{18384F98-244B-4EC1-9DB4-FAA33D52FCB3}.Release|x86.ActiveCfg = Release|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Debug|x86.Build.0 = Debug|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Release|x86.ActiveCfg = Release|Any CPU
+		{4412CF48-4F99-4A7C-9CE3-E3790D5F54E3}.Release|x86.Build.0 = Release|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Debug|x86.Build.0 = Debug|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|x86.ActiveCfg = Release|Any CPU
+		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

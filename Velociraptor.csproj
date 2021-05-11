@@ -116,9 +116,8 @@
     <Compile Include="ImageProc\ParamMgr.cs" />
     <Compile Include="ImageProc\VisionCalibrator.cs" />
     <Compile Include="MeasureParamReader.cs" />
-    <Compile Include="MotionParamReader.cs" />
+    <Compile Include="ParamReader.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="Motions.cs" />
     <Compile Include="MyForm\AutoParamsForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -252,6 +251,10 @@
     <None Include="Images\48\red.ico" />
     <None Include="Images\48\backspace.png" />
     <Content Include="AvvaCamera.dll" />
+    <None Include="Images\48\light-bulb.png" />
+    <None Include="Images\48\fence-icon-2.jpg" />
+    <None Include="Images\48\fence-pngrepo-com.png" />
+    <None Include="Images\48\fence.png" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />
@@ -331,8 +334,13 @@
     <Reference Include="Automation.BDaq4.Design">
       <HintPath>Automation.BDaq\4.0.0.0\Automation.BDaq4.Design.dll</HintPath>
     </Reference>
-    <Reference Include="AvvaCamera">
+    <Reference Include="AvvaCamera, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>.\AvvaCamera.dll</HintPath>
+    </Reference>
+    <Reference Include="AvvaMotion, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\AvvaMotion.dll</HintPath>
     </Reference>
     <Reference Include="DevComponents.DotNetBar2">
       <HintPath>..\..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.DotNetBar2.dll</HintPath>

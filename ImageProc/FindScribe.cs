@@ -27,6 +27,18 @@ namespace Velociraptor.ImageProc
             byte[,] array_Outline = GetScribeLine(_fast_pixel, threshold);
             return Targets(array_Outline, _fast_pixel.nx, _fast_pixel.ny);
         }
+        public Bitmap DoThreshold(Bitmap bitmap, int threshold)
+        {
+            _img_height = bitmap.Height;
+            _img_width = bitmap.Width;
+            FastPixel _fast_pixel = new FastPixel(); //宣告快速繪圖物件
+            _fast_pixel.image = bitmap;
+            _fast_pixel.Bmp2RGB(bitmap); //讀取RGB亮度陣列
+            _fast_pixel.array_Gray = _fast_pixel.array_Green;//灰階陣列為綠光陣列
+
+            byte[,] array_Outline = GetScribeLine(_fast_pixel, threshold);
+            return _fast_pixel.BWImg(array_Outline);
+        }
         //建立切割道陣列
         private byte[,] GetScribeLine(FastPixel f, int offset)
         {

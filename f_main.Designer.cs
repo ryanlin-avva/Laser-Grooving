@@ -73,7 +73,6 @@
             this.ctrl_zgc_dnld = new MagicGraphicLibrary.cZedGraphic();
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tbp_main = new System.Windows.Forms.TabPage();
-            this.pic_switch = new System.Windows.Forms.PictureBox();
             this.grp_mea_para = new System.Windows.Forms.GroupBox();
             this.ntb_frequency = new MagicGraphicLibrary.NumericTextBox(this.components);
             this.label4 = new System.Windows.Forms.Label();
@@ -125,55 +124,57 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.btn_move_distance_r = new System.Windows.Forms.Button();
-            this.btn_moveR_cw = new System.Windows.Forms.Button();
-            this.btn_moveR_ccw = new System.Windows.Forms.Button();
             this.btn_move_distance_z = new System.Windows.Forms.Button();
             this.btn_move_distance = new System.Windows.Forms.Button();
+            this.btn_manual_mode = new System.Windows.Forms.Button();
+            this.btn_unload_wafer = new System.Windows.Forms.Button();
+            this.btn_load_wafer = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.label16 = new System.Windows.Forms.Label();
+            this.tbThreshold1 = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.tr_light = new System.Windows.Forms.TrackBar();
+            this.tr_threshold = new System.Windows.Forms.TrackBar();
+            this.label3 = new System.Windows.Forms.Label();
+            this.cb_wafersize = new System.Windows.Forms.ComboBox();
+            this.label40 = new System.Windows.Forms.Label();
+            this.tb_dieY = new System.Windows.Forms.TextBox();
+            this.tb_dieX = new System.Windows.Forms.TextBox();
+            this.tbLight = new System.Windows.Forms.TextBox();
+            this.grp_align_test = new System.Windows.Forms.GroupBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.lb_angle1 = new System.Windows.Forms.Label();
+            this.lb_die_side1 = new System.Windows.Forms.Label();
+            this.lb_angle = new System.Windows.Forms.Label();
+            this.lb_die_side = new System.Windows.Forms.Label();
+            this.tbThreshold = new System.Windows.Forms.TextBox();
+            this.grp_manual_buttons = new System.Windows.Forms.GroupBox();
+            this.label39 = new System.Windows.Forms.Label();
+            this.label42 = new System.Windows.Forms.Label();
+            this.label41 = new System.Windows.Forms.Label();
+            this.label43 = new System.Windows.Forms.Label();
+            this.label44 = new System.Windows.Forms.Label();
+            this.hWindowControl1 = new HalconDotNet.HWindowControl();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.btn_grab = new System.Windows.Forms.Button();
+            this.pic_camera = new System.Windows.Forms.PictureBox();
+            this.btn_find_angle = new System.Windows.Forms.Button();
+            this.btn_load = new System.Windows.Forms.Button();
+            this.btn_align = new System.Windows.Forms.Button();
+            this.btn_start_mea = new System.Windows.Forms.Button();
+            this.btn_ClearAlarm = new System.Windows.Forms.Button();
+            this.btn_advanced_mode = new System.Windows.Forms.Button();
+            this.btn_light = new System.Windows.Forms.Button();
+            this.btn_threshold = new System.Windows.Forms.Button();
+            this.btn_moveR_cw = new System.Windows.Forms.Button();
+            this.btn_moveR_ccw = new System.Windows.Forms.Button();
             this.btn_movex_negative = new System.Windows.Forms.Button();
             this.btn_movex_positive = new System.Windows.Forms.Button();
             this.btn_movey_negative = new System.Windows.Forms.Button();
             this.btn_movey_positive = new System.Windows.Forms.Button();
             this.btn_movez_positive = new System.Windows.Forms.Button();
             this.btn_movez_negative = new System.Windows.Forms.Button();
-            this.btn_manual_mode = new System.Windows.Forms.Button();
-            this.btn_unload_wafer = new System.Windows.Forms.Button();
-            this.btn_load_wafer = new System.Windows.Forms.Button();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.btn_grab = new System.Windows.Forms.Button();
-            this.grp_pic_test = new System.Windows.Forms.GroupBox();
-            this.label13 = new System.Windows.Forms.Label();
-            this.tbThreshold1 = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.lb_die_side1 = new System.Windows.Forms.Label();
-            this.lb_angle1 = new System.Windows.Forms.Label();
-            this.pic_camera = new System.Windows.Forms.PictureBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.cb_wafersize = new System.Windows.Forms.ComboBox();
-            this.label40 = new System.Windows.Forms.Label();
-            this.tb_dieY = new System.Windows.Forms.TextBox();
-            this.tb_dieX = new System.Windows.Forms.TextBox();
-            this.tbExposure = new System.Windows.Forms.TextBox();
-            this.tbThreshold = new System.Windows.Forms.TextBox();
-            this.grp_align_test = new System.Windows.Forms.GroupBox();
-            this.btn_find_angle = new System.Windows.Forms.Button();
-            this.btn_load = new System.Windows.Forms.Button();
-            this.lb_angle = new System.Windows.Forms.Label();
-            this.lb_die_side = new System.Windows.Forms.Label();
-            this.grp_manual_buttons = new System.Windows.Forms.GroupBox();
-            this.btn_align = new System.Windows.Forms.Button();
-            this.btn_start_mea = new System.Windows.Forms.Button();
-            this.label39 = new System.Windows.Forms.Label();
-            this.label42 = new System.Windows.Forms.Label();
-            this.label41 = new System.Windows.Forms.Label();
-            this.btn_ClearAlarm = new System.Windows.Forms.Button();
-            this.label43 = new System.Windows.Forms.Label();
-            this.label44 = new System.Windows.Forms.Label();
-            this.btn_advanced_mode = new System.Windows.Forms.Button();
-            this.button5 = new System.Windows.Forms.Button();
-            this.hWindowControl1 = new HalconDotNet.HWindowControl();
-            this.button3 = new System.Windows.Forms.Button();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.btn_switch = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -182,17 +183,17 @@
             this.grp_cursor.SuspendLayout();
             this.tabControlMain.SuspendLayout();
             this.tbp_main.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pic_switch)).BeginInit();
             this.grp_mea_para.SuspendLayout();
             this.tbp_status.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.tbp_motion.SuspendLayout();
             this.groupBox7.SuspendLayout();
             this.panel1.SuspendLayout();
-            this.grp_pic_test.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tr_light)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tr_threshold)).BeginInit();
             this.grp_align_test.SuspendLayout();
             this.grp_manual_buttons.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).BeginInit();
             this.SuspendLayout();
             // 
             // ntb_led_intensity
@@ -634,7 +635,7 @@
             // 
             this.label_xaxis.AutoSize = true;
             this.label_xaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label_xaxis.Location = new System.Drawing.Point(982, 305);
+            this.label_xaxis.Location = new System.Drawing.Point(977, 357);
             this.label_xaxis.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_xaxis.Name = "label_xaxis";
             this.label_xaxis.Size = new System.Drawing.Size(38, 22);
@@ -645,7 +646,7 @@
             // 
             this.label_yaxis.AutoSize = true;
             this.label_yaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label_yaxis.Location = new System.Drawing.Point(1078, 305);
+            this.label_yaxis.Location = new System.Drawing.Point(1073, 357);
             this.label_yaxis.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_yaxis.Name = "label_yaxis";
             this.label_yaxis.Size = new System.Drawing.Size(38, 22);
@@ -656,7 +657,7 @@
             // 
             this.label_zaxis.AutoSize = true;
             this.label_zaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label_zaxis.Location = new System.Drawing.Point(1175, 305);
+            this.label_zaxis.Location = new System.Drawing.Point(1170, 357);
             this.label_zaxis.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_zaxis.Name = "label_zaxis";
             this.label_zaxis.Size = new System.Drawing.Size(38, 22);
@@ -676,7 +677,7 @@
             this.grp_cursor.Controls.Add(this.label_noise_offset);
             this.grp_cursor.Controls.Add(this.hsb_noise_offset);
             this.grp_cursor.Controls.Add(this.label_dynamic);
-            this.grp_cursor.Location = new System.Drawing.Point(636, 80);
+            this.grp_cursor.Location = new System.Drawing.Point(636, 74);
             this.grp_cursor.Margin = new System.Windows.Forms.Padding(4);
             this.grp_cursor.Name = "grp_cursor";
             this.grp_cursor.Padding = new System.Windows.Forms.Padding(4);
@@ -702,7 +703,7 @@
             this.ntb_x_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_x_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ntb_x_cur_pos.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_x_cur_pos.Location = new System.Drawing.Point(978, 336);
+            this.ntb_x_cur_pos.Location = new System.Drawing.Point(973, 388);
             this.ntb_x_cur_pos.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ntb_x_cur_pos.Name = "ntb_x_cur_pos";
             this.ntb_x_cur_pos.Size = new System.Drawing.Size(86, 25);
@@ -715,7 +716,7 @@
             this.ntb_y_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_y_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ntb_y_cur_pos.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_y_cur_pos.Location = new System.Drawing.Point(1075, 336);
+            this.ntb_y_cur_pos.Location = new System.Drawing.Point(1070, 388);
             this.ntb_y_cur_pos.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ntb_y_cur_pos.Name = "ntb_y_cur_pos";
             this.ntb_y_cur_pos.Size = new System.Drawing.Size(86, 25);
@@ -728,7 +729,7 @@
             this.ntb_z_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_z_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ntb_z_cur_pos.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_z_cur_pos.Location = new System.Drawing.Point(1175, 336);
+            this.ntb_z_cur_pos.Location = new System.Drawing.Point(1170, 388);
             this.ntb_z_cur_pos.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ntb_z_cur_pos.Name = "ntb_z_cur_pos";
             this.ntb_z_cur_pos.Size = new System.Drawing.Size(86, 25);
@@ -811,7 +812,7 @@
             this.tabControlMain.Controls.Add(this.tbp_main);
             this.tabControlMain.Controls.Add(this.tbp_status);
             this.tabControlMain.Controls.Add(this.tbp_motion);
-            this.tabControlMain.Location = new System.Drawing.Point(5, 381);
+            this.tabControlMain.Location = new System.Drawing.Point(5, 467);
             this.tabControlMain.Margin = new System.Windows.Forms.Padding(4);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
@@ -822,7 +823,7 @@
             // 
             this.tbp_main.BackColor = System.Drawing.SystemColors.Control;
             this.tbp_main.CausesValidation = false;
-            this.tbp_main.Controls.Add(this.pic_switch);
+            this.tbp_main.Controls.Add(this.btn_switch);
             this.tbp_main.Controls.Add(this.grp_mea_para);
             this.tbp_main.Controls.Add(this.nud_cursor_v1);
             this.tbp_main.Controls.Add(this.btn_download);
@@ -841,17 +842,6 @@
             this.tbp_main.Size = new System.Drawing.Size(1424, 460);
             this.tbp_main.TabIndex = 6;
             this.tbp_main.Text = "一般";
-            // 
-            // pic_switch
-            // 
-            this.pic_switch.Image = global::Velociraptor.Properties.Resources.green;
-            this.pic_switch.Location = new System.Drawing.Point(655, 386);
-            this.pic_switch.Margin = new System.Windows.Forms.Padding(4);
-            this.pic_switch.Name = "pic_switch";
-            this.pic_switch.Size = new System.Drawing.Size(66, 64);
-            this.pic_switch.TabIndex = 128;
-            this.pic_switch.TabStop = false;
-            this.pic_switch.Click += new System.EventHandler(this.pic_switch_Click);
             // 
             // grp_mea_para
             // 
@@ -1430,7 +1420,7 @@
             "100",
             "200",
             "500"});
-            this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(814, 240);
+            this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(826, 248);
             this.cb_SelectMeasureDistance.Margin = new System.Windows.Forms.Padding(4);
             this.cb_SelectMeasureDistance.Name = "cb_SelectMeasureDistance";
             this.cb_SelectMeasureDistance.Size = new System.Drawing.Size(83, 29);
@@ -1441,7 +1431,7 @@
             // 
             this.label35.AutoSize = true;
             this.label35.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label35.Location = new System.Drawing.Point(810, 206);
+            this.label35.Location = new System.Drawing.Point(822, 214);
             this.label35.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label35.Name = "label35";
             this.label35.Size = new System.Drawing.Size(78, 22);
@@ -1451,7 +1441,7 @@
             // btn_moveto_WaferCenter_point
             // 
             this.btn_moveto_WaferCenter_point.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_moveto_WaferCenter_point.Location = new System.Drawing.Point(660, 162);
+            this.btn_moveto_WaferCenter_point.Location = new System.Drawing.Point(672, 170);
             this.btn_moveto_WaferCenter_point.Margin = new System.Windows.Forms.Padding(4);
             this.btn_moveto_WaferCenter_point.Name = "btn_moveto_WaferCenter_point";
             this.btn_moveto_WaferCenter_point.Size = new System.Drawing.Size(111, 54);
@@ -1476,7 +1466,7 @@
             this.groupBox7.Controls.Add(this.btn_movey_positive);
             this.groupBox7.Controls.Add(this.btn_movez_positive);
             this.groupBox7.Controls.Add(this.btn_movez_negative);
-            this.groupBox7.Location = new System.Drawing.Point(972, 27);
+            this.groupBox7.Location = new System.Drawing.Point(970, 51);
             this.groupBox7.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Padding = new System.Windows.Forms.Padding(4);
@@ -1531,34 +1521,6 @@
             this.btn_move_distance_r.UseVisualStyleBackColor = false;
             this.btn_move_distance_r.Click += new System.EventHandler(this.btn_move_distance_Click);
             // 
-            // btn_moveR_cw
-            // 
-            this.btn_moveR_cw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_moveR_cw.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btn_moveR_cw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_cw.Image")));
-            this.btn_moveR_cw.Location = new System.Drawing.Point(342, 30);
-            this.btn_moveR_cw.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_moveR_cw.Name = "btn_moveR_cw";
-            this.btn_moveR_cw.Size = new System.Drawing.Size(69, 60);
-            this.btn_moveR_cw.TabIndex = 166;
-            this.btn_moveR_cw.Text = "CW";
-            this.btn_moveR_cw.UseVisualStyleBackColor = true;
-            this.btn_moveR_cw.Click += new System.EventHandler(this.btn_moveR_Click);
-            // 
-            // btn_moveR_ccw
-            // 
-            this.btn_moveR_ccw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_moveR_ccw.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btn_moveR_ccw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_ccw.Image")));
-            this.btn_moveR_ccw.Location = new System.Drawing.Point(342, 136);
-            this.btn_moveR_ccw.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_moveR_ccw.Name = "btn_moveR_ccw";
-            this.btn_moveR_ccw.Size = new System.Drawing.Size(69, 64);
-            this.btn_moveR_ccw.TabIndex = 165;
-            this.btn_moveR_ccw.Text = "CCW";
-            this.btn_moveR_ccw.UseVisualStyleBackColor = true;
-            this.btn_moveR_ccw.Click += new System.EventHandler(this.btn_moveR_Click);
-            // 
             // btn_move_distance_z
             // 
             this.btn_move_distance_z.BackColor = System.Drawing.Color.White;
@@ -1586,6 +1548,520 @@
             this.btn_move_distance.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btn_move_distance.UseVisualStyleBackColor = false;
             this.btn_move_distance.Click += new System.EventHandler(this.btn_move_distance_Click);
+            // 
+            // btn_manual_mode
+            // 
+            this.btn_manual_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_manual_mode.Location = new System.Drawing.Point(671, 242);
+            this.btn_manual_mode.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_manual_mode.Name = "btn_manual_mode";
+            this.btn_manual_mode.Size = new System.Drawing.Size(111, 51);
+            this.btn_manual_mode.TabIndex = 160;
+            this.btn_manual_mode.Text = "手動量測";
+            this.btn_manual_mode.UseVisualStyleBackColor = true;
+            this.btn_manual_mode.Click += new System.EventHandler(this.btn_manual_mode_Click);
+            // 
+            // btn_unload_wafer
+            // 
+            this.btn_unload_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_unload_wafer.Location = new System.Drawing.Point(672, 97);
+            this.btn_unload_wafer.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_unload_wafer.Name = "btn_unload_wafer";
+            this.btn_unload_wafer.Size = new System.Drawing.Size(111, 56);
+            this.btn_unload_wafer.TabIndex = 159;
+            this.btn_unload_wafer.Text = "晶圓退出";
+            this.btn_unload_wafer.UseVisualStyleBackColor = true;
+            this.btn_unload_wafer.Click += new System.EventHandler(this.btn_unload_wafer_Click);
+            // 
+            // btn_load_wafer
+            // 
+            this.btn_load_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_load_wafer.Location = new System.Drawing.Point(672, 23);
+            this.btn_load_wafer.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_load_wafer.Name = "btn_load_wafer";
+            this.btn_load_wafer.Size = new System.Drawing.Size(111, 59);
+            this.btn_load_wafer.TabIndex = 158;
+            this.btn_load_wafer.Text = "晶圓載入";
+            this.btn_load_wafer.UseVisualStyleBackColor = true;
+            this.btn_load_wafer.Click += new System.EventHandler(this.btn_load_wafer_Click);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.label16);
+            this.panel1.Controls.Add(this.tbThreshold1);
+            this.panel1.Controls.Add(this.label14);
+            this.panel1.Controls.Add(this.tr_light);
+            this.panel1.Controls.Add(this.tr_threshold);
+            this.panel1.Controls.Add(this.btn_grab);
+            this.panel1.Controls.Add(this.pic_camera);
+            this.panel1.Controls.Add(this.label3);
+            this.panel1.Controls.Add(this.cb_wafersize);
+            this.panel1.Controls.Add(this.label40);
+            this.panel1.Controls.Add(this.tb_dieY);
+            this.panel1.Controls.Add(this.tb_dieX);
+            this.panel1.Controls.Add(this.tbLight);
+            this.panel1.Controls.Add(this.grp_align_test);
+            this.panel1.Controls.Add(this.grp_manual_buttons);
+            this.panel1.Controls.Add(this.label39);
+            this.panel1.Controls.Add(this.label42);
+            this.panel1.Controls.Add(this.label41);
+            this.panel1.Controls.Add(this.btn_ClearAlarm);
+            this.panel1.Controls.Add(this.label43);
+            this.panel1.Controls.Add(this.cb_SelectMeasureDistance);
+            this.panel1.Controls.Add(this.label44);
+            this.panel1.Controls.Add(this.btn_advanced_mode);
+            this.panel1.Controls.Add(this.label35);
+            this.panel1.Controls.Add(this.btn_light);
+            this.panel1.Controls.Add(this.label_zaxis);
+            this.panel1.Controls.Add(this.ntb_z_cur_pos);
+            this.panel1.Controls.Add(this.label_yaxis);
+            this.panel1.Controls.Add(this.label_xaxis);
+            this.panel1.Controls.Add(this.ntb_y_cur_pos);
+            this.panel1.Controls.Add(this.hWindowControl1);
+            this.panel1.Controls.Add(this.btn_threshold);
+            this.panel1.Controls.Add(this.btn_moveto_WaferCenter_point);
+            this.panel1.Controls.Add(this.ntb_x_cur_pos);
+            this.panel1.Controls.Add(this.btn_manual_mode);
+            this.panel1.Controls.Add(this.groupBox7);
+            this.panel1.Controls.Add(this.btn_unload_wafer);
+            this.panel1.Controls.Add(this.btn_load_wafer);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1438, 459);
+            this.panel1.TabIndex = 161;
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label16.Location = new System.Drawing.Point(11, 23);
+            this.label16.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(22, 36);
+            this.label16.TabIndex = 193;
+            this.label16.Text = "閥\r\n值";
+            // 
+            // tbThreshold1
+            // 
+            this.tbThreshold1.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tbThreshold1.Location = new System.Drawing.Point(39, 27);
+            this.tbThreshold1.Margin = new System.Windows.Forms.Padding(2);
+            this.tbThreshold1.Name = "tbThreshold1";
+            this.tbThreshold1.Size = new System.Drawing.Size(99, 29);
+            this.tbThreshold1.TabIndex = 190;
+            this.tbThreshold1.Text = "4";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label14.Location = new System.Drawing.Point(11, 77);
+            this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(22, 36);
+            this.label14.TabIndex = 4;
+            this.label14.Text = "亮\r\n度";
+            // 
+            // tr_light
+            // 
+            this.tr_light.Location = new System.Drawing.Point(114, 401);
+            this.tr_light.Maximum = 255;
+            this.tr_light.Name = "tr_light";
+            this.tr_light.Size = new System.Drawing.Size(214, 56);
+            this.tr_light.TabIndex = 191;
+            this.tr_light.TickFrequency = 25;
+            this.tr_light.Value = 100;
+            this.tr_light.Scroll += new System.EventHandler(this.tr_light_Scroll);
+            // 
+            // tr_threshold
+            // 
+            this.tr_threshold.LargeChange = 1;
+            this.tr_threshold.Location = new System.Drawing.Point(381, 401);
+            this.tr_threshold.Maximum = 32;
+            this.tr_threshold.Minimum = 1;
+            this.tr_threshold.Name = "tr_threshold";
+            this.tr_threshold.Size = new System.Drawing.Size(214, 56);
+            this.tr_threshold.TabIndex = 190;
+            this.tr_threshold.TickFrequency = 2;
+            this.tr_threshold.Value = 4;
+            this.tr_threshold.Scroll += new System.EventHandler(this.tr_threshold_Scroll);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label3.Location = new System.Drawing.Point(913, 329);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(27, 22);
+            this.label3.TabIndex = 185;
+            this.label3.Text = "吋";
+            // 
+            // cb_wafersize
+            // 
+            this.cb_wafersize.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.cb_wafersize.FormattingEnabled = true;
+            this.cb_wafersize.Items.AddRange(new object[] {
+            "12",
+            "8"});
+            this.cb_wafersize.Location = new System.Drawing.Point(827, 338);
+            this.cb_wafersize.Margin = new System.Windows.Forms.Padding(4);
+            this.cb_wafersize.Name = "cb_wafersize";
+            this.cb_wafersize.Size = new System.Drawing.Size(83, 29);
+            this.cb_wafersize.TabIndex = 183;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label40.Location = new System.Drawing.Point(823, 304);
+            this.label40.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(78, 22);
+            this.label40.TabIndex = 184;
+            this.label40.Text = "晶圓尺寸";
+            // 
+            // tb_dieY
+            // 
+            this.tb_dieY.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tb_dieY.Location = new System.Drawing.Point(827, 154);
+            this.tb_dieY.Margin = new System.Windows.Forms.Padding(2);
+            this.tb_dieY.Name = "tb_dieY";
+            this.tb_dieY.Size = new System.Drawing.Size(88, 29);
+            this.tb_dieY.TabIndex = 182;
+            // 
+            // tb_dieX
+            // 
+            this.tb_dieX.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tb_dieX.Location = new System.Drawing.Point(827, 62);
+            this.tb_dieX.Margin = new System.Windows.Forms.Padding(2);
+            this.tb_dieX.Name = "tb_dieX";
+            this.tb_dieX.Size = new System.Drawing.Size(88, 29);
+            this.tb_dieX.TabIndex = 181;
+            // 
+            // tbLight
+            // 
+            this.tbLight.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tbLight.Location = new System.Drawing.Point(39, 81);
+            this.tbLight.Margin = new System.Windows.Forms.Padding(2);
+            this.tbLight.Name = "tbLight";
+            this.tbLight.Size = new System.Drawing.Size(99, 29);
+            this.tbLight.TabIndex = 180;
+            // 
+            // grp_align_test
+            // 
+            this.grp_align_test.Controls.Add(this.label13);
+            this.grp_align_test.Controls.Add(this.btn_find_angle);
+            this.grp_align_test.Controls.Add(this.lb_angle1);
+            this.grp_align_test.Controls.Add(this.lb_die_side1);
+            this.grp_align_test.Controls.Add(this.btn_load);
+            this.grp_align_test.Controls.Add(this.lb_angle);
+            this.grp_align_test.Controls.Add(this.lb_die_side);
+            this.grp_align_test.Controls.Add(this.tbThreshold);
+            this.grp_align_test.Location = new System.Drawing.Point(5, 134);
+            this.grp_align_test.Margin = new System.Windows.Forms.Padding(4);
+            this.grp_align_test.Name = "grp_align_test";
+            this.grp_align_test.Padding = new System.Windows.Forms.Padding(4);
+            this.grp_align_test.Size = new System.Drawing.Size(134, 233);
+            this.grp_align_test.TabIndex = 178;
+            this.grp_align_test.TabStop = false;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label13.Location = new System.Drawing.Point(6, 154);
+            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(45, 18);
+            this.label13.TabIndex = 191;
+            this.label13.Text = "閥值h";
+            // 
+            // lb_angle1
+            // 
+            this.lb_angle1.AutoSize = true;
+            this.lb_angle1.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lb_angle1.Location = new System.Drawing.Point(8, 108);
+            this.lb_angle1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lb_angle1.Name = "lb_angle1";
+            this.lb_angle1.Size = new System.Drawing.Size(40, 18);
+            this.lb_angle1.TabIndex = 5;
+            this.lb_angle1.Text = "角度:";
+            // 
+            // lb_die_side1
+            // 
+            this.lb_die_side1.AutoSize = true;
+            this.lb_die_side1.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lb_die_side1.Location = new System.Drawing.Point(8, 84);
+            this.lb_die_side1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lb_die_side1.Name = "lb_die_side1";
+            this.lb_die_side1.Size = new System.Drawing.Size(40, 18);
+            this.lb_die_side1.TabIndex = 4;
+            this.lb_die_side1.Text = "邊長:";
+            // 
+            // lb_angle
+            // 
+            this.lb_angle.AutoSize = true;
+            this.lb_angle.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lb_angle.Location = new System.Drawing.Point(6, 203);
+            this.lb_angle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lb_angle.Name = "lb_angle";
+            this.lb_angle.Size = new System.Drawing.Size(49, 18);
+            this.lb_angle.TabIndex = 1;
+            this.lb_angle.Text = "角度h:";
+            // 
+            // lb_die_side
+            // 
+            this.lb_die_side.AutoSize = true;
+            this.lb_die_side.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lb_die_side.Location = new System.Drawing.Point(6, 179);
+            this.lb_die_side.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lb_die_side.Name = "lb_die_side";
+            this.lb_die_side.Size = new System.Drawing.Size(49, 18);
+            this.lb_die_side.TabIndex = 0;
+            this.lb_die_side.Text = "邊長h:";
+            // 
+            // tbThreshold
+            // 
+            this.tbThreshold.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.tbThreshold.Location = new System.Drawing.Point(57, 148);
+            this.tbThreshold.Margin = new System.Windows.Forms.Padding(2);
+            this.tbThreshold.Name = "tbThreshold";
+            this.tbThreshold.Size = new System.Drawing.Size(71, 29);
+            this.tbThreshold.TabIndex = 179;
+            // 
+            // grp_manual_buttons
+            // 
+            this.grp_manual_buttons.Controls.Add(this.btn_align);
+            this.grp_manual_buttons.Controls.Add(this.btn_start_mea);
+            this.grp_manual_buttons.Location = new System.Drawing.Point(652, 293);
+            this.grp_manual_buttons.Margin = new System.Windows.Forms.Padding(4);
+            this.grp_manual_buttons.Name = "grp_manual_buttons";
+            this.grp_manual_buttons.Padding = new System.Windows.Forms.Padding(4);
+            this.grp_manual_buttons.Size = new System.Drawing.Size(150, 90);
+            this.grp_manual_buttons.TabIndex = 177;
+            this.grp_manual_buttons.TabStop = false;
+            this.grp_manual_buttons.Visible = false;
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label39.Location = new System.Drawing.Point(912, 239);
+            this.label39.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(37, 22);
+            this.label39.TabIndex = 169;
+            this.label39.Text = "um";
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label42.Location = new System.Drawing.Point(822, 118);
+            this.label42.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(119, 22);
+            this.label42.TabIndex = 164;
+            this.label42.Text = "die Y方向寬度";
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label41.Location = new System.Drawing.Point(822, 27);
+            this.label41.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(119, 22);
+            this.label41.TabIndex = 163;
+            this.label41.Text = "die X方向長度";
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label43.Location = new System.Drawing.Point(912, 51);
+            this.label43.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(37, 22);
+            this.label43.TabIndex = 167;
+            this.label43.Text = "um";
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label44.Location = new System.Drawing.Point(911, 146);
+            this.label44.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(37, 22);
+            this.label44.TabIndex = 168;
+            this.label44.Text = "um";
+            // 
+            // hWindowControl1
+            // 
+            this.hWindowControl1.BackColor = System.Drawing.Color.Black;
+            this.hWindowControl1.BorderColor = System.Drawing.Color.Black;
+            this.hWindowControl1.ImagePart = new System.Drawing.Rectangle(0, 0, 640, 480);
+            this.hWindowControl1.Location = new System.Drawing.Point(152, 2);
+            this.hWindowControl1.Margin = new System.Windows.Forms.Padding(1);
+            this.hWindowControl1.Name = "hWindowControl1";
+            this.hWindowControl1.Size = new System.Drawing.Size(253, 214);
+            this.hWindowControl1.TabIndex = 169;
+            this.hWindowControl1.WindowSize = new System.Drawing.Size(253, 214);
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            // 
+            // btn_grab
+            // 
+            this.btn_grab.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_grab.Image = global::Velociraptor.Properties.Resources.green;
+            this.btn_grab.Location = new System.Drawing.Point(14, 381);
+            this.btn_grab.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_grab.Name = "btn_grab";
+            this.btn_grab.Size = new System.Drawing.Size(80, 70);
+            this.btn_grab.TabIndex = 189;
+            this.btn_grab.UseVisualStyleBackColor = true;
+            this.btn_grab.Click += new System.EventHandler(this.btn_grab_Click);
+            // 
+            // pic_camera
+            // 
+            this.pic_camera.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.pic_camera.Location = new System.Drawing.Point(275, 87);
+            this.pic_camera.Name = "pic_camera";
+            this.pic_camera.Size = new System.Drawing.Size(353, 295);
+            this.pic_camera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pic_camera.TabIndex = 186;
+            this.pic_camera.TabStop = false;
+            // 
+            // btn_find_angle
+            // 
+            this.btn_find_angle.Image = global::Velociraptor.Properties.Resources.dart;
+            this.btn_find_angle.Location = new System.Drawing.Point(71, 18);
+            this.btn_find_angle.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_find_angle.Name = "btn_find_angle";
+            this.btn_find_angle.Size = new System.Drawing.Size(50, 50);
+            this.btn_find_angle.TabIndex = 3;
+            this.btn_find_angle.UseVisualStyleBackColor = true;
+            this.btn_find_angle.Click += new System.EventHandler(this.btn_find_angle_Click);
+            // 
+            // btn_load
+            // 
+            this.btn_load.Image = global::Velociraptor.Properties.Resources.folder;
+            this.btn_load.Location = new System.Drawing.Point(9, 18);
+            this.btn_load.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_load.Name = "btn_load";
+            this.btn_load.Size = new System.Drawing.Size(50, 50);
+            this.btn_load.TabIndex = 2;
+            this.btn_load.UseVisualStyleBackColor = true;
+            this.btn_load.Click += new System.EventHandler(this.btn_load_Click);
+            // 
+            // btn_align
+            // 
+            this.btn_align.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_align.Image = global::Velociraptor.Properties.Resources.upward;
+            this.btn_align.Location = new System.Drawing.Point(5, 20);
+            this.btn_align.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_align.Name = "btn_align";
+            this.btn_align.Size = new System.Drawing.Size(64, 61);
+            this.btn_align.TabIndex = 174;
+            this.btn_align.UseVisualStyleBackColor = true;
+            this.btn_align.Click += new System.EventHandler(this.btn_align_Click);
+            // 
+            // btn_start_mea
+            // 
+            this.btn_start_mea.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_start_mea.Image = global::Velociraptor.Properties.Resources.right_arrow;
+            this.btn_start_mea.Location = new System.Drawing.Point(78, 20);
+            this.btn_start_mea.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_start_mea.Name = "btn_start_mea";
+            this.btn_start_mea.Size = new System.Drawing.Size(64, 61);
+            this.btn_start_mea.TabIndex = 175;
+            this.btn_start_mea.UseVisualStyleBackColor = true;
+            this.btn_start_mea.Click += new System.EventHandler(this.btn_start_mea_Click);
+            // 
+            // btn_ClearAlarm
+            // 
+            this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_ClearAlarm.Image = global::Velociraptor.Properties.Resources.refresh;
+            this.btn_ClearAlarm.Location = new System.Drawing.Point(1264, 357);
+            this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(1);
+            this.btn_ClearAlarm.Name = "btn_ClearAlarm";
+            this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.btn_ClearAlarm.Size = new System.Drawing.Size(64, 61);
+            this.btn_ClearAlarm.TabIndex = 173;
+            this.btn_ClearAlarm.UseVisualStyleBackColor = true;
+            this.btn_ClearAlarm.Click += new System.EventHandler(this.btn_ClearAlarm_Click);
+            // 
+            // btn_advanced_mode
+            // 
+            this.btn_advanced_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold);
+            this.btn_advanced_mode.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.btn_advanced_mode.Image = global::Velociraptor.Properties.Resources.administration;
+            this.btn_advanced_mode.Location = new System.Drawing.Point(1335, 357);
+            this.btn_advanced_mode.Margin = new System.Windows.Forms.Padding(1);
+            this.btn_advanced_mode.Name = "btn_advanced_mode";
+            this.btn_advanced_mode.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.btn_advanced_mode.Size = new System.Drawing.Size(64, 61);
+            this.btn_advanced_mode.TabIndex = 126;
+            this.btn_advanced_mode.UseVisualStyleBackColor = true;
+            this.btn_advanced_mode.Click += new System.EventHandler(this.btn_advanced_mode_Click);
+            // 
+            // btn_light
+            // 
+            this.btn_light.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_light.Image = global::Velociraptor.Properties.Resources.light_bulb4;
+            this.btn_light.Location = new System.Drawing.Point(327, 404);
+            this.btn_light.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_light.Name = "btn_light";
+            this.btn_light.Size = new System.Drawing.Size(43, 48);
+            this.btn_light.TabIndex = 171;
+            this.btn_light.UseVisualStyleBackColor = true;
+            this.btn_light.Click += new System.EventHandler(this.btn_light_Click);
+            // 
+            // btn_threshold
+            // 
+            this.btn_threshold.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_threshold.Image = global::Velociraptor.Properties.Resources.fence;
+            this.btn_threshold.Location = new System.Drawing.Point(594, 405);
+            this.btn_threshold.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_threshold.Name = "btn_threshold";
+            this.btn_threshold.Size = new System.Drawing.Size(43, 48);
+            this.btn_threshold.TabIndex = 170;
+            this.btn_threshold.UseVisualStyleBackColor = true;
+            this.btn_threshold.Click += new System.EventHandler(this.btn_threshold_Click);
+            // 
+            // btn_moveR_cw
+            // 
+            this.btn_moveR_cw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_moveR_cw.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btn_moveR_cw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_cw.Image")));
+            this.btn_moveR_cw.Location = new System.Drawing.Point(342, 30);
+            this.btn_moveR_cw.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_moveR_cw.Name = "btn_moveR_cw";
+            this.btn_moveR_cw.Size = new System.Drawing.Size(69, 60);
+            this.btn_moveR_cw.TabIndex = 166;
+            this.btn_moveR_cw.Text = "CW";
+            this.btn_moveR_cw.UseVisualStyleBackColor = true;
+            this.btn_moveR_cw.Click += new System.EventHandler(this.btn_moveR_Click);
+            // 
+            // btn_moveR_ccw
+            // 
+            this.btn_moveR_ccw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_moveR_ccw.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btn_moveR_ccw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_ccw.Image")));
+            this.btn_moveR_ccw.Location = new System.Drawing.Point(342, 136);
+            this.btn_moveR_ccw.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_moveR_ccw.Name = "btn_moveR_ccw";
+            this.btn_moveR_ccw.Size = new System.Drawing.Size(69, 64);
+            this.btn_moveR_ccw.TabIndex = 165;
+            this.btn_moveR_ccw.Text = "CCW";
+            this.btn_moveR_ccw.UseVisualStyleBackColor = true;
+            this.btn_moveR_ccw.Click += new System.EventHandler(this.btn_moveR_Click);
             // 
             // btn_movex_negative
             // 
@@ -1665,478 +2141,24 @@
             this.btn_movez_negative.UseVisualStyleBackColor = true;
             this.btn_movez_negative.Click += new System.EventHandler(this.btn_move_Click);
             // 
-            // btn_manual_mode
-            // 
-            this.btn_manual_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_manual_mode.Location = new System.Drawing.Point(659, 234);
-            this.btn_manual_mode.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_manual_mode.Name = "btn_manual_mode";
-            this.btn_manual_mode.Size = new System.Drawing.Size(111, 51);
-            this.btn_manual_mode.TabIndex = 160;
-            this.btn_manual_mode.Text = "手動量測";
-            this.btn_manual_mode.UseVisualStyleBackColor = true;
-            this.btn_manual_mode.Click += new System.EventHandler(this.btn_manual_mode_Click);
-            // 
-            // btn_unload_wafer
-            // 
-            this.btn_unload_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_unload_wafer.Location = new System.Drawing.Point(660, 89);
-            this.btn_unload_wafer.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_unload_wafer.Name = "btn_unload_wafer";
-            this.btn_unload_wafer.Size = new System.Drawing.Size(111, 56);
-            this.btn_unload_wafer.TabIndex = 159;
-            this.btn_unload_wafer.Text = "晶圓退出";
-            this.btn_unload_wafer.UseVisualStyleBackColor = true;
-            this.btn_unload_wafer.Click += new System.EventHandler(this.btn_unload_wafer_Click);
-            // 
-            // btn_load_wafer
-            // 
-            this.btn_load_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_load_wafer.Location = new System.Drawing.Point(660, 15);
-            this.btn_load_wafer.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_load_wafer.Name = "btn_load_wafer";
-            this.btn_load_wafer.Size = new System.Drawing.Size(111, 59);
-            this.btn_load_wafer.TabIndex = 158;
-            this.btn_load_wafer.Text = "晶圓載入";
-            this.btn_load_wafer.UseVisualStyleBackColor = true;
-            this.btn_load_wafer.Click += new System.EventHandler(this.btn_load_wafer_Click);
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.btn_grab);
-            this.panel1.Controls.Add(this.grp_pic_test);
-            this.panel1.Controls.Add(this.pic_camera);
-            this.panel1.Controls.Add(this.label3);
-            this.panel1.Controls.Add(this.cb_wafersize);
-            this.panel1.Controls.Add(this.label40);
-            this.panel1.Controls.Add(this.tb_dieY);
-            this.panel1.Controls.Add(this.tb_dieX);
-            this.panel1.Controls.Add(this.tbExposure);
-            this.panel1.Controls.Add(this.tbThreshold);
-            this.panel1.Controls.Add(this.grp_align_test);
-            this.panel1.Controls.Add(this.grp_manual_buttons);
-            this.panel1.Controls.Add(this.label39);
-            this.panel1.Controls.Add(this.label42);
-            this.panel1.Controls.Add(this.label41);
-            this.panel1.Controls.Add(this.btn_ClearAlarm);
-            this.panel1.Controls.Add(this.label43);
-            this.panel1.Controls.Add(this.cb_SelectMeasureDistance);
-            this.panel1.Controls.Add(this.label44);
-            this.panel1.Controls.Add(this.btn_advanced_mode);
-            this.panel1.Controls.Add(this.label35);
-            this.panel1.Controls.Add(this.button5);
-            this.panel1.Controls.Add(this.label_zaxis);
-            this.panel1.Controls.Add(this.ntb_z_cur_pos);
-            this.panel1.Controls.Add(this.label_yaxis);
-            this.panel1.Controls.Add(this.label_xaxis);
-            this.panel1.Controls.Add(this.ntb_y_cur_pos);
-            this.panel1.Controls.Add(this.hWindowControl1);
-            this.panel1.Controls.Add(this.button3);
-            this.panel1.Controls.Add(this.btn_moveto_WaferCenter_point);
-            this.panel1.Controls.Add(this.ntb_x_cur_pos);
-            this.panel1.Controls.Add(this.btn_manual_mode);
-            this.panel1.Controls.Add(this.groupBox7);
-            this.panel1.Controls.Add(this.btn_unload_wafer);
-            this.panel1.Controls.Add(this.btn_load_wafer);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel1.Location = new System.Drawing.Point(0, 0);
-            this.panel1.Margin = new System.Windows.Forms.Padding(4);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1438, 385);
-            this.panel1.TabIndex = 161;
-            // 
-            // btn_grab
-            // 
-            this.btn_grab.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_grab.Location = new System.Drawing.Point(15, 201);
-            this.btn_grab.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_grab.Name = "btn_grab";
-            this.btn_grab.Size = new System.Drawing.Size(102, 46);
-            this.btn_grab.TabIndex = 189;
-            this.btn_grab.Text = "連續取像";
-            this.btn_grab.UseVisualStyleBackColor = true;
-            this.btn_grab.Click += new System.EventHandler(this.btn_grab_Click);
-            // 
-            // grp_pic_test
-            // 
-            this.grp_pic_test.Controls.Add(this.label13);
-            this.grp_pic_test.Controls.Add(this.tbThreshold1);
-            this.grp_pic_test.Controls.Add(this.button1);
-            this.grp_pic_test.Controls.Add(this.button2);
-            this.grp_pic_test.Controls.Add(this.lb_die_side1);
-            this.grp_pic_test.Controls.Add(this.lb_angle1);
-            this.grp_pic_test.Location = new System.Drawing.Point(419, 3);
-            this.grp_pic_test.Name = "grp_pic_test";
-            this.grp_pic_test.Size = new System.Drawing.Size(197, 169);
-            this.grp_pic_test.TabIndex = 187;
-            this.grp_pic_test.TabStop = false;
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label13.Location = new System.Drawing.Point(11, 84);
-            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(36, 18);
-            this.label13.TabIndex = 191;
-            this.label13.Text = "閥值";
-            // 
-            // tbThreshold1
-            // 
-            this.tbThreshold1.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tbThreshold1.Location = new System.Drawing.Point(59, 81);
-            this.tbThreshold1.Margin = new System.Windows.Forms.Padding(2);
-            this.tbThreshold1.Name = "tbThreshold1";
-            this.tbThreshold1.Size = new System.Drawing.Size(63, 29);
-            this.tbThreshold1.TabIndex = 190;
-            // 
-            // button1
-            // 
-            this.button1.Image = global::Velociraptor.Properties.Resources.dart;
-            this.button1.Location = new System.Drawing.Point(72, 16);
-            this.button1.Margin = new System.Windows.Forms.Padding(4);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(50, 50);
-            this.button1.TabIndex = 7;
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.btn_find_angle_Click);
-            // 
-            // button2
-            // 
-            this.button2.Image = global::Velociraptor.Properties.Resources.folder;
-            this.button2.Location = new System.Drawing.Point(10, 16);
-            this.button2.Margin = new System.Windows.Forms.Padding(4);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(50, 50);
-            this.button2.TabIndex = 6;
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.btn_load_Click);
-            // 
-            // lb_die_side1
-            // 
-            this.lb_die_side1.AutoSize = true;
-            this.lb_die_side1.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.lb_die_side1.Location = new System.Drawing.Point(10, 115);
-            this.lb_die_side1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lb_die_side1.Name = "lb_die_side1";
-            this.lb_die_side1.Size = new System.Drawing.Size(40, 18);
-            this.lb_die_side1.TabIndex = 4;
-            this.lb_die_side1.Text = "邊長:";
-            // 
-            // lb_angle1
-            // 
-            this.lb_angle1.AutoSize = true;
-            this.lb_angle1.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.lb_angle1.Location = new System.Drawing.Point(10, 139);
-            this.lb_angle1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lb_angle1.Name = "lb_angle1";
-            this.lb_angle1.Size = new System.Drawing.Size(40, 18);
-            this.lb_angle1.TabIndex = 5;
-            this.lb_angle1.Text = "角度:";
-            // 
-            // pic_camera
-            // 
-            this.pic_camera.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.pic_camera.Location = new System.Drawing.Point(339, 177);
-            this.pic_camera.Name = "pic_camera";
-            this.pic_camera.Size = new System.Drawing.Size(277, 205);
-            this.pic_camera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pic_camera.TabIndex = 186;
-            this.pic_camera.TabStop = false;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label3.Location = new System.Drawing.Point(901, 329);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(27, 22);
-            this.label3.TabIndex = 185;
-            this.label3.Text = "吋";
-            // 
-            // cb_wafersize
-            // 
-            this.cb_wafersize.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.cb_wafersize.FormattingEnabled = true;
-            this.cb_wafersize.Items.AddRange(new object[] {
-            "12",
-            "8"});
-            this.cb_wafersize.Location = new System.Drawing.Point(815, 330);
-            this.cb_wafersize.Margin = new System.Windows.Forms.Padding(4);
-            this.cb_wafersize.Name = "cb_wafersize";
-            this.cb_wafersize.Size = new System.Drawing.Size(83, 29);
-            this.cb_wafersize.TabIndex = 183;
-            // 
-            // label40
-            // 
-            this.label40.AutoSize = true;
-            this.label40.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label40.Location = new System.Drawing.Point(811, 296);
-            this.label40.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label40.Name = "label40";
-            this.label40.Size = new System.Drawing.Size(78, 22);
-            this.label40.TabIndex = 184;
-            this.label40.Text = "晶圓尺寸";
-            // 
-            // tb_dieY
-            // 
-            this.tb_dieY.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tb_dieY.Location = new System.Drawing.Point(815, 146);
-            this.tb_dieY.Margin = new System.Windows.Forms.Padding(2);
-            this.tb_dieY.Name = "tb_dieY";
-            this.tb_dieY.Size = new System.Drawing.Size(88, 29);
-            this.tb_dieY.TabIndex = 182;
-            // 
-            // tb_dieX
-            // 
-            this.tb_dieX.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tb_dieX.Location = new System.Drawing.Point(815, 54);
-            this.tb_dieX.Margin = new System.Windows.Forms.Padding(2);
-            this.tb_dieX.Name = "tb_dieX";
-            this.tb_dieX.Size = new System.Drawing.Size(88, 29);
-            this.tb_dieX.TabIndex = 181;
-            // 
-            // tbExposure
-            // 
-            this.tbExposure.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tbExposure.Location = new System.Drawing.Point(15, 157);
-            this.tbExposure.Margin = new System.Windows.Forms.Padding(2);
-            this.tbExposure.Name = "tbExposure";
-            this.tbExposure.Size = new System.Drawing.Size(105, 29);
-            this.tbExposure.TabIndex = 180;
-            // 
-            // tbThreshold
-            // 
-            this.tbThreshold.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tbThreshold.Location = new System.Drawing.Point(15, 61);
-            this.tbThreshold.Margin = new System.Windows.Forms.Padding(2);
-            this.tbThreshold.Name = "tbThreshold";
-            this.tbThreshold.Size = new System.Drawing.Size(105, 29);
-            this.tbThreshold.TabIndex = 179;
-            // 
-            // grp_align_test
-            // 
-            this.grp_align_test.Controls.Add(this.btn_find_angle);
-            this.grp_align_test.Controls.Add(this.btn_load);
-            this.grp_align_test.Controls.Add(this.lb_angle);
-            this.grp_align_test.Controls.Add(this.lb_die_side);
-            this.grp_align_test.Location = new System.Drawing.Point(5, 239);
-            this.grp_align_test.Margin = new System.Windows.Forms.Padding(4);
-            this.grp_align_test.Name = "grp_align_test";
-            this.grp_align_test.Padding = new System.Windows.Forms.Padding(4);
-            this.grp_align_test.Size = new System.Drawing.Size(134, 135);
-            this.grp_align_test.TabIndex = 178;
-            this.grp_align_test.TabStop = false;
-            // 
-            // btn_find_angle
-            // 
-            this.btn_find_angle.Image = global::Velociraptor.Properties.Resources.dart;
-            this.btn_find_angle.Location = new System.Drawing.Point(71, 18);
-            this.btn_find_angle.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_find_angle.Name = "btn_find_angle";
-            this.btn_find_angle.Size = new System.Drawing.Size(50, 50);
-            this.btn_find_angle.TabIndex = 3;
-            this.btn_find_angle.UseVisualStyleBackColor = true;
-            this.btn_find_angle.Click += new System.EventHandler(this.btn_find_angle_Click);
-            // 
-            // btn_load
-            // 
-            this.btn_load.Image = global::Velociraptor.Properties.Resources.folder;
-            this.btn_load.Location = new System.Drawing.Point(9, 18);
-            this.btn_load.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_load.Name = "btn_load";
-            this.btn_load.Size = new System.Drawing.Size(50, 50);
-            this.btn_load.TabIndex = 2;
-            this.btn_load.UseVisualStyleBackColor = true;
-            this.btn_load.Click += new System.EventHandler(this.btn_load_Click);
-            // 
-            // lb_angle
-            // 
-            this.lb_angle.AutoSize = true;
-            this.lb_angle.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.lb_angle.Location = new System.Drawing.Point(11, 109);
-            this.lb_angle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lb_angle.Name = "lb_angle";
-            this.lb_angle.Size = new System.Drawing.Size(40, 18);
-            this.lb_angle.TabIndex = 1;
-            this.lb_angle.Text = "角度:";
-            // 
-            // lb_die_side
-            // 
-            this.lb_die_side.AutoSize = true;
-            this.lb_die_side.Font = new System.Drawing.Font("Microsoft JhengHei", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.lb_die_side.Location = new System.Drawing.Point(11, 85);
-            this.lb_die_side.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lb_die_side.Name = "lb_die_side";
-            this.lb_die_side.Size = new System.Drawing.Size(40, 18);
-            this.lb_die_side.TabIndex = 0;
-            this.lb_die_side.Text = "邊長:";
-            // 
-            // grp_manual_buttons
-            // 
-            this.grp_manual_buttons.Controls.Add(this.btn_align);
-            this.grp_manual_buttons.Controls.Add(this.btn_start_mea);
-            this.grp_manual_buttons.Location = new System.Drawing.Point(640, 285);
-            this.grp_manual_buttons.Margin = new System.Windows.Forms.Padding(4);
-            this.grp_manual_buttons.Name = "grp_manual_buttons";
-            this.grp_manual_buttons.Padding = new System.Windows.Forms.Padding(4);
-            this.grp_manual_buttons.Size = new System.Drawing.Size(150, 90);
-            this.grp_manual_buttons.TabIndex = 177;
-            this.grp_manual_buttons.TabStop = false;
-            this.grp_manual_buttons.Visible = false;
-            // 
-            // btn_align
-            // 
-            this.btn_align.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_align.Image = global::Velociraptor.Properties.Resources.upward;
-            this.btn_align.Location = new System.Drawing.Point(5, 20);
-            this.btn_align.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_align.Name = "btn_align";
-            this.btn_align.Size = new System.Drawing.Size(64, 61);
-            this.btn_align.TabIndex = 174;
-            this.btn_align.UseVisualStyleBackColor = true;
-            this.btn_align.Click += new System.EventHandler(this.btn_align_Click);
-            // 
-            // btn_start_mea
-            // 
-            this.btn_start_mea.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_start_mea.Image = global::Velociraptor.Properties.Resources.right_arrow;
-            this.btn_start_mea.Location = new System.Drawing.Point(78, 20);
-            this.btn_start_mea.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_start_mea.Name = "btn_start_mea";
-            this.btn_start_mea.Size = new System.Drawing.Size(64, 61);
-            this.btn_start_mea.TabIndex = 175;
-            this.btn_start_mea.UseVisualStyleBackColor = true;
-            this.btn_start_mea.Click += new System.EventHandler(this.btn_start_mea_Click);
-            // 
-            // label39
-            // 
-            this.label39.AutoSize = true;
-            this.label39.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label39.Location = new System.Drawing.Point(900, 239);
-            this.label39.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label39.Name = "label39";
-            this.label39.Size = new System.Drawing.Size(37, 22);
-            this.label39.TabIndex = 169;
-            this.label39.Text = "um";
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label42.Location = new System.Drawing.Point(810, 110);
-            this.label42.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(119, 22);
-            this.label42.TabIndex = 164;
-            this.label42.Text = "die Y方向寬度";
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label41.Location = new System.Drawing.Point(810, 19);
-            this.label41.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(119, 22);
-            this.label41.TabIndex = 163;
-            this.label41.Text = "die X方向長度";
-            // 
-            // btn_ClearAlarm
-            // 
-            this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_ClearAlarm.Image = global::Velociraptor.Properties.Resources.refresh;
-            this.btn_ClearAlarm.Location = new System.Drawing.Point(1269, 305);
-            this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(1);
-            this.btn_ClearAlarm.Name = "btn_ClearAlarm";
-            this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_ClearAlarm.Size = new System.Drawing.Size(64, 61);
-            this.btn_ClearAlarm.TabIndex = 173;
-            this.btn_ClearAlarm.UseVisualStyleBackColor = true;
-            this.btn_ClearAlarm.Click += new System.EventHandler(this.btn_ClearAlarm_Click);
-            // 
-            // label43
-            // 
-            this.label43.AutoSize = true;
-            this.label43.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label43.Location = new System.Drawing.Point(900, 51);
-            this.label43.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(37, 22);
-            this.label43.TabIndex = 167;
-            this.label43.Text = "um";
-            // 
-            // label44
-            // 
-            this.label44.AutoSize = true;
-            this.label44.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label44.Location = new System.Drawing.Point(899, 146);
-            this.label44.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(37, 22);
-            this.label44.TabIndex = 168;
-            this.label44.Text = "um";
-            // 
-            // btn_advanced_mode
-            // 
-            this.btn_advanced_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold);
-            this.btn_advanced_mode.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.btn_advanced_mode.Image = global::Velociraptor.Properties.Resources.administration;
-            this.btn_advanced_mode.Location = new System.Drawing.Point(1340, 305);
-            this.btn_advanced_mode.Margin = new System.Windows.Forms.Padding(1);
-            this.btn_advanced_mode.Name = "btn_advanced_mode";
-            this.btn_advanced_mode.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_advanced_mode.Size = new System.Drawing.Size(64, 61);
-            this.btn_advanced_mode.TabIndex = 126;
-            this.btn_advanced_mode.UseVisualStyleBackColor = true;
-            this.btn_advanced_mode.Click += new System.EventHandler(this.btn_advanced_mode_Click);
-            // 
-            // button5
-            // 
-            this.button5.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.button5.Location = new System.Drawing.Point(15, 104);
-            this.button5.Margin = new System.Windows.Forms.Padding(4);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(102, 46);
-            this.button5.TabIndex = 171;
-            this.button5.Text = "曝光時間";
-            this.button5.UseVisualStyleBackColor = true;
-            // 
-            // hWindowControl1
-            // 
-            this.hWindowControl1.BackColor = System.Drawing.Color.Black;
-            this.hWindowControl1.BorderColor = System.Drawing.Color.Black;
-            this.hWindowControl1.ImagePart = new System.Drawing.Rectangle(0, 0, 640, 480);
-            this.hWindowControl1.Location = new System.Drawing.Point(140, 2);
-            this.hWindowControl1.Margin = new System.Windows.Forms.Padding(1);
-            this.hWindowControl1.Name = "hWindowControl1";
-            this.hWindowControl1.Size = new System.Drawing.Size(253, 214);
-            this.hWindowControl1.TabIndex = 169;
-            this.hWindowControl1.WindowSize = new System.Drawing.Size(253, 214);
-            // 
-            // button3
-            // 
-            this.button3.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.button3.Location = new System.Drawing.Point(15, 9);
-            this.button3.Margin = new System.Windows.Forms.Padding(4);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(102, 46);
-            this.button3.TabIndex = 170;
-            this.button3.Text = "切割道閥值";
-            this.button3.UseVisualStyleBackColor = true;
-            // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
+            // btn_switch
+            // 
+            this.btn_switch.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_switch.Image = global::Velociraptor.Properties.Resources.green;
+            this.btn_switch.Location = new System.Drawing.Point(647, 375);
+            this.btn_switch.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_switch.Name = "btn_switch";
+            this.btn_switch.Size = new System.Drawing.Size(80, 74);
+            this.btn_switch.TabIndex = 194;
+            this.btn_switch.UseVisualStyleBackColor = true;
+            this.btn_switch.Click += new System.EventHandler(this.btn_switch_Click);
             // 
             // f_main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1438, 876);
+            this.ClientSize = new System.Drawing.Size(1438, 983);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.tabControlMain);
             this.Font = new System.Drawing.Font("PMingLiU", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -2159,7 +2181,6 @@
             this.tabControlMain.ResumeLayout(false);
             this.tbp_main.ResumeLayout(false);
             this.tbp_main.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pic_switch)).EndInit();
             this.grp_mea_para.ResumeLayout(false);
             this.grp_mea_para.PerformLayout();
             this.tbp_status.ResumeLayout(false);
@@ -2170,12 +2191,12 @@
             this.groupBox7.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
-            this.grp_pic_test.ResumeLayout(false);
-            this.grp_pic_test.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tr_light)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tr_threshold)).EndInit();
             this.grp_align_test.ResumeLayout(false);
             this.grp_align_test.PerformLayout();
             this.grp_manual_buttons.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -2281,8 +2302,8 @@
         private System.Windows.Forms.Label label43;
         private HalconDotNet.HWindowControl hWindowControl1;
         private System.Windows.Forms.Label label37;
-        private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button btn_light;
+        private System.Windows.Forms.Button btn_threshold;
         private System.Windows.Forms.Button btn_ClearAlarm;
         private System.Windows.Forms.Button btn_advanced_mode;
         private System.Windows.Forms.Label label38;
@@ -2299,7 +2320,7 @@
         private System.Windows.Forms.Button btn_download;
         private System.Windows.Forms.Button btn_connection_ip;
         private System.Windows.Forms.TextBox tbThreshold;
-        private System.Windows.Forms.TextBox tbExposure;
+        private System.Windows.Forms.TextBox tbLight;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox tb_dieX;
         private System.Windows.Forms.TextBox tb_dieY;
@@ -2310,21 +2331,22 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox cb_wafersize;
         private System.Windows.Forms.Label label40;
-        private System.Windows.Forms.PictureBox pic_switch;
         public MagicGraphicLibrary.NumericTextBox ntb_frequency;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.PictureBox pic_camera;
-        private System.Windows.Forms.GroupBox grp_pic_test;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label lb_die_side1;
         private System.Windows.Forms.Label lb_angle1;
         private System.Windows.Forms.Button btn_grab;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.TextBox tbThreshold1;
+        private System.Windows.Forms.TrackBar tr_light;
+        private System.Windows.Forms.TrackBar tr_threshold;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Button btn_switch;
     }
 }
 

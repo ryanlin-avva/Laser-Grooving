@@ -4,7 +4,8 @@ namespace Velociraptor
 {
     class Constants
     {
-        static public string paraFilename = "AVVAMotionParam.ini";
+        static public string paraFilename = "AVVAParam.ini";
+        static public string motionParaFilename = "AVVAMotionConfig.ini";
         static public string appConfigFolder = "c:/avva/MeasureConfig/";
         static public int AutoMeasureDistance = 1000; //um
 

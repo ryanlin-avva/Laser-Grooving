@@ -21,9 +21,8 @@ namespace Velociraptor
         private int img_part_width;
         private int img_part_height;
         private HObject my_img;
-        public void DoThreshold(HObject img, bool isDark, int th, bool dark)
+        public void DoThreshold(HObject img, int th, bool isDark = true)
         {
-            isDark = dark;
             HObject cur_img;
             HObject region;
             HOperatorSet.MedianImage(img, out cur_img, "square", 1, "mirrored");
