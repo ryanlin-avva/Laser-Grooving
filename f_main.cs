@@ -2316,6 +2316,7 @@ namespace Velociraptor
             double[] variance;
             double maxVariance;
             Object[] runImage;
+            MoveEventArgs moveEventArgs;
 
             GrabOn();
             if (!_syn_op.HasGoHome) _syn_op.GoHome();
@@ -2337,7 +2338,10 @@ namespace Velociraptor
             for (int position = beginPosition, i = 0; position <= endPosition; position += 1000, i++)
             {
                 runPosition[i] = position;
-                _syn_op.MoveTo('Z', position, false);
+                moveEventArgs = new MoveEventArgs { relative = false, position = position };
+                AutoFocusMove(sender, moveEventArgs);
+                AutoFocusMoveWait(position);
+                //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
                 zImgCount = 0;
@@ -2394,7 +2398,10 @@ namespace Velociraptor
             for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
             {
                 runPosition[i] = position;
-                _syn_op.MoveTo('Z', position, false);
+                moveEventArgs = new MoveEventArgs { relative = false, position = position };
+                AutoFocusMove(sender, moveEventArgs);
+                AutoFocusMoveWait(position);
+                //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
                 zImgCount = 0;
@@ -2429,6 +2436,30 @@ namespace Velociraptor
 
             Console.WriteLine("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
             Console.WriteLine("Max AF func elapsed ms: " + maxAFFuncMs + ", Min AF func elapsed ms: " + minAFFuncMs);
+        }
+        private void AutoFocusMove(Object sender, EventArgs e)
+        {
+            MoveEventArgs moveEventArgs;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new EventHandler(AutoFocusMove), sender, e);
+
+                return;
+            }
+
+            moveEventArgs = (MoveEventArgs)e;
+
+            _syn_op.MoveTo('Z', moveEventArgs.position, moveEventArgs.relative);
+        }
+
+        private void AutoFocusMoveWait(int position)
+        {
+            while (_syn_op.GetPos('Z') != position)
+            {
+                Thread.Sleep(50);
+            }
+            zPosition = position;
         }
         private void AutoFocusRun_Callback(IAsyncResult result)
         {
@@ -2667,4 +2698,10 @@ namespace Velociraptor
             if (inner == null) throw new ArgumentNullException("inner");
         }
     }
+    public class MoveEventArgs : EventArgs
+    {
+        public bool relative { get; set; }
+        public int position { get; set; }
+    }
+
 }
