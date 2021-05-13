@@ -301,30 +301,27 @@ namespace Velociraptor
                 autoFocusRun = new EventHandler(AutoFocusRun);
                 #endregion
 
-                cb_SelectMeasureDistance.SelectedIndex = 3;
-                cb_wafersize.SelectedIndex = 0;
-
                 #region Motion, Camera, Log Initialization
+                ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaMotion1");
+                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
+                    , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
+                log4net.ILog log = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
+                _syn_op = new SynOperation(hp, Constants.appConfigFolder, log);
+                _syn_op.MotorOn();
+                log.Info("SynOperation Started");
+
                 ILoggerRepository repository1 = log4net.LogManager.CreateRepository("AvvaCamera1");
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(repository1
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaCamera.log4net.xml")));
                 log4net.ILog log1 = log4net.LogManager.GetLogger("AvvaCamera1", "AvvaCamera");
                 camera = new AvvaCamera(basler, new Mvotem0745("COM7"), new ILPSC("COM6"), log1);
                 camera.ImageFileDirPath = measureParamReader.SavingPath;
-
-                ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaMotion1");
-                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
-                    , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
-                log4net.ILog log = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
-                _syn_op = new SynOperation(hp, camera, Constants.appConfigFolder, log);
-                _syn_op.MotorOn();
-                log.Info("SynOperation Started");
-
-                camera.Open(_syn_op.IsSimulat());
+                camera.Open(_syn_op.IsSimulat);
                 camera.IntstSet(0, tr_light.Value);
                 camera.MaxMagSet();
                 camera.ImageGrabbed += OnImageGrabbed;
                 log1.Info("Camera Started");
+                GrabOn();
 
                 tbLight.Text = tr_light.Value.ToString();
                 tbThreshold1.Text = tr_threshold.Value.ToString();
@@ -410,6 +407,10 @@ namespace Velociraptor
             tips.SetToolTip(this.btn_find_angle, "找角度");
             grp_manual_buttons.Visible = false;
             #endregion
+
+            cb_SelectMeasureDistance.SelectedIndex = 0;
+            cb_wafersize.SelectedIndex = 0;
+            cb_selectMeasurePrecision.SelectedIndex = 0;
 
             try
             {
@@ -760,7 +761,7 @@ namespace Velociraptor
                                 if (dataSample.FirstDataAfterTriggerStart) startmeasure = true;
                                 if (_ccsvWriteFiles != null && startmeasure == true)
                                 {
-                                    if (_syn_op.ScanMode() == 1)
+                                    if (cb_selectMeasurePrecision.SelectedIndex == 0)
                                     {
                                         int line_no = 4 - _dataAcquisitionNumber / _measure_distance;
                                         _ccsvWriteFiles.Add(dataSample.SignalDataList, line_no);
@@ -812,7 +813,8 @@ namespace Velociraptor
                 }
                 if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
-                    _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, _syn_op.ScanMode());
+                    int scan_mode = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
+                    _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, scan_mode);
                     _in_trigger = true;
                 }
             }
@@ -1316,7 +1318,7 @@ namespace Velociraptor
                 DBKeeper.SCAN_DATA data = new DBKeeper.SCAN_DATA();
                 data.wafer_id = _wafer_id;
                 data.points_cnt = pts_cnt * 4 + 1;
-                data.scan_type = _syn_op.ScanMode();
+                data.scan_type = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
                 data.notch_way = form.cmb_notch.SelectedIndex;
 
                 List<Point> _mea_pts = new List<Point>();
@@ -1491,11 +1493,12 @@ namespace Velociraptor
         private void btn_load_wafer_Click(object sender, EventArgs e)
         {
             cb_wafersize.Enabled = false;
-            camera.ImageGrabbed -= OnImageGrabbed;
-            camera.ImageGrabbed += OnAutoFocusImageGrabbed;
-            autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
             try
             {
+                if (!_syn_op.HasGoHome) _syn_op.GoHome();
+                camera.ImageGrabbed -= OnImageGrabbed;
+                camera.ImageGrabbed += OnAutoFocusImageGrabbed;
+                autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
                 _syn_op.MoveToCenter();
             }
             catch (Exception ex)
@@ -1507,6 +1510,7 @@ namespace Velociraptor
         {
             try
             {
+                if (!_syn_op.HasGoHome) _syn_op.GoHome();
                 double[] distance = new double[3];
                 _syn_op.GetLoadPos(ref distance);
                 char[] axis = { 'X', 'Y', 'Z' };
@@ -2095,15 +2099,15 @@ namespace Velociraptor
                 bool set_EncoderParameter = Set_EncoderParameter(_acquisitionTab.StartMeasureXPos
                                             ,1 ,_dataAcquisitionNumber);
                 if (set_EncoderParameter != true) return;
-                if (_syn_op.ScanMode() == 1) _dataAcquisitionNumber *= 5;//1um測量時set_EncoderParameter參數TrigNum不必*5
+                if (cb_selectMeasurePrecision.SelectedIndex == 0) _dataAcquisitionNumber *= 5;//1um測量時set_EncoderParameter參數TrigNum不必*5
                 _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
 
 
-                if (_syn_op.ScanMode() == 5)
+                if (cb_selectMeasurePrecision.SelectedIndex == 1)
                 {
                     _syn_op.Move5um(_measure_distance);
                 } 
-                else if (_syn_op.ScanMode() == 1)
+                else if (cb_selectMeasurePrecision.SelectedIndex == 0)
                 {
                     _syn_op.Move1um(_measure_distance);
                 }
@@ -2322,6 +2326,7 @@ namespace Velociraptor
             Object[] runImage;
 
             GrabOn();
+            if (!_syn_op.HasGoHome) _syn_op.GoHome();
             Console.WriteLine("Auto Focusing Fisrt Run:");
             //Max Mag
             beginPosition = -320000;

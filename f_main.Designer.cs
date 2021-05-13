@@ -177,6 +177,9 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.grp_test = new System.Windows.Forms.GroupBox();
             this.btn_autofocus = new System.Windows.Forms.Button();
+            this.label15 = new System.Windows.Forms.Label();
+            this.cb_selectMeasurePrecision = new System.Windows.Forms.ComboBox();
+            this.label17 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -220,7 +223,7 @@
             0,
             0});
             this.ntb_led_intensity.InterceptArrowKeys = true;
-            this.ntb_led_intensity.Location = new System.Drawing.Point(620, 62);
+            this.ntb_led_intensity.Location = new System.Drawing.Point(638, 62);
             this.ntb_led_intensity.Margin = new System.Windows.Forms.Padding(4);
             this.ntb_led_intensity.Maximum = new decimal(new int[] {
             10000,
@@ -254,7 +257,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(705, 62);
+            this.label2.Location = new System.Drawing.Point(723, 62);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(21, 23);
@@ -265,7 +268,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label1.Location = new System.Drawing.Point(616, 35);
+            this.label1.Location = new System.Drawing.Point(634, 35);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(78, 22);
@@ -342,7 +345,7 @@
             // chk_cursor_v1
             // 
             this.chk_cursor_v1.BackColor = System.Drawing.Color.Red;
-            this.chk_cursor_v1.Location = new System.Drawing.Point(626, 126);
+            this.chk_cursor_v1.Location = new System.Drawing.Point(644, 126);
             this.chk_cursor_v1.Margin = new System.Windows.Forms.Padding(4);
             this.chk_cursor_v1.Name = "chk_cursor_v1";
             this.chk_cursor_v1.Size = new System.Drawing.Size(25, 21);
@@ -372,7 +375,7 @@
             // label_cursor_v1
             // 
             this.label_cursor_v1.AutoSize = true;
-            this.label_cursor_v1.Location = new System.Drawing.Point(622, 106);
+            this.label_cursor_v1.Location = new System.Drawing.Point(640, 106);
             this.label_cursor_v1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_cursor_v1.Name = "label_cursor_v1";
             this.label_cursor_v1.Size = new System.Drawing.Size(75, 17);
@@ -402,7 +405,7 @@
             // nud_cursor_v1
             // 
             this.nud_cursor_v1.Font = new System.Drawing.Font("PMingLiU", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.nud_cursor_v1.Location = new System.Drawing.Point(658, 126);
+            this.nud_cursor_v1.Location = new System.Drawing.Point(676, 126);
             this.nud_cursor_v1.Margin = new System.Windows.Forms.Padding(4);
             this.nud_cursor_v1.Name = "nud_cursor_v1";
             this.nud_cursor_v1.Size = new System.Drawing.Size(60, 28);
@@ -421,7 +424,7 @@
             this.clsRawImage.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clsRawImage.LabelColor = System.Drawing.Color.Yellow;
             this.clsRawImage.LabelEnabled = true;
-            this.clsRawImage.Location = new System.Drawing.Point(175, 45);
+            this.clsRawImage.Location = new System.Drawing.Point(143, 4);
             this.clsRawImage.Margin = new System.Windows.Forms.Padding(1, 4, 1, 4);
             this.clsRawImage.MenuLoadData = true;
             this.clsRawImage.MenuPauseData = true;
@@ -638,7 +641,7 @@
             // 
             this.label_xaxis.AutoSize = true;
             this.label_xaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label_xaxis.Location = new System.Drawing.Point(977, 357);
+            this.label_xaxis.Location = new System.Drawing.Point(971, 336);
             this.label_xaxis.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_xaxis.Name = "label_xaxis";
             this.label_xaxis.Size = new System.Drawing.Size(38, 22);
@@ -649,7 +652,7 @@
             // 
             this.label_yaxis.AutoSize = true;
             this.label_yaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label_yaxis.Location = new System.Drawing.Point(1073, 357);
+            this.label_yaxis.Location = new System.Drawing.Point(1067, 336);
             this.label_yaxis.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_yaxis.Name = "label_yaxis";
             this.label_yaxis.Size = new System.Drawing.Size(38, 22);
@@ -660,7 +663,7 @@
             // 
             this.label_zaxis.AutoSize = true;
             this.label_zaxis.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label_zaxis.Location = new System.Drawing.Point(1170, 357);
+            this.label_zaxis.Location = new System.Drawing.Point(1164, 336);
             this.label_zaxis.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_zaxis.Name = "label_zaxis";
             this.label_zaxis.Size = new System.Drawing.Size(38, 22);
@@ -680,7 +683,7 @@
             this.grp_cursor.Controls.Add(this.label_noise_offset);
             this.grp_cursor.Controls.Add(this.hsb_noise_offset);
             this.grp_cursor.Controls.Add(this.label_dynamic);
-            this.grp_cursor.Location = new System.Drawing.Point(613, 151);
+            this.grp_cursor.Location = new System.Drawing.Point(631, 151);
             this.grp_cursor.Margin = new System.Windows.Forms.Padding(4);
             this.grp_cursor.Name = "grp_cursor";
             this.grp_cursor.Padding = new System.Windows.Forms.Padding(4);
@@ -706,7 +709,7 @@
             this.ntb_x_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_x_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ntb_x_cur_pos.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_x_cur_pos.Location = new System.Drawing.Point(973, 388);
+            this.ntb_x_cur_pos.Location = new System.Drawing.Point(967, 367);
             this.ntb_x_cur_pos.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ntb_x_cur_pos.Name = "ntb_x_cur_pos";
             this.ntb_x_cur_pos.Size = new System.Drawing.Size(86, 25);
@@ -719,7 +722,7 @@
             this.ntb_y_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_y_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ntb_y_cur_pos.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_y_cur_pos.Location = new System.Drawing.Point(1070, 388);
+            this.ntb_y_cur_pos.Location = new System.Drawing.Point(1064, 367);
             this.ntb_y_cur_pos.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ntb_y_cur_pos.Name = "ntb_y_cur_pos";
             this.ntb_y_cur_pos.Size = new System.Drawing.Size(86, 25);
@@ -732,7 +735,7 @@
             this.ntb_z_cur_pos.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.ntb_z_cur_pos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ntb_z_cur_pos.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.ntb_z_cur_pos.Location = new System.Drawing.Point(1170, 388);
+            this.ntb_z_cur_pos.Location = new System.Drawing.Point(1164, 367);
             this.ntb_z_cur_pos.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ntb_z_cur_pos.Name = "ntb_z_cur_pos";
             this.ntb_z_cur_pos.Size = new System.Drawing.Size(86, 25);
@@ -1435,7 +1438,7 @@
             "100",
             "200",
             "500"});
-            this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(826, 248);
+            this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(826, 230);
             this.cb_SelectMeasureDistance.Margin = new System.Windows.Forms.Padding(4);
             this.cb_SelectMeasureDistance.Name = "cb_SelectMeasureDistance";
             this.cb_SelectMeasureDistance.Size = new System.Drawing.Size(83, 29);
@@ -1446,7 +1449,7 @@
             // 
             this.label35.AutoSize = true;
             this.label35.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label35.Location = new System.Drawing.Point(822, 214);
+            this.label35.Location = new System.Drawing.Point(822, 201);
             this.label35.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label35.Name = "label35";
             this.label35.Size = new System.Drawing.Size(78, 22);
@@ -1481,7 +1484,7 @@
             this.groupBox7.Controls.Add(this.btn_movey_positive);
             this.groupBox7.Controls.Add(this.btn_movez_positive);
             this.groupBox7.Controls.Add(this.btn_movez_negative);
-            this.groupBox7.Location = new System.Drawing.Point(970, 51);
+            this.groupBox7.Location = new System.Drawing.Point(970, 53);
             this.groupBox7.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Padding = new System.Windows.Forms.Padding(4);
@@ -1708,6 +1711,9 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.label15);
+            this.panel1.Controls.Add(this.cb_selectMeasurePrecision);
+            this.panel1.Controls.Add(this.label17);
             this.panel1.Controls.Add(this.grp_test);
             this.panel1.Controls.Add(this.label16);
             this.panel1.Controls.Add(this.tbThreshold1);
@@ -1836,7 +1842,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label3.Location = new System.Drawing.Point(913, 329);
+            this.label3.Location = new System.Drawing.Point(916, 403);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(27, 22);
@@ -1850,7 +1856,7 @@
             this.cb_wafersize.Items.AddRange(new object[] {
             "12",
             "8"});
-            this.cb_wafersize.Location = new System.Drawing.Point(827, 338);
+            this.cb_wafersize.Location = new System.Drawing.Point(830, 408);
             this.cb_wafersize.Margin = new System.Windows.Forms.Padding(4);
             this.cb_wafersize.Name = "cb_wafersize";
             this.cb_wafersize.Size = new System.Drawing.Size(83, 29);
@@ -1860,7 +1866,7 @@
             // 
             this.label40.AutoSize = true;
             this.label40.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label40.Location = new System.Drawing.Point(823, 304);
+            this.label40.Location = new System.Drawing.Point(826, 378);
             this.label40.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label40.Name = "label40";
             this.label40.Size = new System.Drawing.Size(78, 22);
@@ -1870,7 +1876,7 @@
             // tb_dieY
             // 
             this.tb_dieY.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tb_dieY.Location = new System.Drawing.Point(827, 154);
+            this.tb_dieY.Location = new System.Drawing.Point(827, 126);
             this.tb_dieY.Margin = new System.Windows.Forms.Padding(2);
             this.tb_dieY.Name = "tb_dieY";
             this.tb_dieY.Size = new System.Drawing.Size(88, 29);
@@ -1879,7 +1885,7 @@
             // tb_dieX
             // 
             this.tb_dieX.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.tb_dieX.Location = new System.Drawing.Point(827, 62);
+            this.tb_dieX.Location = new System.Drawing.Point(827, 57);
             this.tb_dieX.Margin = new System.Windows.Forms.Padding(2);
             this.tb_dieX.Name = "tb_dieX";
             this.tb_dieX.Size = new System.Drawing.Size(88, 29);
@@ -2039,7 +2045,7 @@
             // 
             this.label39.AutoSize = true;
             this.label39.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label39.Location = new System.Drawing.Point(912, 239);
+            this.label39.Location = new System.Drawing.Point(912, 226);
             this.label39.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label39.Name = "label39";
             this.label39.Size = new System.Drawing.Size(37, 22);
@@ -2050,7 +2056,7 @@
             // 
             this.label42.AutoSize = true;
             this.label42.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label42.Location = new System.Drawing.Point(822, 118);
+            this.label42.Location = new System.Drawing.Point(822, 99);
             this.label42.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label42.Name = "label42";
             this.label42.Size = new System.Drawing.Size(119, 22);
@@ -2072,7 +2078,7 @@
             // 
             this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.btn_ClearAlarm.Image = global::Velociraptor.Properties.Resources.refresh;
-            this.btn_ClearAlarm.Location = new System.Drawing.Point(1264, 357);
+            this.btn_ClearAlarm.Location = new System.Drawing.Point(1258, 336);
             this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(1);
             this.btn_ClearAlarm.Name = "btn_ClearAlarm";
             this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
@@ -2085,7 +2091,7 @@
             // 
             this.label43.AutoSize = true;
             this.label43.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label43.Location = new System.Drawing.Point(912, 51);
+            this.label43.Location = new System.Drawing.Point(912, 54);
             this.label43.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label43.Name = "label43";
             this.label43.Size = new System.Drawing.Size(37, 22);
@@ -2096,7 +2102,7 @@
             // 
             this.label44.AutoSize = true;
             this.label44.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label44.Location = new System.Drawing.Point(911, 146);
+            this.label44.Location = new System.Drawing.Point(911, 124);
             this.label44.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label44.Name = "label44";
             this.label44.Size = new System.Drawing.Size(37, 22);
@@ -2108,7 +2114,7 @@
             this.btn_advanced_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold);
             this.btn_advanced_mode.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.btn_advanced_mode.Image = global::Velociraptor.Properties.Resources.administration;
-            this.btn_advanced_mode.Location = new System.Drawing.Point(1335, 357);
+            this.btn_advanced_mode.Location = new System.Drawing.Point(1329, 336);
             this.btn_advanced_mode.Margin = new System.Windows.Forms.Padding(1);
             this.btn_advanced_mode.Name = "btn_advanced_mode";
             this.btn_advanced_mode.RightToLeft = System.Windows.Forms.RightToLeft.No;
@@ -2160,22 +2166,57 @@
             // grp_test
             // 
             this.grp_test.Controls.Add(this.btn_autofocus);
-            this.grp_test.Location = new System.Drawing.Point(657, 391);
+            this.grp_test.Location = new System.Drawing.Point(657, 396);
             this.grp_test.Name = "grp_test";
-            this.grp_test.Size = new System.Drawing.Size(283, 60);
+            this.grp_test.Size = new System.Drawing.Size(119, 60);
             this.grp_test.TabIndex = 194;
             this.grp_test.TabStop = false;
             this.grp_test.Visible = false;
             // 
             // btn_autofocus
             // 
-            this.btn_autofocus.Location = new System.Drawing.Point(14, 16);
+            this.btn_autofocus.Location = new System.Drawing.Point(8, 18);
             this.btn_autofocus.Name = "btn_autofocus";
             this.btn_autofocus.Size = new System.Drawing.Size(90, 36);
             this.btn_autofocus.TabIndex = 0;
             this.btn_autofocus.Text = "自動對焦";
             this.btn_autofocus.UseVisualStyleBackColor = true;
             this.btn_autofocus.Click += new System.EventHandler(this.btn_autofocus_Click_1);
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label15.Location = new System.Drawing.Point(913, 297);
+            this.label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(37, 22);
+            this.label15.TabIndex = 197;
+            this.label15.Text = "um";
+            // 
+            // cb_selectMeasurePrecision
+            // 
+            this.cb_selectMeasurePrecision.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.cb_selectMeasurePrecision.FormattingEnabled = true;
+            this.cb_selectMeasurePrecision.Items.AddRange(new object[] {
+            "1",
+            "5"});
+            this.cb_selectMeasurePrecision.Location = new System.Drawing.Point(827, 301);
+            this.cb_selectMeasurePrecision.Margin = new System.Windows.Forms.Padding(4);
+            this.cb_selectMeasurePrecision.Name = "cb_selectMeasurePrecision";
+            this.cb_selectMeasurePrecision.Size = new System.Drawing.Size(83, 29);
+            this.cb_selectMeasurePrecision.TabIndex = 195;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.label17.Location = new System.Drawing.Point(823, 273);
+            this.label17.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(78, 22);
+            this.label17.TabIndex = 196;
+            this.label17.Text = "掃描精度";
             // 
             // f_main
             // 
@@ -2374,6 +2415,9 @@
         private System.Windows.Forms.Button btn_connect;
         private System.Windows.Forms.GroupBox grp_test;
         private System.Windows.Forms.Button btn_autofocus;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.ComboBox cb_selectMeasurePrecision;
+        private System.Windows.Forms.Label label17;
     }
 }
 

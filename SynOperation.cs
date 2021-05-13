@@ -12,30 +12,22 @@ namespace Velociraptor
         private HalconProc _hp;
         private ParamReader _paraReader;
         private double[] _2_mea = new double[3];
-        private int _scan_mode;
-        private AvvaCamera _camera;
-        public SynOperation(HalconProc hp, AvvaCamera camera, string para_path, log4net.ILog log = null)
+        public SynOperation(HalconProc hp, string para_path, log4net.ILog log = null)
         {
             _hp = hp;
-            _camera = camera;
             IAvvaMotion yaskawa = new YaskawaMotion();
             string path = Path.Combine(para_path, Constants.motionParaFilename);
             _motion = new AvvaMotion(yaskawa, path, log);
             path = Path.Combine(para_path, Constants.paraFilename);
             _paraReader = new ParamReader(path);
-            _scan_mode = _paraReader.ScanningMode;
         }
         public void MotorOn() { _motion.MotorOn(); }
         public void MotorOff() { _motion.MotorOff(); }
         public void GoHome() { _motion.GoHome(); }
         public void StopMove() { _motion.StopMove(); }
         public void ClearAlarm() { _motion.ClearAlarm(); }
-        public int ScanMode() { return _scan_mode; }
-        public bool IsSimulat() { return _motion.IsSimulate; }
-        public void AutoFocus()
-        {
-
-        }
+        public bool IsSimulat { get { return _motion.IsSimulate; } }
+        public bool HasGoHome { get { return _motion.HasGoHome; } }
         public void DoAlignment(HObject cur_img, int threshold, ref double[] die_side)
         {
             double angle = 0;

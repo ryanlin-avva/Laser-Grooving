@@ -37,9 +37,6 @@ namespace Velociraptor
             moveToWaferCenterPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointYDistance", "0"));
             moveToWaferCenterPointZDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointZDistance", "0"));
             moveToWaferUnloadPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferUnloadPointYDistance", "0"));
-            
-             //Gets the Scan parameter
-             ScanningMode = int.Parse(ReadIniFile("ScanParameter", "ScanningMode", "0"));
         }
         public void GetDistance2Measure(ref int[] dist)
         {
