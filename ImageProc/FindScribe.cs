@@ -9,13 +9,14 @@ namespace Velociraptor.ImageProc
     class FindScribe
     {
         int _img_height, _img_width;
-        public string Err_msg { get; set; }
         List<List<Point>> Hor_Line = new List<List<Point>>();
         List<List<Point>> Ver_Line = new List<List<Point>>();
         List<List<Point>> centerpoint_list = new List<List<Point>>();
         List<Point> _target_points = new List<Point>();
-        public double AngleAverage { get; set; }
-        public bool find_angle(Bitmap bitmap, int threshold)
+        public double AngleAverage { get; private set; }
+        public double WidthAverage { get; private set; }
+        public double HeightAverage { get; private set; }
+        public void find_angle(Bitmap bitmap, int threshold, double[]die_size)
         {
             _img_height = bitmap.Height;
             _img_width = bitmap.Width;
@@ -23,10 +24,20 @@ namespace Velociraptor.ImageProc
             _fast_pixel.image = bitmap;
             _fast_pixel.Bmp2RGB(bitmap); //讀取RGB亮度陣列
             _fast_pixel.array_Gray = _fast_pixel.array_Green;//灰階陣列為綠光陣列
+            WidthAverage = die_size[0];
+            HeightAverage = die_size[1];
 
             byte[,] array_Outline = GetScribeLine(_fast_pixel, threshold);
-            return Targets(array_Outline, _fast_pixel.nx, _fast_pixel.ny);
+            Targets(array_Outline, _fast_pixel.nx, _fast_pixel.ny, die_size);
         }
+
+        private double TwoPointFindDistance(Point FirstP, Point SecondP)
+        {
+            int x = Math.Abs(SecondP.X - FirstP.X);
+            int y = Math.Abs(SecondP.Y - FirstP.Y);
+            return Math.Sqrt(x * x + y * y);
+        }
+
         public Bitmap DoThreshold(Bitmap bitmap, int threshold)
         {
             _img_height = bitmap.Height;
@@ -63,7 +74,7 @@ namespace Velociraptor.ImageProc
             }
             return Q;
         }
-        private bool Targets(byte[,] array_Outline, int nx, int ny)
+        private void Targets(byte[,] array_Outline, int nx, int ny, double[] die_size)
         {
             ArrayList D = new ArrayList();
             ArrayList C = getTargets(array_Outline, nx, ny); //建立目標物件集合
@@ -87,13 +98,8 @@ namespace Velociraptor.ImageProc
                     }
                 }
             }
-            if (C.Count == 0)
-            {
-                Err_msg = "找不到切割道交點";
-                return false;
-            }
-            Filter(C, nx, ny);
-            return true;
+            if (C.Count == 0) throw new AvvaException("找不到切割道交點");
+            Filter(C, nx, ny, die_size);
         }
         private ArrayList getTargets(byte[,] q, int nx, int ny)
         {
@@ -146,7 +152,7 @@ namespace Velociraptor.ImageProc
             }
             return A; //回傳目標物件集合
         }
-        private void Filter(ArrayList C, int nx, int ny)
+        private void Filter(ArrayList C, int nx, int ny, double[]die_size)
         {
             int top_x_add_all = 0;
             int left_y_add_all = 0;
@@ -389,21 +395,41 @@ namespace Velociraptor.ImageProc
                 }
             }
             #endregion
-            //求垂直切割道角度
-            for (int i = 0; i < Ver_Line.Count; i++)
+            if (Hor_Line.Count == 0 && Ver_Line.Count == 0)
+                throw new AvvaException("影像中沒有切割道或交點");
+
+            //只找到垂直切割道
+            if (Ver_Line.Count != 0 && Hor_Line.Count == 0)
             {
-                angle_List.Add(Angle(Ver_Line[i][0], Ver_Line[i][1], new Point(Ver_Line[i][0].X, Ver_Line[i][0].Y + 1)));
+                for (int i = 0; i < Ver_Line.Count; i++)
+                    angle_List.Add(Angle(Ver_Line[i][0], Ver_Line[i][1], new Point(Ver_Line[i][0].X, Ver_Line[i][0].Y + 1)));
             }
-            //求水平切割道角度
-            for (int i = 0; i < Hor_Line.Count; i++)
+            //只找到水平切割道
+            else if (Ver_Line.Count == 0 && Hor_Line.Count != 0)
             {
-                angle_List.Add(Angle(Hor_Line[i][0], Hor_Line[i][1], new Point(Hor_Line[i][0].X + 1, Hor_Line[i][0].Y)));
+                for (int i = 0; i < Hor_Line.Count; i++)
+                {
+                    angle_List.Add(Angle(Hor_Line[i][0], Hor_Line[i][1], new Point(Hor_Line[i][0].X + 1, Hor_Line[i][0].Y)));
+                }
             }
-            for (int i = 0; i < angle_List.Count; i++)
+            //找直線交點
+            else
             {
-                angle_Average = angle_Average + angle_List[i];
-            }
-            AngleAverage = angle_Average / angle_List.Count;
+                List<List<Point>> intersect_list = new List<List<Point>>();
+                for (int h = 0; h < Hor_Line.Count; h++)
+                {
+                    List<Point> intersect_row = new List<Point>();
+                    for (int s = 0; s < Ver_Line.Count; s++)
+                    {
+                        Point centerpoint = Point.Round(GetIntersection(Hor_Line[h][0], Hor_Line[h][1], Ver_Line[s][0], Ver_Line[s][1]));
+                        angle_List.Add(Angle(centerpoint, Hor_Line[h][1], new Point(centerpoint.X + 1, centerpoint.Y)));
+                        intersect_row.Add(centerpoint);
+                    }
+                    intersect_list.Add(intersect_row);
+                }
+                FindDieSize(die_size, intersect_list);
+           }
+            AngleAverage = angle_List.Average();
             _target_points = _target.P;
         }
         private byte[,] Fill(List<Point> a, int nx, int ny)
@@ -423,6 +449,38 @@ namespace Velociraptor.ImageProc
                 Tbin[p.X - 1, p.Y - 1] = 1;
             }
             return Tbin;
+        }
+        private void FindDieSize(double[] dieSize, List<List<Point>> intersects)
+        {
+            double width = dieSize[0];
+            double height = dieSize[1];
+            List<double> Width_List = new List<double>();
+            List<double> Height_List = new List<double>();
+            double DieSizeDifference = 0.1* width;
+            //Find Width
+            for (int r = 0; r < intersects.Count; r++)
+            {
+                for (int c = 0; c < intersects[r].Count-1; c++)//3條線算2個距離
+                {
+                    width = TwoPointFindDistance(intersects[r][c], intersects[r][c+1]);
+                    if (Math.Abs(width - dieSize[0]) < DieSizeDifference)//計算距離跟給的距離差距不大就視為正確
+                        Width_List.Add(width);
+                }
+            }
+            if (Width_List.Count > 0) WidthAverage = Width_List.Average();
+
+            //Find Height
+            DieSizeDifference = 0.1 * height;
+            for (int r = 0; r < intersects.Count - 1; r++)
+            {
+                for (int c = 0; c < intersects[r].Count; c++)
+                {
+                    height = TwoPointFindDistance(intersects[r][c], intersects[r + 1][c]);
+                    if (Math.Abs(height - dieSize[1]) < DieSizeDifference)//計算距離跟給的距離差距不大就視為正確
+                        Height_List.Add(height);
+                }
+            }
+            if (Height_List.Count > 0) HeightAverage = Height_List.Average();
         }
         public static PointF GetIntersection(PointF lineFirstStar, PointF lineFirstEnd, PointF lineSecondStar, PointF lineSecondEnd)
         {

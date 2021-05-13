@@ -73,6 +73,7 @@
             this.ctrl_zgc_dnld = new MagicGraphicLibrary.cZedGraphic();
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tbp_main = new System.Windows.Forms.TabPage();
+            this.btn_connect = new System.Windows.Forms.Button();
             this.grp_mea_para = new System.Windows.Forms.GroupBox();
             this.ntb_frequency = new MagicGraphicLibrary.NumericTextBox(this.components);
             this.label4 = new System.Windows.Forms.Label();
@@ -124,8 +125,16 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.btn_move_distance_r = new System.Windows.Forms.Button();
+            this.btn_moveR_cw = new System.Windows.Forms.Button();
+            this.btn_moveR_ccw = new System.Windows.Forms.Button();
             this.btn_move_distance_z = new System.Windows.Forms.Button();
             this.btn_move_distance = new System.Windows.Forms.Button();
+            this.btn_movex_negative = new System.Windows.Forms.Button();
+            this.btn_movex_positive = new System.Windows.Forms.Button();
+            this.btn_movey_negative = new System.Windows.Forms.Button();
+            this.btn_movey_positive = new System.Windows.Forms.Button();
+            this.btn_movez_positive = new System.Windows.Forms.Button();
+            this.btn_movez_negative = new System.Windows.Forms.Button();
             this.btn_manual_mode = new System.Windows.Forms.Button();
             this.btn_unload_wafer = new System.Windows.Forms.Button();
             this.btn_load_wafer = new System.Windows.Forms.Button();
@@ -135,6 +144,8 @@
             this.label14 = new System.Windows.Forms.Label();
             this.tr_light = new System.Windows.Forms.TrackBar();
             this.tr_threshold = new System.Windows.Forms.TrackBar();
+            this.btn_grab = new System.Windows.Forms.Button();
+            this.pic_camera = new System.Windows.Forms.PictureBox();
             this.label3 = new System.Windows.Forms.Label();
             this.cb_wafersize = new System.Windows.Forms.ComboBox();
             this.label40 = new System.Windows.Forms.Label();
@@ -143,38 +154,27 @@
             this.tbLight = new System.Windows.Forms.TextBox();
             this.grp_align_test = new System.Windows.Forms.GroupBox();
             this.label13 = new System.Windows.Forms.Label();
+            this.btn_find_angle = new System.Windows.Forms.Button();
             this.lb_angle1 = new System.Windows.Forms.Label();
             this.lb_die_side1 = new System.Windows.Forms.Label();
+            this.btn_load = new System.Windows.Forms.Button();
             this.lb_angle = new System.Windows.Forms.Label();
             this.lb_die_side = new System.Windows.Forms.Label();
             this.tbThreshold = new System.Windows.Forms.TextBox();
             this.grp_manual_buttons = new System.Windows.Forms.GroupBox();
+            this.btn_align = new System.Windows.Forms.Button();
+            this.btn_start_mea = new System.Windows.Forms.Button();
             this.label39 = new System.Windows.Forms.Label();
             this.label42 = new System.Windows.Forms.Label();
             this.label41 = new System.Windows.Forms.Label();
+            this.btn_ClearAlarm = new System.Windows.Forms.Button();
             this.label43 = new System.Windows.Forms.Label();
             this.label44 = new System.Windows.Forms.Label();
-            this.hWindowControl1 = new HalconDotNet.HWindowControl();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.btn_grab = new System.Windows.Forms.Button();
-            this.pic_camera = new System.Windows.Forms.PictureBox();
-            this.btn_find_angle = new System.Windows.Forms.Button();
-            this.btn_load = new System.Windows.Forms.Button();
-            this.btn_align = new System.Windows.Forms.Button();
-            this.btn_start_mea = new System.Windows.Forms.Button();
-            this.btn_ClearAlarm = new System.Windows.Forms.Button();
             this.btn_advanced_mode = new System.Windows.Forms.Button();
             this.btn_light = new System.Windows.Forms.Button();
+            this.hWindowControl1 = new HalconDotNet.HWindowControl();
             this.btn_threshold = new System.Windows.Forms.Button();
-            this.btn_moveR_cw = new System.Windows.Forms.Button();
-            this.btn_moveR_ccw = new System.Windows.Forms.Button();
-            this.btn_movex_negative = new System.Windows.Forms.Button();
-            this.btn_movex_positive = new System.Windows.Forms.Button();
-            this.btn_movey_negative = new System.Windows.Forms.Button();
-            this.btn_movey_positive = new System.Windows.Forms.Button();
-            this.btn_movez_positive = new System.Windows.Forms.Button();
-            this.btn_movez_negative = new System.Windows.Forms.Button();
-            this.btn_switch = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -191,9 +191,9 @@
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tr_light)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tr_threshold)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).BeginInit();
             this.grp_align_test.SuspendLayout();
             this.grp_manual_buttons.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).BeginInit();
             this.SuspendLayout();
             // 
             // ntb_led_intensity
@@ -217,7 +217,7 @@
             0,
             0});
             this.ntb_led_intensity.InterceptArrowKeys = true;
-            this.ntb_led_intensity.Location = new System.Drawing.Point(13, 121);
+            this.ntb_led_intensity.Location = new System.Drawing.Point(620, 62);
             this.ntb_led_intensity.Margin = new System.Windows.Forms.Padding(4);
             this.ntb_led_intensity.Maximum = new decimal(new int[] {
             10000,
@@ -251,7 +251,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(98, 121);
+            this.label2.Location = new System.Drawing.Point(705, 62);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(21, 23);
@@ -262,7 +262,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.label1.Location = new System.Drawing.Point(9, 94);
+            this.label1.Location = new System.Drawing.Point(616, 35);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(78, 22);
@@ -339,7 +339,7 @@
             // chk_cursor_v1
             // 
             this.chk_cursor_v1.BackColor = System.Drawing.Color.Red;
-            this.chk_cursor_v1.Location = new System.Drawing.Point(649, 45);
+            this.chk_cursor_v1.Location = new System.Drawing.Point(626, 126);
             this.chk_cursor_v1.Margin = new System.Windows.Forms.Padding(4);
             this.chk_cursor_v1.Name = "chk_cursor_v1";
             this.chk_cursor_v1.Size = new System.Drawing.Size(25, 21);
@@ -369,7 +369,7 @@
             // label_cursor_v1
             // 
             this.label_cursor_v1.AutoSize = true;
-            this.label_cursor_v1.Location = new System.Drawing.Point(645, 25);
+            this.label_cursor_v1.Location = new System.Drawing.Point(622, 106);
             this.label_cursor_v1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_cursor_v1.Name = "label_cursor_v1";
             this.label_cursor_v1.Size = new System.Drawing.Size(75, 17);
@@ -399,7 +399,7 @@
             // nud_cursor_v1
             // 
             this.nud_cursor_v1.Font = new System.Drawing.Font("PMingLiU", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.nud_cursor_v1.Location = new System.Drawing.Point(681, 45);
+            this.nud_cursor_v1.Location = new System.Drawing.Point(658, 126);
             this.nud_cursor_v1.Margin = new System.Windows.Forms.Padding(4);
             this.nud_cursor_v1.Name = "nud_cursor_v1";
             this.nud_cursor_v1.Size = new System.Drawing.Size(60, 28);
@@ -418,7 +418,7 @@
             this.clsRawImage.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clsRawImage.LabelColor = System.Drawing.Color.Yellow;
             this.clsRawImage.LabelEnabled = true;
-            this.clsRawImage.Location = new System.Drawing.Point(145, -2);
+            this.clsRawImage.Location = new System.Drawing.Point(175, 45);
             this.clsRawImage.Margin = new System.Windows.Forms.Padding(1, 4, 1, 4);
             this.clsRawImage.MenuLoadData = true;
             this.clsRawImage.MenuPauseData = true;
@@ -677,7 +677,7 @@
             this.grp_cursor.Controls.Add(this.label_noise_offset);
             this.grp_cursor.Controls.Add(this.hsb_noise_offset);
             this.grp_cursor.Controls.Add(this.label_dynamic);
-            this.grp_cursor.Location = new System.Drawing.Point(636, 74);
+            this.grp_cursor.Location = new System.Drawing.Point(613, 151);
             this.grp_cursor.Margin = new System.Windows.Forms.Padding(4);
             this.grp_cursor.Name = "grp_cursor";
             this.grp_cursor.Padding = new System.Windows.Forms.Padding(4);
@@ -823,7 +823,7 @@
             // 
             this.tbp_main.BackColor = System.Drawing.SystemColors.Control;
             this.tbp_main.CausesValidation = false;
-            this.tbp_main.Controls.Add(this.btn_switch);
+            this.tbp_main.Controls.Add(this.btn_connect);
             this.tbp_main.Controls.Add(this.grp_mea_para);
             this.tbp_main.Controls.Add(this.nud_cursor_v1);
             this.tbp_main.Controls.Add(this.btn_download);
@@ -842,6 +842,18 @@
             this.tbp_main.Size = new System.Drawing.Size(1424, 460);
             this.tbp_main.TabIndex = 6;
             this.tbp_main.Text = "一般";
+            // 
+            // btn_connect
+            // 
+            this.btn_connect.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_connect.Image = global::Velociraptor.Properties.Resources.red;
+            this.btn_connect.Location = new System.Drawing.Point(8, 12);
+            this.btn_connect.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_connect.Name = "btn_connect";
+            this.btn_connect.Size = new System.Drawing.Size(80, 70);
+            this.btn_connect.TabIndex = 194;
+            this.btn_connect.UseVisualStyleBackColor = true;
+            this.btn_connect.Click += new System.EventHandler(this.btn_connect_Click);
             // 
             // grp_mea_para
             // 
@@ -965,13 +977,13 @@
             // btn_download
             // 
             this.btn_download.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_download.Location = new System.Drawing.Point(12, 29);
+            this.btn_download.Image = global::Velociraptor.Properties.Resources._0_7;
+            this.btn_download.Location = new System.Drawing.Point(13, 96);
             this.btn_download.Margin = new System.Windows.Forms.Padding(1);
             this.btn_download.Name = "btn_download";
             this.btn_download.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_download.Size = new System.Drawing.Size(102, 46);
+            this.btn_download.Size = new System.Drawing.Size(68, 56);
             this.btn_download.TabIndex = 126;
-            this.btn_download.Text = "開始取像";
             this.btn_download.UseVisualStyleBackColor = true;
             this.btn_download.Click += new System.EventHandler(this.btn_download_Click);
             // 
@@ -1521,6 +1533,34 @@
             this.btn_move_distance_r.UseVisualStyleBackColor = false;
             this.btn_move_distance_r.Click += new System.EventHandler(this.btn_move_distance_Click);
             // 
+            // btn_moveR_cw
+            // 
+            this.btn_moveR_cw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_moveR_cw.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btn_moveR_cw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_cw.Image")));
+            this.btn_moveR_cw.Location = new System.Drawing.Point(342, 30);
+            this.btn_moveR_cw.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_moveR_cw.Name = "btn_moveR_cw";
+            this.btn_moveR_cw.Size = new System.Drawing.Size(69, 60);
+            this.btn_moveR_cw.TabIndex = 166;
+            this.btn_moveR_cw.Text = "CW";
+            this.btn_moveR_cw.UseVisualStyleBackColor = true;
+            this.btn_moveR_cw.Click += new System.EventHandler(this.btn_moveR_Click);
+            // 
+            // btn_moveR_ccw
+            // 
+            this.btn_moveR_ccw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_moveR_ccw.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btn_moveR_ccw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_ccw.Image")));
+            this.btn_moveR_ccw.Location = new System.Drawing.Point(342, 136);
+            this.btn_moveR_ccw.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_moveR_ccw.Name = "btn_moveR_ccw";
+            this.btn_moveR_ccw.Size = new System.Drawing.Size(69, 64);
+            this.btn_moveR_ccw.TabIndex = 165;
+            this.btn_moveR_ccw.Text = "CCW";
+            this.btn_moveR_ccw.UseVisualStyleBackColor = true;
+            this.btn_moveR_ccw.Click += new System.EventHandler(this.btn_moveR_Click);
+            // 
             // btn_move_distance_z
             // 
             this.btn_move_distance_z.BackColor = System.Drawing.Color.White;
@@ -1548,6 +1588,84 @@
             this.btn_move_distance.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btn_move_distance.UseVisualStyleBackColor = false;
             this.btn_move_distance.Click += new System.EventHandler(this.btn_move_distance_Click);
+            // 
+            // btn_movex_negative
+            // 
+            this.btn_movex_negative.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_movex_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movex_negative.Image")));
+            this.btn_movex_negative.Location = new System.Drawing.Point(18, 79);
+            this.btn_movex_negative.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_movex_negative.Name = "btn_movex_negative";
+            this.btn_movex_negative.Size = new System.Drawing.Size(60, 61);
+            this.btn_movex_negative.TabIndex = 123;
+            this.btn_movex_negative.Text = "X-";
+            this.btn_movex_negative.UseVisualStyleBackColor = true;
+            this.btn_movex_negative.Click += new System.EventHandler(this.btn_move_Click);
+            // 
+            // btn_movex_positive
+            // 
+            this.btn_movex_positive.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_movex_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movex_positive.Image")));
+            this.btn_movex_positive.Location = new System.Drawing.Point(178, 76);
+            this.btn_movex_positive.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_movex_positive.Name = "btn_movex_positive";
+            this.btn_movex_positive.Size = new System.Drawing.Size(60, 61);
+            this.btn_movex_positive.TabIndex = 90;
+            this.btn_movex_positive.Text = "X+";
+            this.btn_movex_positive.UseVisualStyleBackColor = true;
+            this.btn_movex_positive.Click += new System.EventHandler(this.btn_move_Click);
+            // 
+            // btn_movey_negative
+            // 
+            this.btn_movey_negative.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_movey_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movey_negative.Image")));
+            this.btn_movey_negative.Location = new System.Drawing.Point(98, 136);
+            this.btn_movey_negative.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_movey_negative.Name = "btn_movey_negative";
+            this.btn_movey_negative.Size = new System.Drawing.Size(64, 61);
+            this.btn_movey_negative.TabIndex = 126;
+            this.btn_movey_negative.Text = "Y-";
+            this.btn_movey_negative.UseVisualStyleBackColor = true;
+            this.btn_movey_negative.Click += new System.EventHandler(this.btn_move_Click);
+            // 
+            // btn_movey_positive
+            // 
+            this.btn_movey_positive.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_movey_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movey_positive.Image")));
+            this.btn_movey_positive.Location = new System.Drawing.Point(98, 29);
+            this.btn_movey_positive.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_movey_positive.Name = "btn_movey_positive";
+            this.btn_movey_positive.Size = new System.Drawing.Size(64, 61);
+            this.btn_movey_positive.TabIndex = 125;
+            this.btn_movey_positive.Text = "Y+";
+            this.btn_movey_positive.UseVisualStyleBackColor = true;
+            this.btn_movey_positive.Click += new System.EventHandler(this.btn_move_Click);
+            // 
+            // btn_movez_positive
+            // 
+            this.btn_movez_positive.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_movez_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movez_positive.Image")));
+            this.btn_movez_positive.Location = new System.Drawing.Point(255, 30);
+            this.btn_movez_positive.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_movez_positive.Name = "btn_movez_positive";
+            this.btn_movez_positive.Size = new System.Drawing.Size(69, 60);
+            this.btn_movez_positive.TabIndex = 128;
+            this.btn_movez_positive.Text = "Z+";
+            this.btn_movez_positive.UseVisualStyleBackColor = true;
+            this.btn_movez_positive.Click += new System.EventHandler(this.btn_move_Click);
+            // 
+            // btn_movez_negative
+            // 
+            this.btn_movez_negative.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_movez_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movez_negative.Image")));
+            this.btn_movez_negative.Location = new System.Drawing.Point(255, 136);
+            this.btn_movez_negative.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_movez_negative.Name = "btn_movez_negative";
+            this.btn_movez_negative.Size = new System.Drawing.Size(69, 64);
+            this.btn_movez_negative.TabIndex = 127;
+            this.btn_movez_negative.Text = "Z-";
+            this.btn_movez_negative.UseVisualStyleBackColor = true;
+            this.btn_movez_negative.Click += new System.EventHandler(this.btn_move_Click);
             // 
             // btn_manual_mode
             // 
@@ -1688,6 +1806,28 @@
             this.tr_threshold.Value = 4;
             this.tr_threshold.Scroll += new System.EventHandler(this.tr_threshold_Scroll);
             // 
+            // btn_grab
+            // 
+            this.btn_grab.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
+            this.btn_grab.Image = global::Velociraptor.Properties.Resources.red;
+            this.btn_grab.Location = new System.Drawing.Point(14, 381);
+            this.btn_grab.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_grab.Name = "btn_grab";
+            this.btn_grab.Size = new System.Drawing.Size(80, 70);
+            this.btn_grab.TabIndex = 189;
+            this.btn_grab.UseVisualStyleBackColor = true;
+            this.btn_grab.Click += new System.EventHandler(this.btn_grab_Click);
+            // 
+            // pic_camera
+            // 
+            this.pic_camera.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.pic_camera.Location = new System.Drawing.Point(292, 88);
+            this.pic_camera.Name = "pic_camera";
+            this.pic_camera.Size = new System.Drawing.Size(353, 295);
+            this.pic_camera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pic_camera.TabIndex = 186;
+            this.pic_camera.TabStop = false;
+            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -1779,6 +1919,17 @@
             this.label13.TabIndex = 191;
             this.label13.Text = "閥值h";
             // 
+            // btn_find_angle
+            // 
+            this.btn_find_angle.Image = global::Velociraptor.Properties.Resources.dart;
+            this.btn_find_angle.Location = new System.Drawing.Point(71, 18);
+            this.btn_find_angle.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_find_angle.Name = "btn_find_angle";
+            this.btn_find_angle.Size = new System.Drawing.Size(50, 50);
+            this.btn_find_angle.TabIndex = 3;
+            this.btn_find_angle.UseVisualStyleBackColor = true;
+            this.btn_find_angle.Click += new System.EventHandler(this.btn_find_angle_Click);
+            // 
             // lb_angle1
             // 
             this.lb_angle1.AutoSize = true;
@@ -1800,6 +1951,17 @@
             this.lb_die_side1.Size = new System.Drawing.Size(40, 18);
             this.lb_die_side1.TabIndex = 4;
             this.lb_die_side1.Text = "邊長:";
+            // 
+            // btn_load
+            // 
+            this.btn_load.Image = global::Velociraptor.Properties.Resources.folder;
+            this.btn_load.Location = new System.Drawing.Point(9, 18);
+            this.btn_load.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_load.Name = "btn_load";
+            this.btn_load.Size = new System.Drawing.Size(50, 50);
+            this.btn_load.TabIndex = 2;
+            this.btn_load.UseVisualStyleBackColor = true;
+            this.btn_load.Click += new System.EventHandler(this.btn_load_Click);
             // 
             // lb_angle
             // 
@@ -1845,6 +2007,30 @@
             this.grp_manual_buttons.TabStop = false;
             this.grp_manual_buttons.Visible = false;
             // 
+            // btn_align
+            // 
+            this.btn_align.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_align.Image = global::Velociraptor.Properties.Resources.upward;
+            this.btn_align.Location = new System.Drawing.Point(5, 20);
+            this.btn_align.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_align.Name = "btn_align";
+            this.btn_align.Size = new System.Drawing.Size(64, 61);
+            this.btn_align.TabIndex = 174;
+            this.btn_align.UseVisualStyleBackColor = true;
+            this.btn_align.Click += new System.EventHandler(this.btn_align_Click);
+            // 
+            // btn_start_mea
+            // 
+            this.btn_start_mea.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_start_mea.Image = global::Velociraptor.Properties.Resources.right_arrow;
+            this.btn_start_mea.Location = new System.Drawing.Point(78, 20);
+            this.btn_start_mea.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_start_mea.Name = "btn_start_mea";
+            this.btn_start_mea.Size = new System.Drawing.Size(64, 61);
+            this.btn_start_mea.TabIndex = 175;
+            this.btn_start_mea.UseVisualStyleBackColor = true;
+            this.btn_start_mea.Click += new System.EventHandler(this.btn_start_mea_Click);
+            // 
             // label39
             // 
             this.label39.AutoSize = true;
@@ -1878,6 +2064,19 @@
             this.label41.TabIndex = 163;
             this.label41.Text = "die X方向長度";
             // 
+            // btn_ClearAlarm
+            // 
+            this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btn_ClearAlarm.Image = global::Velociraptor.Properties.Resources.refresh;
+            this.btn_ClearAlarm.Location = new System.Drawing.Point(1264, 357);
+            this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(1);
+            this.btn_ClearAlarm.Name = "btn_ClearAlarm";
+            this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.btn_ClearAlarm.Size = new System.Drawing.Size(64, 61);
+            this.btn_ClearAlarm.TabIndex = 173;
+            this.btn_ClearAlarm.UseVisualStyleBackColor = true;
+            this.btn_ClearAlarm.Click += new System.EventHandler(this.btn_ClearAlarm_Click);
+            // 
             // label43
             // 
             this.label43.AutoSize = true;
@@ -1899,103 +2098,6 @@
             this.label44.Size = new System.Drawing.Size(37, 22);
             this.label44.TabIndex = 168;
             this.label44.Text = "um";
-            // 
-            // hWindowControl1
-            // 
-            this.hWindowControl1.BackColor = System.Drawing.Color.Black;
-            this.hWindowControl1.BorderColor = System.Drawing.Color.Black;
-            this.hWindowControl1.ImagePart = new System.Drawing.Rectangle(0, 0, 640, 480);
-            this.hWindowControl1.Location = new System.Drawing.Point(152, 2);
-            this.hWindowControl1.Margin = new System.Windows.Forms.Padding(1);
-            this.hWindowControl1.Name = "hWindowControl1";
-            this.hWindowControl1.Size = new System.Drawing.Size(253, 214);
-            this.hWindowControl1.TabIndex = 169;
-            this.hWindowControl1.WindowSize = new System.Drawing.Size(253, 214);
-            // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // btn_grab
-            // 
-            this.btn_grab.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_grab.Image = global::Velociraptor.Properties.Resources.green;
-            this.btn_grab.Location = new System.Drawing.Point(14, 381);
-            this.btn_grab.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_grab.Name = "btn_grab";
-            this.btn_grab.Size = new System.Drawing.Size(80, 70);
-            this.btn_grab.TabIndex = 189;
-            this.btn_grab.UseVisualStyleBackColor = true;
-            this.btn_grab.Click += new System.EventHandler(this.btn_grab_Click);
-            // 
-            // pic_camera
-            // 
-            this.pic_camera.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.pic_camera.Location = new System.Drawing.Point(275, 87);
-            this.pic_camera.Name = "pic_camera";
-            this.pic_camera.Size = new System.Drawing.Size(353, 295);
-            this.pic_camera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pic_camera.TabIndex = 186;
-            this.pic_camera.TabStop = false;
-            // 
-            // btn_find_angle
-            // 
-            this.btn_find_angle.Image = global::Velociraptor.Properties.Resources.dart;
-            this.btn_find_angle.Location = new System.Drawing.Point(71, 18);
-            this.btn_find_angle.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_find_angle.Name = "btn_find_angle";
-            this.btn_find_angle.Size = new System.Drawing.Size(50, 50);
-            this.btn_find_angle.TabIndex = 3;
-            this.btn_find_angle.UseVisualStyleBackColor = true;
-            this.btn_find_angle.Click += new System.EventHandler(this.btn_find_angle_Click);
-            // 
-            // btn_load
-            // 
-            this.btn_load.Image = global::Velociraptor.Properties.Resources.folder;
-            this.btn_load.Location = new System.Drawing.Point(9, 18);
-            this.btn_load.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_load.Name = "btn_load";
-            this.btn_load.Size = new System.Drawing.Size(50, 50);
-            this.btn_load.TabIndex = 2;
-            this.btn_load.UseVisualStyleBackColor = true;
-            this.btn_load.Click += new System.EventHandler(this.btn_load_Click);
-            // 
-            // btn_align
-            // 
-            this.btn_align.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_align.Image = global::Velociraptor.Properties.Resources.upward;
-            this.btn_align.Location = new System.Drawing.Point(5, 20);
-            this.btn_align.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_align.Name = "btn_align";
-            this.btn_align.Size = new System.Drawing.Size(64, 61);
-            this.btn_align.TabIndex = 174;
-            this.btn_align.UseVisualStyleBackColor = true;
-            this.btn_align.Click += new System.EventHandler(this.btn_align_Click);
-            // 
-            // btn_start_mea
-            // 
-            this.btn_start_mea.Font = new System.Drawing.Font("Microsoft JhengHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_start_mea.Image = global::Velociraptor.Properties.Resources.right_arrow;
-            this.btn_start_mea.Location = new System.Drawing.Point(78, 20);
-            this.btn_start_mea.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_start_mea.Name = "btn_start_mea";
-            this.btn_start_mea.Size = new System.Drawing.Size(64, 61);
-            this.btn_start_mea.TabIndex = 175;
-            this.btn_start_mea.UseVisualStyleBackColor = true;
-            this.btn_start_mea.Click += new System.EventHandler(this.btn_start_mea_Click);
-            // 
-            // btn_ClearAlarm
-            // 
-            this.btn_ClearAlarm.Font = new System.Drawing.Font("DFKai-SB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_ClearAlarm.Image = global::Velociraptor.Properties.Resources.refresh;
-            this.btn_ClearAlarm.Location = new System.Drawing.Point(1264, 357);
-            this.btn_ClearAlarm.Margin = new System.Windows.Forms.Padding(1);
-            this.btn_ClearAlarm.Name = "btn_ClearAlarm";
-            this.btn_ClearAlarm.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.btn_ClearAlarm.Size = new System.Drawing.Size(64, 61);
-            this.btn_ClearAlarm.TabIndex = 173;
-            this.btn_ClearAlarm.UseVisualStyleBackColor = true;
-            this.btn_ClearAlarm.Click += new System.EventHandler(this.btn_ClearAlarm_Click);
             // 
             // btn_advanced_mode
             // 
@@ -2023,6 +2125,18 @@
             this.btn_light.UseVisualStyleBackColor = true;
             this.btn_light.Click += new System.EventHandler(this.btn_light_Click);
             // 
+            // hWindowControl1
+            // 
+            this.hWindowControl1.BackColor = System.Drawing.Color.Black;
+            this.hWindowControl1.BorderColor = System.Drawing.Color.Black;
+            this.hWindowControl1.ImagePart = new System.Drawing.Rectangle(0, 0, 640, 480);
+            this.hWindowControl1.Location = new System.Drawing.Point(152, 2);
+            this.hWindowControl1.Margin = new System.Windows.Forms.Padding(1);
+            this.hWindowControl1.Name = "hWindowControl1";
+            this.hWindowControl1.Size = new System.Drawing.Size(253, 214);
+            this.hWindowControl1.TabIndex = 169;
+            this.hWindowControl1.WindowSize = new System.Drawing.Size(253, 214);
+            // 
             // btn_threshold
             // 
             this.btn_threshold.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
@@ -2035,123 +2149,9 @@
             this.btn_threshold.UseVisualStyleBackColor = true;
             this.btn_threshold.Click += new System.EventHandler(this.btn_threshold_Click);
             // 
-            // btn_moveR_cw
+            // openFileDialog1
             // 
-            this.btn_moveR_cw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_moveR_cw.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btn_moveR_cw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_cw.Image")));
-            this.btn_moveR_cw.Location = new System.Drawing.Point(342, 30);
-            this.btn_moveR_cw.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_moveR_cw.Name = "btn_moveR_cw";
-            this.btn_moveR_cw.Size = new System.Drawing.Size(69, 60);
-            this.btn_moveR_cw.TabIndex = 166;
-            this.btn_moveR_cw.Text = "CW";
-            this.btn_moveR_cw.UseVisualStyleBackColor = true;
-            this.btn_moveR_cw.Click += new System.EventHandler(this.btn_moveR_Click);
-            // 
-            // btn_moveR_ccw
-            // 
-            this.btn_moveR_ccw.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_moveR_ccw.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btn_moveR_ccw.Image = ((System.Drawing.Image)(resources.GetObject("btn_moveR_ccw.Image")));
-            this.btn_moveR_ccw.Location = new System.Drawing.Point(342, 136);
-            this.btn_moveR_ccw.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_moveR_ccw.Name = "btn_moveR_ccw";
-            this.btn_moveR_ccw.Size = new System.Drawing.Size(69, 64);
-            this.btn_moveR_ccw.TabIndex = 165;
-            this.btn_moveR_ccw.Text = "CCW";
-            this.btn_moveR_ccw.UseVisualStyleBackColor = true;
-            this.btn_moveR_ccw.Click += new System.EventHandler(this.btn_moveR_Click);
-            // 
-            // btn_movex_negative
-            // 
-            this.btn_movex_negative.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_movex_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movex_negative.Image")));
-            this.btn_movex_negative.Location = new System.Drawing.Point(18, 79);
-            this.btn_movex_negative.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_movex_negative.Name = "btn_movex_negative";
-            this.btn_movex_negative.Size = new System.Drawing.Size(60, 61);
-            this.btn_movex_negative.TabIndex = 123;
-            this.btn_movex_negative.Text = "X-";
-            this.btn_movex_negative.UseVisualStyleBackColor = true;
-            this.btn_movex_negative.Click += new System.EventHandler(this.btn_move_Click);
-            // 
-            // btn_movex_positive
-            // 
-            this.btn_movex_positive.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_movex_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movex_positive.Image")));
-            this.btn_movex_positive.Location = new System.Drawing.Point(178, 76);
-            this.btn_movex_positive.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_movex_positive.Name = "btn_movex_positive";
-            this.btn_movex_positive.Size = new System.Drawing.Size(60, 61);
-            this.btn_movex_positive.TabIndex = 90;
-            this.btn_movex_positive.Text = "X+";
-            this.btn_movex_positive.UseVisualStyleBackColor = true;
-            this.btn_movex_positive.Click += new System.EventHandler(this.btn_move_Click);
-            // 
-            // btn_movey_negative
-            // 
-            this.btn_movey_negative.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_movey_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movey_negative.Image")));
-            this.btn_movey_negative.Location = new System.Drawing.Point(98, 136);
-            this.btn_movey_negative.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_movey_negative.Name = "btn_movey_negative";
-            this.btn_movey_negative.Size = new System.Drawing.Size(64, 61);
-            this.btn_movey_negative.TabIndex = 126;
-            this.btn_movey_negative.Text = "Y-";
-            this.btn_movey_negative.UseVisualStyleBackColor = true;
-            this.btn_movey_negative.Click += new System.EventHandler(this.btn_move_Click);
-            // 
-            // btn_movey_positive
-            // 
-            this.btn_movey_positive.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_movey_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movey_positive.Image")));
-            this.btn_movey_positive.Location = new System.Drawing.Point(98, 29);
-            this.btn_movey_positive.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_movey_positive.Name = "btn_movey_positive";
-            this.btn_movey_positive.Size = new System.Drawing.Size(64, 61);
-            this.btn_movey_positive.TabIndex = 125;
-            this.btn_movey_positive.Text = "Y+";
-            this.btn_movey_positive.UseVisualStyleBackColor = true;
-            this.btn_movey_positive.Click += new System.EventHandler(this.btn_move_Click);
-            // 
-            // btn_movez_positive
-            // 
-            this.btn_movez_positive.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_movez_positive.Image = ((System.Drawing.Image)(resources.GetObject("btn_movez_positive.Image")));
-            this.btn_movez_positive.Location = new System.Drawing.Point(255, 30);
-            this.btn_movez_positive.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_movez_positive.Name = "btn_movez_positive";
-            this.btn_movez_positive.Size = new System.Drawing.Size(69, 60);
-            this.btn_movez_positive.TabIndex = 128;
-            this.btn_movez_positive.Text = "Z+";
-            this.btn_movez_positive.UseVisualStyleBackColor = true;
-            this.btn_movez_positive.Click += new System.EventHandler(this.btn_move_Click);
-            // 
-            // btn_movez_negative
-            // 
-            this.btn_movez_negative.Font = new System.Drawing.Font("PMingLiU", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btn_movez_negative.Image = ((System.Drawing.Image)(resources.GetObject("btn_movez_negative.Image")));
-            this.btn_movez_negative.Location = new System.Drawing.Point(255, 136);
-            this.btn_movez_negative.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_movez_negative.Name = "btn_movez_negative";
-            this.btn_movez_negative.Size = new System.Drawing.Size(69, 64);
-            this.btn_movez_negative.TabIndex = 127;
-            this.btn_movez_negative.Text = "Z-";
-            this.btn_movez_negative.UseVisualStyleBackColor = true;
-            this.btn_movez_negative.Click += new System.EventHandler(this.btn_move_Click);
-            // 
-            // btn_switch
-            // 
-            this.btn_switch.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_switch.Image = global::Velociraptor.Properties.Resources.green;
-            this.btn_switch.Location = new System.Drawing.Point(647, 375);
-            this.btn_switch.Margin = new System.Windows.Forms.Padding(4);
-            this.btn_switch.Name = "btn_switch";
-            this.btn_switch.Size = new System.Drawing.Size(80, 74);
-            this.btn_switch.TabIndex = 194;
-            this.btn_switch.UseVisualStyleBackColor = true;
-            this.btn_switch.Click += new System.EventHandler(this.btn_switch_Click);
+            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // f_main
             // 
@@ -2193,10 +2193,10 @@
             this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tr_light)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.tr_threshold)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).EndInit();
             this.grp_align_test.ResumeLayout(false);
             this.grp_align_test.PerformLayout();
             this.grp_manual_buttons.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -2346,7 +2346,7 @@
         private System.Windows.Forms.TrackBar tr_threshold;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label label14;
-        private System.Windows.Forms.Button btn_switch;
+        private System.Windows.Forms.Button btn_connect;
     }
 }
 

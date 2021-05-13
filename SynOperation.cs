@@ -1,4 +1,5 @@
-﻿using Avva.MotionFramework;
+﻿using Avva.CameraFramework;
+using Avva.MotionFramework;
 using HalconDotNet;
 using System;
 using System.IO;
@@ -12,9 +13,11 @@ namespace Velociraptor
         private ParamReader _paraReader;
         private double[] _2_mea = new double[3];
         private int _scan_mode;
-        public SynOperation(HalconProc hp, string para_path, log4net.ILog log = null)
+        private AvvaCamera _camera;
+        public SynOperation(HalconProc hp, AvvaCamera camera, string para_path, log4net.ILog log = null)
         {
             _hp = hp;
+            _camera = camera;
             IAvvaMotion yaskawa = new YaskawaMotion();
             string path = Path.Combine(para_path, Constants.motionParaFilename);
             _motion = new AvvaMotion(yaskawa, path, log);
@@ -29,6 +32,10 @@ namespace Velociraptor
         public void ClearAlarm() { _motion.ClearAlarm(); }
         public int ScanMode() { return _scan_mode; }
         public bool IsSimulat() { return _motion.IsSimulate; }
+        public void AutoFocus()
+        {
+
+        }
         public void DoAlignment(HObject cur_img, int threshold, ref double[] die_side)
         {
             double angle = 0;
@@ -39,17 +46,17 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                throw new AvvaSynOpException("轉正失敗：請重新調整焦距或切割道閥值", ex);
+                throw new AvvaException("轉正失敗：請重新調整焦距或切割道閥值", ex);
             }
         }
         public void find_angle(HObject cur_img, int threshold, ref double[] die_side, ref double angle)
         {
             if (die_side[0] == 0 || die_side[1] == 0)
-                throw new AvvaSynOpException("Die Size is required");
+                throw new AvvaException("Die Size is required");
             HObject gray_img = null;
             _hp.PrepareGrayImage(cur_img, out gray_img);
             if (gray_img == null)
-                throw new AvvaSynOpException("No Gray Image Generated");
+                throw new AvvaException("No Gray Image Generated");
             int[] side_int = new int[die_side.Length];
             for (int i = 0; i < die_side.Length; i++)
                 side_int[i] = (int)die_side[i];
@@ -57,7 +64,7 @@ namespace Velociraptor
                                     , Constants.SCRIBE_IS_DARK
                                     , threshold, _hp);
             if (!grid.DoLineSegment(_hp))
-                throw new AvvaSynOpException(grid.ErrMsg);
+                throw new AvvaException(grid.ErrMsg);
 
             //hp.DrawGrid(cur_img, grid.Getlines(0), grid.Getlines(1));
             _hp.DrawGrid(null, grid.Getlines(0), grid.Getlines(1));
@@ -120,7 +127,7 @@ namespace Velociraptor
                                 , _paraReader.moveToWaferCenterPointYDistance };
             _motion.MoveTo(axis, distance, false);
         }
-        public void GetCenterPos(ref double[] distance)
+        public void GetCenterPos(double[] distance)
         {
             distance[0] = _paraReader.moveToWaferCenterPointXDistance;
             distance[1] = _paraReader.moveToWaferCenterPointYDistance;
