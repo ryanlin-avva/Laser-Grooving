@@ -1487,10 +1487,11 @@ namespace Velociraptor
             try
             {
                 if (!_syn_op.HasGoHome) _syn_op.GoHome();
+                _syn_op.MoveToCenter();
+                GrabOff();
                 camera.ImageGrabbed -= OnImageGrabbed;
                 camera.ImageGrabbed += OnAutoFocusImageGrabbed;
                 autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
-                _syn_op.MoveToCenter();
             }
             catch (Exception ex)
             {
