@@ -615,7 +615,7 @@ namespace Velociraptor
                 }
                 _threadGui.EventExitProcessThreadDo.Set();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (_threadGui != null) _threadGui.EventExitProcessThreadDo.Set();
             }

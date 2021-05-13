@@ -160,7 +160,6 @@ namespace Velociraptor.ImageProc
             int down_x_add_all = 0;
             int counter = 0;
             List<float> angle_List = new List<float>();
-            float angle_Average = 0;
             TgInfo _target = (TgInfo)C[0];
             _target.left_point_list = new List<Point>();
             _target.right_point_list = new List<Point>();

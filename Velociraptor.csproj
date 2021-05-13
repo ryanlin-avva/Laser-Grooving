@@ -101,7 +101,6 @@
     <Compile Include="AddOn\f_selected_sodx.Designer.cs">
       <DependentUpon>f_selected_sodx.cs</DependentUpon>
     </Compile>
-    <Compile Include="AddOn\MyThread.cs" />
     <Compile Include="ImageProc\FastPixel.cs" />
     <Compile Include="ImageProc\FindScribe.cs" />
     <Compile Include="ImageProc\GMList.cs" />
@@ -110,13 +109,11 @@
     <Compile Include="ImageProc\GrouperMgr.cs" />
     <Compile Include="ImageProc\HalconProc.cs" />
     <Compile Include="ImageProc\Hints.cs" />
-    <Compile Include="ImageProc\ImageKeeper.cs" />
     <Compile Include="ImageProc\LinePair.cs" />
     <Compile Include="ImageProc\MyLine.cs" />
     <Compile Include="ImageProc\MyPair.cs" />
     <Compile Include="ImageProc\ParamMgr.cs" />
     <Compile Include="ImageProc\VisionCalibrator.cs" />
-    <Compile Include="MeasureParamReader.cs" />
     <Compile Include="ParamReader.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="MyForm\AutoParamsForm.cs">
