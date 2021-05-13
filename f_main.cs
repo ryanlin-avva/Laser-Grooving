@@ -323,6 +323,7 @@ namespace Velociraptor
                 camera.Open(_syn_op.IsSimulat());
                 camera.IntstSet(0, tr_light.Value);
                 camera.MaxMagSet();
+                camera.ImageGrabbed += OnImageGrabbed;
                 log1.Info("Camera Started");
 
                 tbLight.Text = tr_light.Value.ToString();
@@ -351,7 +352,6 @@ namespace Velociraptor
         {
             Text = string.Format("Velociraptor Version : {0}", Assembly.GetExecutingAssembly().GetName().Version);
             clsRawImage.OnValueCursorChange += new RawImage.OnValueCursorChangeEventHandler(ctrl_display_OnValueCursorChange);
-            autoFocusRun.BeginInvoke(this, null, new AsyncCallback(AutoFocusRun_Callback), null);
 
             #region sets the client parameter
             _client = new cClientCommunication(_rxBufferSizeOfClientSocket, _txBufferSizeOfClientSocket);
@@ -857,6 +857,7 @@ namespace Velociraptor
             grp_align_test.Visible = true;
             btn_connection_ip.Visible = true;
             grp_mea_para.Visible = true;
+            grp_test.Visible = true;
             //}
             //else
             //{
@@ -875,6 +876,7 @@ namespace Velociraptor
             grp_align_test.Visible = false;
             btn_connection_ip.Visible = false;
             grp_mea_para.Visible = false;
+            grp_test.Visible = false;
         }
         #endregion
         #endregion
@@ -1489,6 +1491,9 @@ namespace Velociraptor
         private void btn_load_wafer_Click(object sender, EventArgs e)
         {
             cb_wafersize.Enabled = false;
+            camera.ImageGrabbed -= OnImageGrabbed;
+            camera.ImageGrabbed += OnAutoFocusImageGrabbed;
+            autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
             try
             {
                 _syn_op.MoveToCenter();
@@ -2148,7 +2153,7 @@ namespace Velociraptor
 
             if (InvokeRequired)
             {
-                Debug.WriteLine("In OnImageGrabbed BeginInvoke:"+Thread.CurrentThread.ManagedThreadId.ToString());
+                //Debug.WriteLine("In OnImageGrabbed BeginInvoke:"+Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnImageGrabbed), sender, e);
 
                 return;
@@ -2157,7 +2162,7 @@ namespace Velociraptor
             if (camera.CameraState != AvvaCamera.EAvvaCameraState.ImageGrabbing
                 && camera.CameraState != AvvaCamera.EAvvaCameraState.ImageSnapping) return;
 
-            Debug.WriteLine("In OnImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            //Debug.WriteLine("In OnImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
             if (camera.ImageData != null)
             {
                 //Picture Box==
@@ -2253,16 +2258,16 @@ namespace Velociraptor
 
             if (InvokeRequired)
             {
-                Debug.WriteLine("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                //Debug.WriteLine("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnAutoFocusImageGrabbed), sender, e);
 
                 return;
             }
-            Debug.WriteLine("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            //Debug.WriteLine("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
 
             if (camera.ImageData != null)
             {
-                Debug.WriteLine("In OnAutoFocusImageGrabbed ImageData !=null:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                //Debug.WriteLine("In OnAutoFocusImageGrabbed ImageData !=null:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 bool badImageData = false;
 
                 Bitmap bitmap = new Bitmap(camera.ImageWidth, camera.ImageHeight, PixelFormat.Format32bppRgb);
@@ -2316,7 +2321,6 @@ namespace Velociraptor
             double maxVariance;
             Object[] runImage;
 
-            camera.ImageGrabbed += OnAutoFocusImageGrabbed;
             GrabOn();
             Console.WriteLine("Auto Focusing Fisrt Run:");
             //Max Mag
@@ -2641,6 +2645,13 @@ namespace Velociraptor
                 dialog_message += Environment.NewLine + e.InnerException?.Message;
             }
             MessageBox.Show(dialog_message);
+        }
+
+        private void btn_autofocus_Click_1(object sender, EventArgs e)
+        {
+            camera.ImageGrabbed -= OnImageGrabbed;
+            camera.ImageGrabbed += OnAutoFocusImageGrabbed;
+            autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
         }
     }
     [Serializable]

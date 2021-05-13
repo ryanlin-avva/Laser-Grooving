@@ -175,6 +175,8 @@
             this.hWindowControl1 = new HalconDotNet.HWindowControl();
             this.btn_threshold = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.grp_test = new System.Windows.Forms.GroupBox();
+            this.btn_autofocus = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -194,6 +196,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).BeginInit();
             this.grp_align_test.SuspendLayout();
             this.grp_manual_buttons.SuspendLayout();
+            this.grp_test.SuspendLayout();
             this.SuspendLayout();
             // 
             // ntb_led_intensity
@@ -1705,6 +1708,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.grp_test);
             this.panel1.Controls.Add(this.label16);
             this.panel1.Controls.Add(this.tbThreshold1);
             this.panel1.Controls.Add(this.label14);
@@ -2153,6 +2157,26 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
+            // grp_test
+            // 
+            this.grp_test.Controls.Add(this.btn_autofocus);
+            this.grp_test.Location = new System.Drawing.Point(657, 391);
+            this.grp_test.Name = "grp_test";
+            this.grp_test.Size = new System.Drawing.Size(283, 60);
+            this.grp_test.TabIndex = 194;
+            this.grp_test.TabStop = false;
+            this.grp_test.Visible = false;
+            // 
+            // btn_autofocus
+            // 
+            this.btn_autofocus.Location = new System.Drawing.Point(14, 16);
+            this.btn_autofocus.Name = "btn_autofocus";
+            this.btn_autofocus.Size = new System.Drawing.Size(90, 36);
+            this.btn_autofocus.TabIndex = 0;
+            this.btn_autofocus.Text = "自動對焦";
+            this.btn_autofocus.UseVisualStyleBackColor = true;
+            this.btn_autofocus.Click += new System.EventHandler(this.btn_autofocus_Click_1);
+            // 
             // f_main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
@@ -2197,6 +2221,7 @@
             this.grp_align_test.ResumeLayout(false);
             this.grp_align_test.PerformLayout();
             this.grp_manual_buttons.ResumeLayout(false);
+            this.grp_test.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -2347,6 +2372,8 @@
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Button btn_connect;
+        private System.Windows.Forms.GroupBox grp_test;
+        private System.Windows.Forms.Button btn_autofocus;
     }
 }
 
