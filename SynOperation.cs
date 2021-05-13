@@ -28,6 +28,9 @@ namespace Velociraptor
         public void ClearAlarm() { _motion.ClearAlarm(); }
         public bool IsSimulat { get { return _motion.IsSimulate; } }
         public bool HasGoHome { get { return _motion.HasGoHome; } }
+        public int DataDirection { get { return _paraReader.DataDirection; } }
+        public int TriggerInterval { get { return _paraReader.TriggerInterval; } }
+        public string SavingPath { get { return _paraReader.SavingPath; } }
         public void DoAlignment(HObject cur_img, int threshold, ref double[] die_side)
         {
             double angle = 0;

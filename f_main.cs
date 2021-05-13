@@ -207,7 +207,6 @@ namespace Velociraptor
 
         private int _measure_distance;
         private bool is_advanced_mode = false;
-        private MeasureParamReader measureParamReader;
         private SynOperation _syn_op;
         private DBKeeper _db;
         private string _measure_filename;
@@ -249,14 +248,6 @@ namespace Velociraptor
 
                 _generalSettings = new cGeneralSettings(null, null);
                 _generalSettings.Load();
-                //log4net.Config.XmlConfigurator.ConfigureAndWatch(
-                //    new FileInfo(Path.Combine(Constants.appConfigFolder,"LaserGrooving.log4net.xml")));
-                //_main_log = log4net.LogManager.GetLogger("MiscRollingAppender");
-
-                measureParamReader = new MeasureParamReader(Path.Combine(Constants.appConfigFolder, Constants.paraFilename));
-                if (!Directory.Exists(measureParamReader.SavingPath))
-                    Directory.CreateDirectory(measureParamReader.SavingPath);
-
                 _errorList = new List<cErrorEventArgs>();
                 #region Fifo Allocation
                 //Fifo Data Format
@@ -315,7 +306,7 @@ namespace Velociraptor
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaCamera.log4net.xml")));
                 log4net.ILog log1 = log4net.LogManager.GetLogger("AvvaCamera1", "AvvaCamera");
                 camera = new AvvaCamera(basler, new Mvotem0745("COM7"), new ILPSC("COM6"), log1);
-                camera.ImageFileDirPath = measureParamReader.SavingPath;
+                camera.ImageFileDirPath = _syn_op.SavingPath;
                 camera.Open(_syn_op.IsSimulat);
                 camera.IntstSet(0, tr_light.Value);
                 camera.MaxMagSet();
@@ -785,7 +776,7 @@ namespace Velociraptor
                                 if ((_dataAcquisitionNumber <= 0 || pos_x >= _trigger_end) 
                                     && startmeasure == true)
                                 {
-                                    _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
+                                    _ccsvWriteFiles.Save(_syn_op.DataDirection, _acquisitionTab.StartMeasureZPos);
                                     _ccsvWriteFiles.Close();
                                     _client.TriggerStop();
                                     _in_trigger = false;
@@ -793,9 +784,9 @@ namespace Velociraptor
                                 }
                             }
                         }
-                    } else if (measureParamReader.IsSimulate())
+                    } else if (_syn_op.IsSimulat)
                     {
-                        _ccsvWriteFiles.Save(measureParamReader.DataDirection, _acquisitionTab.StartMeasureZPos);
+                        _ccsvWriteFiles.Save(_syn_op.DataDirection, _acquisitionTab.StartMeasureZPos);
                         _ccsvWriteFiles.Close();
                         _client.TriggerStop();
                         _in_trigger = false;
@@ -814,7 +805,7 @@ namespace Velociraptor
                 if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
                     int scan_mode = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
-                    _ccsvWriteFiles.Open(measureParamReader.SavingPath, _measure_filename, scan_mode);
+                    _ccsvWriteFiles.Open(_syn_op.SavingPath, _measure_filename, scan_mode);
                     _in_trigger = true;
                 }
             }
@@ -1364,7 +1355,7 @@ namespace Velociraptor
                 _measure_distance = 1000;
                 DateTime dt = DateTime.Now;
                 string dt_str = string.Format("_{0:yy_MM_dd_HH_mm}", dt);
-                string path = Path.Combine(measureParamReader.SavingPath, _wafer_id + dt_str);
+                string path = Path.Combine(_syn_op.SavingPath, _wafer_id + dt_str);
                 Directory.CreateDirectory(path);
                 RawDownloadStop();
                 if (DoAutoScan(path, _mea_pos))
@@ -2026,7 +2017,7 @@ namespace Velociraptor
                     SaveFileDialog sfd_upload = new SaveFileDialog();
                     sfd_upload.Filter = "DATA file|*.data";
                     sfd_upload.Title = "Save a File";
-                    sfd_upload.InitialDirectory = measureParamReader.SavingPath;
+                    sfd_upload.InitialDirectory = _syn_op.SavingPath;
                     sfd_upload.RestoreDirectory = true;
                     DateTime dt = DateTime.Now;
                     string dateTimeFileName = string.Format("_{0:yy_MM_dd_HH_mm_ss}", dt);
@@ -2089,7 +2080,7 @@ namespace Velociraptor
                 _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureXPos);
                 _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureYPos);
                 _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureZPos);
-                _dataAcquisitionNumber = _measure_distance / measureParamReader.SetTriggerInterval;
+                _dataAcquisitionNumber = _measure_distance / _syn_op.TriggerInterval;
 
 
                 _fifoDataSample.CalculationOfFifo.Reset();
@@ -2305,7 +2296,7 @@ namespace Velociraptor
                 if ((imageClone == true &&
                     camera.UserData != null &&
                     zPosition == (int)camera.UserData &&
-                    ++zImgCount > 1) || measureParamReader.IsSimulate())
+                    ++zImgCount > 1) || _syn_op.IsSimulat)
                 {
                     focusImage = BitmapConverter.ToMat(bitmap);
                     imageClone = false;

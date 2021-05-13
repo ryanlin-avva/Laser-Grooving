@@ -17,9 +17,10 @@ namespace Velociraptor
         public int moveToWaferCenterPointZDistance;
         public int moveToWaferUnloadPointYDistance;
         #endregion
-        #region Scan parameter
         public int ScanningMode;
-        #endregion
+        public int DataDirection { get; set; }
+        public int TriggerInterval;
+        public string SavingPath { get; set; }
         [DllImport("kernel32")]
         private static extern long WritePrivateProfileString(string section, string key, string lpString, string lpFileName);
 
@@ -37,6 +38,10 @@ namespace Velociraptor
             moveToWaferCenterPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointYDistance", "0"));
             moveToWaferCenterPointZDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointZDistance", "0"));
             moveToWaferUnloadPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferUnloadPointYDistance", "0"));
+
+            SavingPath = ReadIniFile("ScanParameter", "SavePath", "C:/Avva");
+            DataDirection = int.Parse(ReadIniFile("ScanParameter", "DataDirection", "0"));
+            TriggerInterval = int.Parse(ReadIniFile("TriggerParameter", "SetTriggerInterval", "0"));
         }
         public void GetDistance2Measure(ref int[] dist)
         {
