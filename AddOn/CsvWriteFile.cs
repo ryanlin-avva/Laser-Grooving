@@ -26,7 +26,7 @@ namespace Velociraptor.AddOn
         }
         #endregion
         #region Open
-        public bool Open(string directory, string fileName, int ScanningMode)
+        public bool Open(string fileName, int ScanningMode)
         {
             Close();
             _scan_mode = ScanningMode;
@@ -37,7 +37,7 @@ namespace Velociraptor.AddOn
             }
 
             _file = new sCsvWriteFiles();
-            return _file.Open(Path.Combine(directory, fileName));
+            return _file.Open(fileName);
         }
         #endregion
         #region Close

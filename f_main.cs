@@ -43,7 +43,6 @@ namespace Velociraptor
             eAlignment,
             /// <summary>close application</summary>
             eCloseApplication,
-            eSnap,
         }
         #endregion
         #region enEventThreadGui
@@ -97,11 +96,6 @@ namespace Velociraptor
         IAvvaCamera basler = new BaslerCamera();
         AvvaCamera camera;
         #endregion
-
-        System.Timers.Timer timer;
-        System.Timers.Timer timer1;
-        double dataIntensityAverage = 0;
-
         #region Threads and events
         /// <summary>the current thread action</summary>
         eThreadAction _threadAction = eThreadAction.None;
@@ -195,16 +189,13 @@ namespace Velociraptor
         List<cErrorEventArgs> _errorList = null;
         cErrorEventArgs.OnErrorEventHandler _eventOnError = null;
         #endregion
-
         #region cls_components
 
         CsvWriteFile _ccsvWriteFiles = new CsvWriteFile();
         sAcquisition _acquisitionTab = new sAcquisition();
         sSpectrumRaw spectrumRaw = new sSpectrumRaw();
         #endregion
-
-        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
-
+        #region measure settings
         private int _measure_distance;
         private bool is_advanced_mode = false;
         private SynOperation _syn_op;
@@ -215,6 +206,8 @@ namespace Velociraptor
         private bool _cancelFormClosing = true;
         private bool startmeasure = false;
         private FindScribe fs = new FindScribe();
+        private string _dataFileFullPath;
+        #endregion
         #region autofocus
         long minAFFuncMs;
         long maxAFFuncMs;
@@ -237,6 +230,12 @@ namespace Velociraptor
         private double[] die_size = new double[3];
         private double[] EstimatedDieSide = new double[2];
         private double[] _pos_keep = new double[3];
+        #endregion
+        #region Misc
+        System.Timers.Timer timer;
+        System.Timers.Timer timer1;
+        double dataIntensityAverage = 0;
+        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
         #endregion
         #region 主程式開關
         #region Constructor
@@ -715,10 +714,6 @@ namespace Velociraptor
                         }
                     }
                     #endregion  
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.eSnap].WaitOne(0))
-                    {
-                        _cur_bitmap.Save(_measure_filename + "bmp", ImageFormat.Bmp);
-                    }
                 }
                 _threadActionProcess.EventExitProcessThreadDo.Set();
             }
@@ -781,6 +776,10 @@ namespace Velociraptor
                                     _client.TriggerStop();
                                     _in_trigger = false;
                                     startmeasure = false;
+                                    Process profiler = new Process();
+                                    profiler.StartInfo.FileName = "SInspector.exe";
+                                    profiler.StartInfo.Arguments = Path.Combine(_syn_op.SavingPath, _measure_filename + ".data"); // if you need some
+                                    profiler.Start();
                                 }
                             }
                         }
@@ -792,20 +791,11 @@ namespace Velociraptor
                         _in_trigger = false;
                         startmeasure = false;
                     }
-                    /*
-                    #region show data
-                    ProcessStartInfo Info2 = new ProcessStartInfo();
-                    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-                    Info2.WorkingDirectory = @"C:\Users\USER\Desktop\Velociraptor\Bin\Debug";//檔案所在的目錄
-                    Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
-                    Process.Start(Info2);
-                    #endregion
-                    */
                 }
                 if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
                     int scan_mode = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
-                    _ccsvWriteFiles.Open(_syn_op.SavingPath, _measure_filename, scan_mode);
+                    _ccsvWriteFiles.Open(Path.Combine(_syn_op.SavingPath, _measure_filename+".data"), scan_mode);
                     _in_trigger = true;
                 }
             }
@@ -2340,7 +2330,7 @@ namespace Velociraptor
                 runPosition[i] = position;
                 moveEventArgs = new MoveEventArgs { relative = false, position = position };
                 AutoFocusMove(sender, moveEventArgs);
-                AutoFocusMoveWait(position);
+                //AutoFocusMoveWait(position);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2400,7 +2390,7 @@ namespace Velociraptor
                 runPosition[i] = position;
                 moveEventArgs = new MoveEventArgs { relative = false, position = position };
                 AutoFocusMove(sender, moveEventArgs);
-                AutoFocusMoveWait(position);
+                //AutoFocusMoveWait(position);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2443,7 +2433,7 @@ namespace Velociraptor
 
             if (InvokeRequired)
             {
-                BeginInvoke(new EventHandler(AutoFocusMove), sender, e);
+                Invoke(new EventHandler(AutoFocusMove), sender, e);
 
                 return;
             }
@@ -2587,7 +2577,6 @@ namespace Velociraptor
         private bool DoAutoScan(string pathname, List<PointF> pos)
         {
             Debug.WriteLine("Begin DoAutoScan");
-            GrabOff();
             if (!Directory.Exists(pathname)) Directory.CreateDirectory(pathname);
             char[] axis = { 'X', 'Y' };
             for (int i = 0; i < pos.Count; i++)
@@ -2595,34 +2584,12 @@ namespace Velociraptor
                 string filename = Path.Combine(pathname, "Data_" + i.ToString());
                 _measure_filename = filename;
                 double[] distance = { pos[i].X, pos[i].Y };
-                if (!DoSnapAndSave(filename)) return false;
                 _syn_op.MoveTo(axis, distance, false);
+                camera.SaveImage(pathname+".bmp");
                 MoveToMeaCamera();
                 DoMeasurement();
                 //MoveBackFromMeaCamera();
             }
-            return true;
-        }
-        private bool DoSnapAndSave(string fname)
-        {
-            Debug.WriteLine("Begin DoSnapAndSave");
-            _cur_bitmap = null;
-            if (cur_img != null) cur_img.Dispose();
-            cur_img = null;
-            camera.SnapImage();
-            int retry = 0;
-            while (_cur_bitmap == null && retry < 20)
-            {
-                Thread.Sleep(100);
-                Debug.WriteLine("curbitmap = null");
-                retry++;
-            }
-            if (_cur_bitmap == null)
-            {
-                MessageBox.Show(fname + " 取像失敗:逾時");
-                return false;
-            }
-            _threadActionProcess.EventUserList[(int)eThreadAction.eSnap].Set();
             return true;
         }
         private void RawDownloadStart()
