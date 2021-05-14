@@ -15,6 +15,7 @@ namespace Velociraptor
         public int moveToWaferCenterPointXDistance;
         public int moveToWaferCenterPointYDistance;
         public int moveToWaferCenterPointZDistance;
+        public int moveToWaferCenterPointRDistance;
         public int moveToWaferUnloadPointYDistance;
         #endregion
         public int ScanningMode;
@@ -37,6 +38,7 @@ namespace Velociraptor
             moveToWaferCenterPointXDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointXDistance", "0"));
             moveToWaferCenterPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointYDistance", "0"));
             moveToWaferCenterPointZDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointZDistance", "0"));
+            moveToWaferCenterPointRDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointRDistance", "0"));
             moveToWaferUnloadPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferUnloadPointYDistance", "0"));
 
             SavingPath = ReadIniFile("ScanParameter", "SavePath", "C:/Avva");

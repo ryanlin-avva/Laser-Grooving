@@ -117,9 +117,10 @@ namespace Velociraptor
         }
         public void MoveToCenter()
         {
-            char[] axis = { 'X', 'Y' };
+            char[] axis = { 'X', 'Y' ,'R'};
             double[] distance = { _paraReader.moveToWaferCenterPointXDistance
-                                , _paraReader.moveToWaferCenterPointYDistance };
+                                , _paraReader.moveToWaferCenterPointYDistance 
+                                 ,_paraReader.moveToWaferCenterPointRDistance};
             _motion.MoveTo(axis, distance, false);
         }
         public void GetCenterPos(double[] distance)
