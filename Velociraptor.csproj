@@ -114,11 +114,6 @@
     <Compile Include="ImageProc\MyPair.cs" />
     <Compile Include="ImageProc\ParamMgr.cs" />
     <Compile Include="ImageProc\VisionCalibrator.cs" />
-    <Compile Include="Motion\AvvaMotion.cs" />
-    <Compile Include="Motion\AvvaMotionException.cs" />
-    <Compile Include="Motion\IAvvaMotion.cs" />
-    <Compile Include="Motion\MotionParamReader.cs" />
-    <Compile Include="Motion\YaskawaMotion.cs" />
     <Compile Include="ParamReader.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="MyForm\AutoParamsForm.cs">

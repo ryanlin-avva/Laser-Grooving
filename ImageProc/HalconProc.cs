@@ -92,8 +92,11 @@ namespace Velociraptor
             int w = WinSize.Width;
             int h = WinSize.Height;
             //先恢復原本比例
-            hWindow.Width = w;
-            hWindow.Height = h;
+            if (hWindow != null)
+            {
+                hWindow.Width = w;
+                hWindow.Height = h;
+            }
             double img_ratio = h_height.D / h_width.D;
             double win_ratio = (double)h / w;
             HOperatorSet.SetPart(HvDefaultWinHandle, 0, 0, h_height, h_width);

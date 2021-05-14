@@ -803,7 +803,7 @@
             this.tbp_main.Controls.Add(this.label2);
             this.tbp_main.Location = new System.Drawing.Point(4, 23);
             this.tbp_main.Name = "tbp_main";
-            this.tbp_main.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tbp_main.Padding = new System.Windows.Forms.Padding(3);
             this.tbp_main.Size = new System.Drawing.Size(1138, 365);
             this.tbp_main.TabIndex = 6;
             this.tbp_main.Text = "一般";
@@ -1339,7 +1339,7 @@
             this.tbp_motion.Controls.Add(this.btn_PosingStop);
             this.tbp_motion.Location = new System.Drawing.Point(4, 23);
             this.tbp_motion.Name = "tbp_motion";
-            this.tbp_motion.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tbp_motion.Padding = new System.Windows.Forms.Padding(3);
             this.tbp_motion.Size = new System.Drawing.Size(1138, 365);
             this.tbp_motion.TabIndex = 7;
             this.tbp_motion.Text = "運動";
@@ -1690,9 +1690,9 @@
             // 
             this.grp_test.Controls.Add(this.btn_autofocus);
             this.grp_test.Location = new System.Drawing.Point(526, 317);
-            this.grp_test.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.grp_test.Margin = new System.Windows.Forms.Padding(2);
             this.grp_test.Name = "grp_test";
-            this.grp_test.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.grp_test.Padding = new System.Windows.Forms.Padding(2);
             this.grp_test.Size = new System.Drawing.Size(95, 48);
             this.grp_test.TabIndex = 194;
             this.grp_test.TabStop = false;
@@ -1701,7 +1701,7 @@
             // btn_autofocus
             // 
             this.btn_autofocus.Location = new System.Drawing.Point(6, 14);
-            this.btn_autofocus.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btn_autofocus.Margin = new System.Windows.Forms.Padding(2);
             this.btn_autofocus.Name = "btn_autofocus";
             this.btn_autofocus.Size = new System.Drawing.Size(72, 29);
             this.btn_autofocus.TabIndex = 0;
@@ -1742,7 +1742,7 @@
             // tr_light
             // 
             this.tr_light.Location = new System.Drawing.Point(91, 321);
-            this.tr_light.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tr_light.Margin = new System.Windows.Forms.Padding(2);
             this.tr_light.Maximum = 255;
             this.tr_light.Name = "tr_light";
             this.tr_light.Size = new System.Drawing.Size(171, 45);
@@ -1755,7 +1755,7 @@
             // 
             this.tr_threshold.LargeChange = 1;
             this.tr_threshold.Location = new System.Drawing.Point(305, 321);
-            this.tr_threshold.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tr_threshold.Margin = new System.Windows.Forms.Padding(2);
             this.tr_threshold.Maximum = 32;
             this.tr_threshold.Minimum = 1;
             this.tr_threshold.Name = "tr_threshold";
@@ -1780,7 +1780,7 @@
             // 
             this.pic_camera.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.pic_camera.Location = new System.Drawing.Point(234, 70);
-            this.pic_camera.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pic_camera.Margin = new System.Windows.Forms.Padding(2);
             this.pic_camera.Name = "pic_camera";
             this.pic_camera.Size = new System.Drawing.Size(282, 236);
             this.pic_camera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;

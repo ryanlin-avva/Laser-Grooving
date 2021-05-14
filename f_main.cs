@@ -416,7 +416,7 @@ namespace Velociraptor
                 if (File.Exists(backgroud))
                     cur_img = hp.LoadImage(backgroud);
                 #endregion
-                timer = new System.Timers.Timer(1);//定時週期0.001秒
+                timer = new System.Timers.Timer(100);//定時週期0.1秒
                 timer.Elapsed += UpdateUIControls;//定時時間到的時候的回撥函式
                 timer.AutoReset = true; //是否不斷重複定時器操作
                 timer.Enabled = true;
@@ -1988,8 +1988,8 @@ namespace Velociraptor
                 ExceptionDialog(ex, "Halcon Find Angle");
             }
             int threshold1;
-            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 8;
-            _cur_bitmap.Save(@"C:\\Users\\User\\Desktop\\TestImage.bmp" , ImageFormat.Bmp);
+            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 6;
+            _cur_bitmap.Save("C:/Users/User/Desktop.bmp", ImageFormat.Bmp);
             try
             {             
                 fs.find_angle(_cur_bitmap, threshold1, die_size);
