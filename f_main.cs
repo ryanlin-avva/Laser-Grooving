@@ -299,6 +299,7 @@ namespace Velociraptor
                 log4net.ILog log = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
                 _syn_op = new SynOperation(hp, Constants.appConfigFolder, log);
                 _syn_op.MotorOn();
+                _syn_op.GoHome();
                 log.Info("SynOperation Started");
 
                 ILoggerRepository repository1 = log4net.LogManager.CreateRepository("AvvaCamera1");
@@ -1435,7 +1436,7 @@ namespace Velociraptor
             string name = btn.Text;
             try
             {
-                int move_distance = int.Parse(btn_move_distance_z.Text);
+                int move_distance = int.Parse(btn_move_distance_r.Text);
                 if (name=="CCW") move_distance = -move_distance;
                 _syn_op.MoveTo('R', move_distance);
             }
@@ -1987,9 +1988,10 @@ namespace Velociraptor
                 ExceptionDialog(ex, "Halcon Find Angle");
             }
             int threshold1;
-            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 4;
+            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 8;
+            _cur_bitmap.Save(@"C:\\Users\\User\\Desktop\\TestImage.bmp" , ImageFormat.Bmp);
             try
-            {
+            {             
                 fs.find_angle(_cur_bitmap, threshold1, die_size);
                 EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
                 EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
@@ -2187,18 +2189,18 @@ namespace Velociraptor
 
                 _cur_bitmap = bitmap;
                 pic_camera.Image = bitmap;
-                if (is_advanced_mode)
-                {
-                    using (Graphics g = Graphics.FromImage(pic_camera.Image))
-                    {
-                        Pen pen = new Pen(Color.SkyBlue, 4);
+                //if (is_advanced_mode)
+                //{
+                //    using (Graphics g = Graphics.FromImage(pic_camera.Image))
+                //    {
+                //        Pen pen = new Pen(Color.SkyBlue, 4);
 
-                        g.DrawLine(pen, 0, camera.ImageHeight / 2 - 1, camera.ImageWidth, camera.ImageHeight / 2 - 1);
-                        g.DrawLine(pen, camera.ImageWidth / 2 - 1, 0, camera.ImageWidth / 2 - 1, camera.ImageHeight);
+                //        g.DrawLine(pen, 0, camera.ImageHeight / 2 - 1, camera.ImageWidth, camera.ImageHeight / 2 - 1);
+                //        g.DrawLine(pen, camera.ImageWidth / 2 - 1, 0, camera.ImageWidth / 2 - 1, camera.ImageHeight);
 
-                        g.DrawEllipse(pen, camera.ImageWidth / 2 - 16 - 1, camera.ImageHeight / 2 - 16 - 1, 32, 32);
-                    }
-                }
+                //        g.DrawEllipse(pen, camera.ImageWidth / 2 - 16 - 1, camera.ImageHeight / 2 - 16 - 1, 32, 32);
+                //    }
+                //}
 
                 bitmapOld?.Dispose();
                 //==Picture Box
@@ -2321,9 +2323,9 @@ namespace Velociraptor
             GrabOn();
             if (!_syn_op.HasGoHome) _syn_op.GoHome();
             Console.WriteLine("Auto Focusing Fisrt Run:");
-            //Max Mag
-            beginPosition = -320000;
-            endPosition = -200000;
+            //Min Mag(0.7X)
+            beginPosition = -34000;
+            endPosition = -32000;
 
             positionNo = (Math.Abs(endPosition - beginPosition)) / 1000 + 1;
 
@@ -2432,7 +2434,10 @@ namespace Velociraptor
                     positionId = i;
                 }
             }
-            _syn_op.MoveTo('Z', runPosition[positionId], false);
+            //_syn_op.MoveTo('Z', runPosition[positionId], false);
+            moveEventArgs = new MoveEventArgs { relative = false, position = runPosition[positionId] };
+            AutoFocusMove(sender, moveEventArgs);
+            AutoFocusMoveWait(runPosition[positionId]);
 
             Console.WriteLine("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
             Console.WriteLine("Max AF func elapsed ms: " + maxAFFuncMs + ", Min AF func elapsed ms: " + minAFFuncMs);
