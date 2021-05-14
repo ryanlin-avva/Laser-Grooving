@@ -2,6 +2,8 @@
 using Avva.MotionFramework;
 using HalconDotNet;
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 
 namespace Velociraptor
@@ -12,7 +14,8 @@ namespace Velociraptor
         private HalconProc _hp;
         private ParamReader _paraReader;
         private double[] _2_mea = new double[3];
-        public SynOperation(HalconProc hp, string para_path, log4net.ILog log = null)
+        private bool hasGoHome = false;
+       public SynOperation(HalconProc hp, string para_path, log4net.ILog log = null)
         {
             _hp = hp;
             IAvvaMotion yaskawa = new YaskawaMotion();
@@ -27,10 +30,11 @@ namespace Velociraptor
         public void StopMove() { _motion.StopMove(); }
         public void ClearAlarm() { _motion.ClearAlarm(); }
         public bool IsSimulat { get { return _motion.IsSimulate; } }
-        public bool HasGoHome { get { return _motion.HasGoHome; } }
         public int DataDirection { get { return _paraReader.DataDirection; } }
         public int TriggerInterval { get { return _paraReader.TriggerInterval; } }
         public string SavingPath { get { return _paraReader.SavingPath; } }
+        public int MaxMagAutoFocusBegin { get { return _paraReader.MaxMagAutoFocusBegin; } }
+        public int MaxMagAutoFocusEnd { get { return _paraReader.MaxMagAutoFocusEnd; } }
         public void DoAlignment(HObject cur_img, int threshold, ref double[] die_side)
         {
             double angle = 0;
@@ -67,20 +71,26 @@ namespace Velociraptor
             die_side[1] = grid.EstimatedHeight();
             angle = grid.EstimatedThetaByDegree();
         }
-        
+        public void AsyncMoveTo(char axis_char, double distance, bool isRelative = true)
+        {
+            _motion.AsyncMoveTo(axis_char, distance, isRelative);
+        }
+        public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative)
+        {
+            _motion.AsyncMoveTo(axis_char, distance, isRelative);
+        }
+
         public void MoveTo(char axis_char, double distance, bool isRelative = true)
         {
             _motion.MoveTo(axis_char, distance, isRelative);
         }
-        //Default use relative move
-        //If use absolute move, ONLY SPECIFIED AXIS ARE SET TO ABS
         public void MoveTo(char[] axis_char, double[] distance, bool isRelative)
         {
             _motion.MoveTo(axis_char, distance, isRelative);
         }
-        public int GetPos(char axis_char)
+        public double GetPos(char axis_char)
         {
-            return (int)_motion.GetPos(axis_char);
+            return _motion.GetPos(axis_char);
         }
         public void MoveToMeasurePos()
         {
@@ -117,23 +127,64 @@ namespace Velociraptor
         }
         public void MoveToCenter()
         {
-            char[] axis = { 'X', 'Y' ,'R'};
-            double[] distance = { _paraReader.moveToWaferCenterPointXDistance
-                                , _paraReader.moveToWaferCenterPointYDistance 
-                                 ,_paraReader.moveToWaferCenterPointRDistance};
+            char[] axis = { 'X', 'Y', 'R' };
+            double[] distance = { _paraReader.MoveToWaferCenterPointXDistance
+                                , _paraReader.MoveToWaferCenterPointYDistance
+                                 ,_paraReader.MoveToWaferCenterPointRDistance};
+            if (!hasGoHome) GoHome();
             _motion.MoveTo(axis, distance, false);
         }
-        public void GetCenterPos(double[] distance)
+        public double[] GetCenter()
         {
-            distance[0] = _paraReader.moveToWaferCenterPointXDistance;
-            distance[1] = _paraReader.moveToWaferCenterPointYDistance;
-            distance[2] = 0;
+            double[] distance = { _paraReader.MoveToWaferCenterPointXDistance
+                                , _paraReader.MoveToWaferCenterPointYDistance 
+                                };
+            return distance;
         }
-        public void GetLoadPos(ref double[] distance)
+        public void MoveToUnload()
         {
-            distance[0] = _paraReader.moveToWaferCenterPointXDistance;
-            distance[1] = _paraReader.moveToWaferUnloadPointYDistance;
-            distance[2] = 0;
+            if (!hasGoHome) GoHome();
+            char[] axis = { 'X', 'Y', 'Z' };
+            double[] distance = { _paraReader.MoveToWaferCenterPointXDistance
+                                , _paraReader.MoveToWaferUnloadPointYDistance
+                                , 0 };
+            MoveTo(axis, distance, false);
+        }
+        public List<PointF> TransformDiePos(int die_row, int die_col, double[] estimated_size, List<Point> pts)
+        {
+            double[] _center_pos = { _paraReader.MoveToWaferCenterPointXDistance
+                                    , _paraReader.MoveToWaferCenterPointYDistance };
+            int offset_x = 0;
+            int offset_y = 0;
+            if (die_col % 2 == 1)
+            {
+                _center_pos[0] -= estimated_size[0] / 2;
+            }
+            else
+            {
+                offset_x = 1;
+            }
+            if (die_row % 2 == 1)
+            {
+                _center_pos[1] -= estimated_size[1] / 2;
+            }
+            else
+            {
+                offset_y = 1;
+            }
+            List<PointF> pos = new List<PointF>();
+            foreach (var p in pts)
+            {
+                float x = (float)((p.X > 0)
+                            ? _center_pos[0] + (p.X - offset_x) * estimated_size[0]
+                            : _center_pos[0] + p.X * estimated_size[0]);
+                float y = (float)((p.Y > 0)
+                            ? _center_pos[1] + (p.Y - offset_y) * estimated_size[1]
+                            : _center_pos[1] + p.Y * estimated_size[1]);
+                PointF f = new PointF(x, y);
+                pos.Add(f);
+            }
+            return pos;
         }
     }
 }

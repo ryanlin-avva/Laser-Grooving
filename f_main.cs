@@ -218,7 +218,12 @@ namespace Velociraptor
         Object focusImage;
         delegate double AutoFocusFunc(Object image);
         AutoFocusFunc runAFFunc;
-        readonly EventHandler autoFocusRun;
+        readonly EventHandler autoFocusRun; 
+        delegate bool AlignmentFunc(Object offset);
+        AlignmentFunc alignmentFunc;
+        bool isAligning = false;
+        readonly AutoResetEvent alignDone;
+        bool alignmentSucceed = true;
         #endregion
         #region wafer info
         private int _wafer_size = 12;
@@ -289,6 +294,8 @@ namespace Velociraptor
                 _ccd_range = new sCCDRange(0, 0);
                 runAFFunc = new AutoFocusFunc(Cv2LaplacianVariance);
                 autoFocusRun = new EventHandler(AutoFocusRun);
+                autoScanRun = new EventHandler(AutoScanRun);
+                alignmentFunc = new AlignmentFunc(Alignment);
                 #endregion
 
                 #region Motion, Camera, Log Initialization
@@ -318,6 +325,7 @@ namespace Velociraptor
                 tbThreshold1.Text = tr_threshold.Value.ToString();
                 #endregion
                 imageCloneDone = new AutoResetEvent(false);
+                alignDone = new AutoResetEvent(false);
                 _db = new DBKeeper();
             }
             catch (Exception ex)
@@ -612,6 +620,12 @@ namespace Velociraptor
                         this.Invoke(new cClientIhm.UpdateDisplayErrorDelegateHandler(cClientIhm.FuncUpdateDisplayErrorDelegateHandler), lst_log, _errorList);
                     }
                     #endregion
+                    if (isAligning && alignDone.WaitOne(0))
+                    {
+                        isAligning = false;
+                        panel1.Enabled = true;
+                        tabControlMain.Enabled = true;
+                    }
                 }
                 _threadGui.EventExitProcessThreadDo.Set();
             }
@@ -1341,8 +1355,7 @@ namespace Velociraptor
                         _mea_pts.Add(new Point(-c, -r));
                     }
                 }
-                _mea_pos = TransformDiePos(_mea_pts);
-
+                _mea_pos = _syn_op.TransformDiePos(_die_row_count, _die_col_count, EstimatedDieSide, _mea_pts);
                 _measure_distance = 1000;
                 DateTime dt = DateTime.Now;
                 string dt_str = string.Format("_{0:yy_MM_dd_HH_mm}", dt);
@@ -1364,41 +1377,6 @@ namespace Velociraptor
             {
                 ExceptionDialog(ex, "Auto Measurement");
             }
-        }
-        private List<PointF> TransformDiePos(List<Point>pts)
-        {
-            double[] _center_pos = new double[3];
-            _syn_op.GetCenterPos(_center_pos);
-            int offset_x = 0;
-            int offset_y = 0;
-            if (_die_col_count % 2 == 1)
-            {
-                _center_pos[0] -= EstimatedDieSide[0] / 2;
-            } else
-            {
-                offset_x = 1;
-            }
-            if (_die_row_count % 2 == 1)
-            {
-                _center_pos[1] -= EstimatedDieSide[1] / 2;
-            }
-            else
-            {
-                offset_y = 1;
-            }
-            List<PointF> pos = new List<PointF>();
-            foreach (var p in pts)
-            {
-                float x = (float)((p.X > 0)
-                            ? _center_pos[0] + (p.X - offset_x) * EstimatedDieSide[0] 
-                            : _center_pos[0] + p.X * EstimatedDieSide[0]);
-                float y = (float)((p.Y > 0)
-                            ? _center_pos[1] + (p.Y - offset_y) * EstimatedDieSide[1]
-                            : _center_pos[1] + p.Y * EstimatedDieSide[1]);
-                PointF f = new PointF(x, y);
-                pos.Add(f);
-            }
-            return pos;
         }
         #endregion
         #region btn_move_Click
@@ -1477,7 +1455,6 @@ namespace Velociraptor
             cb_wafersize.Enabled = false;
             try
             {
-                if (!_syn_op.HasGoHome) _syn_op.GoHome();
                 _syn_op.MoveToCenter();
                 GrabOff();
                 camera.ImageGrabbed -= OnImageGrabbed;
@@ -1493,11 +1470,6 @@ namespace Velociraptor
         {
             try
             {
-                if (!_syn_op.HasGoHome) _syn_op.GoHome();
-                double[] distance = new double[3];
-                _syn_op.GetLoadPos(ref distance);
-                char[] axis = { 'X', 'Y', 'Z' };
-                _syn_op.MoveTo(axis, distance, false);
                 cb_wafersize.Enabled = true;
             }
             catch (Exception ex)
@@ -2311,11 +2283,10 @@ namespace Velociraptor
             MoveEventArgs moveEventArgs;
 
             GrabOn();
-            if (!_syn_op.HasGoHome) _syn_op.GoHome();
             Console.WriteLine("Auto Focusing Fisrt Run:");
-            //Min Mag(0.7X)
-            beginPosition = -34000;
-            endPosition = -32000;
+            //Max Mag
+            beginPosition = _syn_op.MaxMagAutoFocusBegin;
+            endPosition = _syn_op.MaxMagAutoFocusEnd;
 
             positionNo = (Math.Abs(endPosition - beginPosition)) / 1000 + 1;
 
@@ -2330,9 +2301,9 @@ namespace Velociraptor
             for (int position = beginPosition, i = 0; position <= endPosition; position += 1000, i++)
             {
                 runPosition[i] = position;
-                moveEventArgs = new MoveEventArgs { relative = false, position = position };
-                AutoFocusMove(sender, moveEventArgs);
-                //AutoFocusMoveWait(position);
+                moveEventArgs = new MoveEventArgs('Z', position, false);
+                AsyncMove(sender, moveEventArgs);
+                AsyncMoveWait('Z', position);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2390,9 +2361,9 @@ namespace Velociraptor
             for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
             {
                 runPosition[i] = position;
-                moveEventArgs = new MoveEventArgs { relative = false, position = position };
-                AutoFocusMove(sender, moveEventArgs);
-                //AutoFocusMoveWait(position);
+                moveEventArgs = new MoveEventArgs('Z', position, false);
+                AsyncMove(sender, moveEventArgs);
+                AsyncMoveWait('Z', positionId);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2424,37 +2395,42 @@ namespace Velociraptor
                     positionId = i;
                 }
             }
-            //_syn_op.MoveTo('Z', runPosition[positionId], false);
-            moveEventArgs = new MoveEventArgs { relative = false, position = runPosition[positionId] };
-            AutoFocusMove(sender, moveEventArgs);
-            AutoFocusMoveWait(runPosition[positionId]);
+            moveEventArgs = new MoveEventArgs('Z', runPosition[positionId], false);
+            AsyncMove(sender, moveEventArgs);
+            AsyncMoveWait('Z', runPosition[positionId]);
 
             Console.WriteLine("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
             Console.WriteLine("Max AF func elapsed ms: " + maxAFFuncMs + ", Min AF func elapsed ms: " + minAFFuncMs);
         }
-        private void AutoFocusMove(Object sender, EventArgs e)
+        private void AsyncMove(Object sender, EventArgs e)
         {
-            MoveEventArgs moveEventArgs;
-
             if (InvokeRequired)
             {
-                Invoke(new EventHandler(AutoFocusMove), sender, e);
+                Invoke(new EventHandler(AsyncMove), sender, e);
 
                 return;
             }
 
+            MoveEventArgs moveEventArgs;
             moveEventArgs = (MoveEventArgs)e;
-
-            _syn_op.MoveTo('Z', moveEventArgs.position, moveEventArgs.relative);
+            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
         }
-
-        private void AutoFocusMoveWait(int position)
+        private void AsyncMoveWait(char[]axis, double[] position)
         {
-            while (_syn_op.GetPos('Z') != position)
+            for (int i=0; i<axis.Length; i++)
+            {
+                while (_syn_op.GetPos(axis[i]) != position[i])
+                {
+                    Thread.Sleep(50);
+                }
+            }
+        }
+        private void AsyncMoveWait(char axis, double position)
+        {
+            while (_syn_op.GetPos(axis) != position)
             {
                 Thread.Sleep(50);
             }
-            zPosition = position;
         }
         private void AutoFocusRun_Callback(IAsyncResult result)
         {
@@ -2517,6 +2493,33 @@ namespace Velociraptor
         }
 
         #endregion
+        #region Alignment
+        private bool Alignment(Object o)
+        {
+            try
+            {
+                int offset = (int)o;
+                camera.MinMagSet();
+                char[] axis = { 'X', 'Y' };
+                double[] center = _syn_op.GetCenter();
+                MoveEventArgs moveEventArgs = new MoveEventArgs(axis, center, false);
+                AsyncMove(this, moveEventArgs);
+                AsyncMoveWait(axis, center);
+                fs.find_angle(_cur_bitmap, offset, die_size);
+                moveEventArgs = new MoveEventArgs('R', fs.AngleAverage * 1000, true);
+                AsyncMove(this, moveEventArgs);
+                AsyncMoveWait(axis, center);
+                VisionCalibrator vc = new VisionCalibrator();
+                EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
+                EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "DoAlignment()");
+                return false;
+            }
+        }
         private void DoAlignment()
         {
             if (tb_dieX.Text == "" || tb_dieY.Text == "")
@@ -2534,20 +2537,26 @@ namespace Velociraptor
             die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
             int offset = Int32.Parse(tbThreshold1.Text);
+            alignDone.Reset();
+            isAligning = true;
+            alignmentFunc.BeginInvoke(offset, new AsyncCallback(Alignment_Callback), alignmentFunc);
+        }
+        private void Alignment_Callback(IAsyncResult result)
+        {
+            AlignmentFunc func = (AlignmentFunc)result.AsyncState;
+            alignmentSucceed = func.EndInvoke(result);
+            alignDone.Set();
+        }
+        private void Alignment_Done(object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                Debug.WriteLine("In Alignment_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                BeginInvoke(new EventHandler(Alignment_Done), sender, e);
 
-            try
-            {
-                _syn_op.MoveToCenter();
-                fs.find_angle(_cur_bitmap, offset, die_size);
-                _syn_op.MoveTo('R', fs.AngleAverage*1000);
-                EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
-                EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "DoAlignment()");
                 return;
             }
+            MessageBox.Show("轉正完成");
         }
         private void DoAlignment_halcon()
         {
@@ -2579,6 +2588,13 @@ namespace Velociraptor
                 return;
             }
         }
+        #endregion
+        #region autoscan
+        private void AutoScanRun(Object sender, EventArgs e)
+        {
+
+        }
+
         private bool DoAutoScan(string pathname, List<PointF> pos)
         {
             Debug.WriteLine("Begin DoAutoScan");
@@ -2597,6 +2613,7 @@ namespace Velociraptor
             }
             return true;
         }
+        #endregion
         private void RawDownloadStart()
         {
             if ((_client != null) && (_client.DnldCommand != null))
@@ -2670,10 +2687,29 @@ namespace Velociraptor
             if (inner == null) throw new ArgumentNullException("inner");
         }
     }
+    public class AlignEventArgs : EventArgs
+    {
+        public int Offset { get; set; }
+    }
     public class MoveEventArgs : EventArgs
     {
-        public bool relative { get; set; }
-        public int position { get; set; }
+        public MoveEventArgs(char[] axis, double[] position, bool isRelative)
+        {
+            Relative = isRelative;
+            Position = position;
+            Axis = axis;
+        }
+        public MoveEventArgs(char axis, double position, bool isRelative)
+        {
+            Relative = isRelative;
+            double[] pos = { position };
+            char[] a = { axis };
+            Position = pos;
+            Axis = a;
+        }
+        public bool Relative { get; set; }
+        public double[] Position { get; set; }
+        public char[] Axis { get; set; }
     }
 
 }
