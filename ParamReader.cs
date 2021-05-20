@@ -17,6 +17,9 @@ namespace Velociraptor
         public int MoveToWaferCenterPointZDistance { get; set; }
         public int MoveToWaferCenterPointRDistance { get; set; }
         public int MoveToWaferUnloadPointYDistance { get; set; }
+        public int RelToMeasureCameraX { get; set; }
+        public int RelToMeasureCameraY { get; set; }
+        public int RelToMeasureCameraZ { get; set; }
         // camera parameters
         public int MaxMagAutoFocusBegin { get; set; }
         public int MaxMagAutoFocusEnd { get; set; }
@@ -44,10 +47,13 @@ namespace Velociraptor
             MoveToWaferCenterPointZDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointZDistance", "0"));
             MoveToWaferCenterPointRDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferCenterPointRDistance", "0"));
             MoveToWaferUnloadPointYDistance = int.Parse(ReadIniFile("Geometry", "moveToWaferUnloadPointYDistance", "0"));
+            RelToMeasureCameraX = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraX", "0"));
+            RelToMeasureCameraY = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraY", "0"));
+            RelToMeasureCameraZ = int.Parse(ReadIniFile("Geometry", "RelToMeasureCameraZ", "0"));       
 
             SavingPath = ReadIniFile("ScanParameter", "SavePath", "C:/Avva");
             DataDirection = int.Parse(ReadIniFile("ScanParameter", "DataDirection", "0"));
-            TriggerInterval = int.Parse(ReadIniFile("TriggerParameter", "SetTriggerInterval", "0"));
+            TriggerInterval = int.Parse(ReadIniFile("ScanParameter", "SetTriggerInterval", "0"));
             MaxMagAutoFocusBegin = int.Parse(ReadIniFile("CameraParameter", "MaxMagAutoFocusBegin", "0"));
             MaxMagAutoFocusEnd = int.Parse(ReadIniFile("CameraParameter", "MaxMagAutoFocusEnd", "0"));
             MinMagAutoFocusBegin = int.Parse(ReadIniFile("CameraParameter", "MinMagAutoFocusBegin", "0"));

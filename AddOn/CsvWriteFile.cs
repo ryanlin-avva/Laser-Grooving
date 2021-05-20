@@ -2,8 +2,10 @@
 using MagicServerLibrary;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Velociraptor.AddOn
@@ -28,6 +30,7 @@ namespace Velociraptor.AddOn
         #region Open
         public bool Open(string fileName, int ScanningMode)
         {
+            Debug.WriteLine("CsvWriteFile.Open()"+Thread.CurrentThread.ManagedThreadId.ToString());
             Close();
             _scan_mode = ScanningMode;
             _line_cnt = (_scan_mode == 5) ? 1 : 5;
@@ -66,6 +69,7 @@ namespace Velociraptor.AddOn
         #region Save
         public bool Save(int DataDirection, int ZPos)
         {
+            Debug.WriteLine("CsvWriteFile.Save()");
             //檢查資料正確性
             int cnt = line_keeper[0].Count;
             for (int i = 1; i < _line_cnt; i++)

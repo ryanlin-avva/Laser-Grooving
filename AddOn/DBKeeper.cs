@@ -69,7 +69,7 @@ namespace Velociraptor.AddOn
         {
             conn.Close();
         }
-        public void Insert(ref SCAN_DATA data)
+        public void Insert(SCAN_DATA data)
         {
             if (data.wafer_id == "" || data.points_cnt == 0)
             {
@@ -80,8 +80,8 @@ namespace Velociraptor.AddOn
 
             try
             {
-                sql_cmd.CommandText = "INSERT INTO main.scan_data (wafer_id, points_cnt, row1, col1, row2, col2, notch_way, scan_type, scan_ok) VALUES ("
-                                        + data.wafer_id + ","
+                sql_cmd.CommandText = "INSERT INTO main.scan_data (wafer_id, points_cnt, row1, col1, row2, col2, notch_way, scan_type, scan_ok) VALUES ('"
+                                        + data.wafer_id + "',"
                                         + data.points_cnt.ToString() + ","
                                         + data.row1.ToString() + ","
                                         + data.col1.ToString() + ","
@@ -95,9 +95,29 @@ namespace Velociraptor.AddOn
             }
             catch (SqliteException ex)
             {
-                throw new AvvaDBException("DB Exception", ex);
+                throw new AvvaDBException("DB Insert", ex);
+            }
+        }
+        public void UpdateResult(string wafer_id)
+        {
+            if (wafer_id == "")
+            {
+                throw new AvvaDBException("DB Exception: Update Scan Result Failed");
             }
 
+            SqliteCommand sql_cmd = conn.CreateCommand();
+
+            try
+            {
+                sql_cmd.CommandText = "Update main.scan_data SET scan_ok=1 WHERE wafer_id = '"
+                                    +  wafer_id + "'";
+                int res = sql_cmd.ExecuteNonQuery();
+                if (res < 1) throw new AvvaDBException("DB Exception: Update Result for wafer [" + wafer_id + "] failed");
+            }
+            catch (SqliteException ex)
+            {
+                throw new AvvaDBException("DB Update", ex);
+            }
         }
         public void Query(string wafer_id, ref SCAN_DATA data)
         {
@@ -127,7 +147,7 @@ namespace Velociraptor.AddOn
             }
             catch (SqliteException ex)
             {
-                throw new AvvaDBException("DB Exception", ex);
+                throw new AvvaDBException("DB Query", ex);
             }
             finally
             {
