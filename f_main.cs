@@ -24,6 +24,7 @@ using log4net.Repository;
 using OpenCvSharp.Extensions;
 using OpenCvSharp;
 using Point = System.Drawing.Point;
+using static Velociraptor.SynOperation;
 
 namespace Velociraptor
 {
@@ -43,7 +44,6 @@ namespace Velociraptor
             eAlignment,
             /// <summary>close application</summary>
             eCloseApplication,
-            eSnap,
         }
         #endregion
         #region enEventThreadGui
@@ -92,16 +92,11 @@ namespace Velociraptor
         private HalconProc hp = new HalconProc();
         private HObject cur_img;
         private string ImageFullPath;
-        bool isGarpping;
+        bool isGarpping=false;
         Bitmap _cur_bitmap = null;
         IAvvaCamera basler = new BaslerCamera();
         AvvaCamera camera;
         #endregion
-
-        System.Timers.Timer timer;
-        System.Timers.Timer timer1;
-        double dataIntensityAverage = 0;
-
         #region Threads and events
         /// <summary>the current thread action</summary>
         eThreadAction _threadAction = eThreadAction.None;
@@ -195,16 +190,12 @@ namespace Velociraptor
         List<cErrorEventArgs> _errorList = null;
         cErrorEventArgs.OnErrorEventHandler _eventOnError = null;
         #endregion
-
         #region cls_components
 
         CsvWriteFile _ccsvWriteFiles = new CsvWriteFile();
-        sAcquisition _acquisitionTab = new sAcquisition();
         sSpectrumRaw spectrumRaw = new sSpectrumRaw();
         #endregion
-
-        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
-
+        #region measure settings
         private int _measure_distance;
         private bool is_advanced_mode = false;
         private SynOperation _syn_op;
@@ -215,6 +206,7 @@ namespace Velociraptor
         private bool _cancelFormClosing = true;
         private bool startmeasure = false;
         private FindScribe fs = new FindScribe();
+        #endregion
         #region autofocus
         long minAFFuncMs;
         long maxAFFuncMs;
@@ -225,10 +217,23 @@ namespace Velociraptor
         Object focusImage;
         delegate double AutoFocusFunc(Object image);
         AutoFocusFunc runAFFunc;
-        readonly EventHandler autoFocusRun;
+        #endregion
+        #region Move, Alignment, Scan
+        readonly EventHandler autoFocusRun; 
+        delegate bool AlignmentFunc(Object offset);
+        AlignmentFunc alignmentFunc;
+        bool isAligning = false;
+        readonly AutoResetEvent alignDone;
+        bool alignmentSucceed = true;
+
+        ScanMoveDelegate scanMove1umFunc;
+        ScanMoveDelegate scanMove5umFunc;
+        MoveDelegate syncMoveFunc;
+        MeasureDelegate measureFunc;
+        eScanType _scan_type;
         #endregion
         #region wafer info
-        private int _wafer_size = 12;
+        //WaferChuck chuck = new WaferChuck();
         private string _wafer_id;
         private int _notch_idx;
         private int _die_row_count = 0;
@@ -238,6 +243,12 @@ namespace Velociraptor
         private double[] EstimatedDieSide = new double[2];
         private double[] _pos_keep = new double[3];
         #endregion
+        #region Misc
+        System.Timers.Timer timer;
+        System.Timers.Timer timer1;
+        System.Timers.Timer timer_measure;
+        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
+        #endregion
         #region 主程式開關
         #region Constructor
         public f_main()
@@ -245,7 +256,6 @@ namespace Velociraptor
             InitializeComponent();
             try
             {
-
                 _generalSettings = new cGeneralSettings(null, null);
                 _generalSettings.Load();
                 _errorList = new List<cErrorEventArgs>();
@@ -290,35 +300,49 @@ namespace Velociraptor
                 _ccd_range = new sCCDRange(0, 0);
                 runAFFunc = new AutoFocusFunc(Cv2LaplacianVariance);
                 autoFocusRun = new EventHandler(AutoFocusRun);
+                alignmentFunc = new AlignmentFunc(Alignment);
+                #endregion
+                #region halcon window control init
+                hp.SetHWindow(hWindowControl1);
+                hp.WinSize = hWindowControl1.Size;
+                Debug.WriteLine("Camera Started");
+
+                string backgroud = Path.Combine(Constants.appConfigFolder, "background.jpg");
+                if (File.Exists(backgroud))
+                    cur_img = hp.LoadImage(backgroud);
                 #endregion
 
                 #region Motion, Camera, Log Initialization
-                ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaMotion1");
-                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
-                    , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
-                log4net.ILog log = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
-                _syn_op = new SynOperation(hp, Constants.appConfigFolder, log);
-                _syn_op.MotorOn();
-                _syn_op.GoHome();
-                log.Info("SynOperation Started");
-
                 ILoggerRepository repository1 = log4net.LogManager.CreateRepository("AvvaCamera1");
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(repository1
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaCamera.log4net.xml")));
                 log4net.ILog log1 = log4net.LogManager.GetLogger("AvvaCamera1", "AvvaCamera");
                 camera = new AvvaCamera(basler, new Mvotem0745("COM7"), new ILPSC("COM6"), log1);
+
+                ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaMotion1");
+                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
+                    , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
+                log4net.ILog log = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
+                _syn_op = new SynOperation(hp, Constants.appConfigFolder, camera, log);
+                _syn_op.MotorOn();
+                _syn_op.GoHome();
+                _syn_op.AsyncMove += OnAsyncMove;
+                _syn_op.ScanParamSet += OnScanParamSet;
+                _syn_op.OnError += OnSynOpError;
+                scanMove5umFunc = new ScanMoveDelegate(_syn_op.AsyncMove5um);
+                scanMove1umFunc = new ScanMoveDelegate(_syn_op.AsyncMove1um);
+                syncMoveFunc = new MoveDelegate(_syn_op.SyncMoveTo);
+                measureFunc = new MeasureDelegate(_syn_op.MeasureScan);
+                log.Info("SynOperation Started");
+
                 camera.ImageFileDirPath = _syn_op.SavingPath;
-                camera.Open(/*_syn_op.IsSimulat*/);
+                camera.Open(_syn_op.IsSimulate);
                 camera.IntstSet(0, tr_light.Value);
                 camera.MaxMagSet();
                 camera.ImageGrabbed += OnImageGrabbed;
-                log1.Info("Camera Started");
-                GrabOn();
-
-                tbLight.Text = tr_light.Value.ToString();
-                tbThreshold1.Text = tr_threshold.Value.ToString();
                 #endregion
                 imageCloneDone = new AutoResetEvent(false);
+                alignDone = new AutoResetEvent(false);
                 _db = new DBKeeper();
             }
             catch (Exception ex)
@@ -400,16 +424,11 @@ namespace Velociraptor
             grp_manual_buttons.Visible = false;
             #endregion
 
-            cb_SelectMeasureDistance.SelectedIndex = 0;
-            cb_wafersize.SelectedIndex = 0;
-            cb_selectMeasurePrecision.SelectedIndex = 0;
-
             try
             {
                 ConnectMeasure();
 
                 Control.CheckForIllegalCrossThreadCalls = false;
-              
                 timer = new System.Timers.Timer(100);//定時週期0.1秒
                 timer.Elapsed += UpdateUIControls;//定時時間到的時候的回撥函式
                 timer.AutoReset = true; //是否不斷重複定時器操作
@@ -417,18 +436,23 @@ namespace Velociraptor
                 timer1 = new System.Timers.Timer(300000);//定時週期300秒
                 timer1.Elapsed += GeneralMode;
                 timer1.AutoReset = false; //是否不斷重複定時器操作
+                timer_measure = new System.Timers.Timer(300000);
+                timer_measure.Elapsed += MeasureTimeout;
+                timer_measure.AutoReset = false;
+
+                GrabOn();
+                btn_grab.Image = Properties.Resources.green;
+
+                cb_SelectMeasureDistance.SelectedIndex = 0;
+                cb_wafersize.SelectedIndex = 0;
+                cb_selectMeasurePrecision.SelectedIndex = 0;
+                tbLight.Text = tr_light.Value.ToString();
+                tbThreshold1.Text = tr_threshold.Value.ToString();
                 GeneralMode(null, null);
-                #region halcon window control init
-                hp.SetHWindow(hWindowControl1);
-                hp.WinSize = hWindowControl1.Size;
-                string backgroud = Path.Combine(Constants.appConfigFolder, "background.jpg");
-                if (File.Exists(backgroud))
-                    cur_img = hp.LoadImage(backgroud);
-                #endregion
             }
             catch (Exception ex)
             {
-                ExceptionDialog(ex, "DoMeasurement");
+                ExceptionDialog(ex, "Form Load");
                 this.Close();
             }
         }
@@ -614,6 +638,10 @@ namespace Velociraptor
                         this.Invoke(new cClientIhm.UpdateDisplayErrorDelegateHandler(cClientIhm.FuncUpdateDisplayErrorDelegateHandler), lst_log, _errorList);
                     }
                     #endregion
+                    if (isAligning && alignDone.WaitOne(0))
+                    {
+                        isAligning = false;
+                    }
                 }
                 _threadGui.EventExitProcessThreadDo.Set();
             }
@@ -717,10 +745,6 @@ namespace Velociraptor
                         }
                     }
                     #endregion  
-                    if (_threadActionProcess.EventUserList[(int)eThreadAction.eSnap].WaitOne(0))
-                    {
-                        _cur_bitmap.Save(_measure_filename + "bmp", ImageFormat.Bmp);
-                    }
                 }
                 _threadActionProcess.EventExitProcessThreadDo.Set();
             }
@@ -754,9 +778,9 @@ namespace Velociraptor
                                 if (dataSample.FirstDataAfterTriggerStart) startmeasure = true;
                                 if (_ccsvWriteFiles != null && startmeasure == true)
                                 {
-                                    if (cb_selectMeasurePrecision.SelectedIndex == 0)
+                                    if (_scan_type==eScanType.Scan1Um)
                                     {
-                                        int line_no = 4 - (_dataAcquisitionNumber-1) / _measure_distance;
+                                        int line_no = 4 - _dataAcquisitionNumber / _measure_distance;
                                         _ccsvWriteFiles.Add(dataSample.SignalDataList, line_no);
                                     }
                                     else
@@ -765,57 +789,48 @@ namespace Velociraptor
                                     }
                                     _dataAcquisitionNumber--;
                                 }
-                                //double pos_x = 0;
-                                //foreach (sSignalData signalData in dataSample.SignalDataList)
-                                //{
-                                //    signalData.DataType = eDataType.LongInt;
-                                //    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
-                                //    {
-                                //        pos_x = (int)signalData.DataToDouble;
-                                //        break;
-                                //    }
-                                //}
-                                if ((_dataAcquisitionNumber <= 0 /*|| pos_x >= _trigger_end*/) 
+                                double pos_x = 0;
+                                foreach (sSignalData signalData in dataSample.SignalDataList)
+                                {
+                                    signalData.DataType = eDataType.LongInt;
+                                    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
+                                    {
+                                        pos_x = (int)signalData.DataToDouble;
+                                        break;
+                                    }
+                                }
+                                if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
-                                    _ccsvWriteFiles.Save(_syn_op.DataDirection, _acquisitionTab.StartMeasureZPos);
-                                    _ccsvWriteFiles.Close();
-                                    _client.TriggerStop();
-                                    _in_trigger = false;
-                                    startmeasure = false;
-                                    #region show data
-                                    ProcessStartInfo Info2 = new ProcessStartInfo();
-                                    Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
-                                    Info2.WorkingDirectory = @"C:\Users\User\Desktop\ThickInspector\ThickInspector\bin\Debug";//檔案所在的目錄
-                                    Info2.Arguments = string.Format(@"{0} 1 0", _measure_filename);
-                                    Process.Start(Info2);
-                                    #endregion
+                                    SaveMeasureData();
+                                    Process profiler = new Process();
+                                    profiler.StartInfo.FileName = "SInspector.exe";
+                                    profiler.StartInfo.Arguments = Path.Combine(_syn_op.SavingPath, _measure_filename + ".data"); // if you need some
+                                    profiler.Start();
                                 }
                             }
                         }
-                    } else if (_syn_op.IsSimulat)
+                    } 
+                    else if (_syn_op.IsSimulate)
                     {
-                        _ccsvWriteFiles.Save(_syn_op.DataDirection, _acquisitionTab.StartMeasureZPos);
+                        _ccsvWriteFiles.Save(_syn_op.DataDirection, (int)_syn_op.GetPos('Z'));
                         _ccsvWriteFiles.Close();
                         _client.TriggerStop();
                         _in_trigger = false;
                         startmeasure = false;
                     }
-
-                   
-
                 }
-                if ((_client != null) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
+                if ((_client != null||_syn_op.IsSimulate) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
                     int scan_mode = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
-                    _ccsvWriteFiles.Open(_syn_op.SavingPath, _measure_filename, scan_mode);                  
+                    _ccsvWriteFiles.Open(Path.Combine(_syn_op.SavingPath, _measure_filename+".data"), scan_mode);
+                    _in_trigger = true;
                 }
             }
             _threadMeasure.EventExitProcessThreadDo.Set();
         }
         #endregion
         #endregion
-
 
         #region 按鈕Click事件
         #region btn_dark_Click
@@ -905,15 +920,7 @@ namespace Velociraptor
         }
         #endregion
 
-        #region btn_AutoFocus_Click
-        private void btn_AutoFocus_Click(object sender, EventArgs e)
-        {
-            FocusClimbing();
-        }
         #endregion
-
-        #endregion
-
         #region 顯示或輸入或改變事件
         #region ntb_cur_pos
         public void UpdateUIControls(object sender, EventArgs e)
@@ -927,6 +934,10 @@ namespace Velociraptor
             ntb_r_cur_motorpos.Text = _syn_op.GetPos('R').ToString();
             if (isGarpping) btn_grab.Image = Properties.Resources.green;
             else btn_grab.Image = Properties.Resources.red; ;
+            if (_client.ClientIsConnected)
+                btn_connect.Image = Properties.Resources.green;
+            else
+                btn_connect.Image = Properties.Resources.red;
             if (_client.DnldCommand.IsBusyDownloadRaw)
                 btn_download.Image = Properties.Resources._0_7;
             else
@@ -938,12 +949,12 @@ namespace Velociraptor
             if (isGarpping)
             {
                 GrabOff();
-                btn_grab.Image = Properties.Resources.green;
+                btn_grab.Image = Properties.Resources.red;
             }
             else
             {
                 GrabOn();
-                btn_grab.Image = Properties.Resources.red;
+                btn_grab.Image = Properties.Resources.green;
             }
         }
         #region cb_SelectMeasureDistance_SelectedIndexChanged
@@ -953,7 +964,6 @@ namespace Velociraptor
         }
         #endregion
         #endregion
-
         #region 連接相機 事件
         #region OnClientConnect
         private void OnClientConnect(object sender, EventArgs e)
@@ -980,11 +990,11 @@ namespace Velociraptor
             {
                 if (client.ClientIsConnected)
                 {
-                    btn_connect.Image = Properties.Resources.red;
+                    btn_connect.Image = Properties.Resources.green;
                 }
                 else
                 {
-                    btn_connect.Image = Properties.Resources.green;
+                    btn_connect.Image = Properties.Resources.red;
                 }
             }
         }
@@ -1009,7 +1019,6 @@ namespace Velociraptor
         #endregion
 
         #endregion
-
         #region 即時顯示圖事件
         #region _OnUpdateInitDownloadDisplay
         private void _OnUpdateInitDownloadDisplay(System.Windows.Forms.Form form)
@@ -1241,7 +1250,6 @@ namespace Velociraptor
         #endregion
 
         #endregion
-
         #region 運動控制
         #region btn_origin_return_Click
         private void btn_origin_return_Click(object sender, EventArgs e)
@@ -1282,21 +1290,24 @@ namespace Velociraptor
                 MessageBox.Show("請先輸入影像分割閥值");
                 return;
             }
-            if (!_client.ClientIsConnected)
+            if (!_syn_op.IsSimulate)
             {
-                MessageBox.Show("量測相機未連線，請先連結相機");
-                return;
-            }
-            if ((_client == null) && (_client.DnldCommand == null))
-            {
-                MessageBox.Show("量測相機初始化失敗，請重新啟動系統");
-                return;
+                if (!_client.ClientIsConnected)
+                {
+                    MessageBox.Show("量測相機未連線，請先連結相機");
+                    return;
+                }
+                if ((_client == null) && (_client.DnldCommand == null))
+                {
+                    MessageBox.Show("量測相機初始化失敗，請重新啟動系統");
+                    return;
+                }
             }
             try
             {
                 DoAlignment();
                 AutoParamsForm form = new AutoParamsForm();
-                if (form.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+                if (form.ShowDialog() != DialogResult.OK) return;
 
                 RawDownloadStop();
                 panel1.Enabled = false;
@@ -1308,12 +1319,18 @@ namespace Velociraptor
                 _die_col_count = int.Parse(form.tb_col_count.Text);
                 int pts_cnt = form.cmb_mea_points.SelectedIndex;
 
+                DateTime dt = DateTime.Now;
+                string dt_str = string.Format("_{0:yy_MM_dd_HH_mm}", dt);
+                _wafer_id += dt_str;
+                string path = Path.Combine(_syn_op.SavingPath, _wafer_id);
+                Directory.CreateDirectory(path);
+
                 DBKeeper.SCAN_DATA data = new DBKeeper.SCAN_DATA();
                 data.wafer_id = _wafer_id;
                 data.points_cnt = pts_cnt * 4 + 1;
                 data.scan_type = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
                 data.notch_way = form.cmb_notch.SelectedIndex;
-
+                data.scan_ok = 0;
                 List<Point> _mea_pts = new List<Point>();
                 List<PointF> _mea_pos;
 
@@ -1352,19 +1369,18 @@ namespace Velociraptor
                         _mea_pts.Add(new Point(-c, -r));
                     }
                 }
-                _mea_pos = TransformDiePos(_mea_pts);
-
-                _measure_distance = 1000;
-                DateTime dt = DateTime.Now;
-                string dt_str = string.Format("_{0:yy_MM_dd_HH_mm}", dt);
-                string path = Path.Combine(_syn_op.SavingPath, _wafer_id + dt_str);
-                Directory.CreateDirectory(path);
+                _mea_pos = _syn_op.TransformDiePos(_die_row_count, _die_col_count, EstimatedDieSide, _mea_pts);
+                _measure_distance = Constants.AutoMeasureDistance;
                 RawDownloadStop();
-                if (DoAutoScan(path, _mea_pos))
-                    data.scan_ok = 1;
-                else
-                    data.scan_ok = 0;
-                _db.Insert(ref data);
+                List<string> f_list = new List<string>();
+                //full pathname = data directory/wafer_id_datetime/DataSet_n.data
+                for (int i = 0; i < _mea_pos.Count; i++)
+                    f_list.Add(Path.Combine(path, "DataSet_" + i.ToString()));
+                DoMeasure(f_list, _mea_pos);
+
+                _db.Insert(data);
+
+                Debug.WriteLine("Auto Measurement Grab on");
                 GrabOn();
                 panel1.Enabled = true;
                 tabControlMain.Enabled = true;
@@ -1375,41 +1391,6 @@ namespace Velociraptor
             {
                 ExceptionDialog(ex, "Auto Measurement");
             }
-        }
-        private List<PointF> TransformDiePos(List<Point>pts)
-        {
-            double[] _center_pos = new double[3];
-            _syn_op.GetCenterPos(_center_pos);
-            int offset_x = 0;
-            int offset_y = 0;
-            if (_die_col_count % 2 == 1)
-            {
-                _center_pos[0] -= EstimatedDieSide[0] / 2;
-            } else
-            {
-                offset_x = 1;
-            }
-            if (_die_row_count % 2 == 1)
-            {
-                _center_pos[1] -= EstimatedDieSide[1] / 2;
-            }
-            else
-            {
-                offset_y = 1;
-            }
-            List<PointF> pos = new List<PointF>();
-            foreach (var p in pts)
-            {
-                float x = (float)((p.X > 0)
-                            ? _center_pos[0] + (p.X - offset_x) * EstimatedDieSide[0] 
-                            : _center_pos[0] + p.X * EstimatedDieSide[0]);
-                float y = (float)((p.Y > 0)
-                            ? _center_pos[1] + (p.Y - offset_y) * EstimatedDieSide[1]
-                            : _center_pos[1] + p.Y * EstimatedDieSide[1]);
-                PointF f = new PointF(x, y);
-                pos.Add(f);
-            }
-            return pos;
         }
         #endregion
         #region btn_move_Click
@@ -1424,7 +1405,8 @@ namespace Velociraptor
                     ? int.Parse(btn_move_distance_z.Text)
                     : int.Parse(btn_move_distance.Text);
                 if (name[1] == '-') move_distance = -move_distance;
-                _syn_op.MoveTo(axis, move_distance);
+                DoSyncMove(axis, move_distance);
+                Debug.WriteLine("btn_move_Click finished:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
             {
@@ -1439,7 +1421,8 @@ namespace Velociraptor
             {
                 int move_distance = int.Parse(btn_move_distance_r.Text);
                 if (name=="CCW") move_distance = -move_distance;
-                _syn_op.MoveTo('R', move_distance);
+                DoSyncMove('R', move_distance);
+                Debug.WriteLine("btn_move_Click finished:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
             {
@@ -1488,11 +1471,11 @@ namespace Velociraptor
             cb_wafersize.Enabled = false;
             try
             {
-                //if (!_syn_op.HasGoHome) _syn_op.GoHome();
                 _syn_op.MoveToCenter();
                 GrabOff();
                 camera.ImageGrabbed -= OnImageGrabbed;
                 camera.ImageGrabbed += OnAutoFocusImageGrabbed;
+                GrabOn();
                 autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
             }
             catch (Exception ex)
@@ -1504,11 +1487,6 @@ namespace Velociraptor
         {
             try
             {
-                //if (!_syn_op.HasGoHome) _syn_op.GoHome();
-                double[] distance = new double[3];
-                _syn_op.GetLoadPos(ref distance);
-                char[] axis = { 'X', 'Y', 'Z' };
-                _syn_op.MoveTo(axis, distance, false);
                 cb_wafersize.Enabled = true;
             }
             catch (Exception ex)
@@ -1518,7 +1496,6 @@ namespace Velociraptor
         }
         #endregion
         #endregion
-
         #region 計算函數
         #region IsInteger
         public bool IsInteger(double d)
@@ -1527,8 +1504,6 @@ namespace Velociraptor
         }
         #endregion
         #endregion
-
-
 
         #region OnInitDisplay
         private void OnInitDisplay(System.Windows.Forms.Form form)
@@ -1849,25 +1824,6 @@ namespace Velociraptor
         #endregion
 
         #endregion
-
-        #region  FocusClimbing
-        private void FocusClimbing()
-        {
-            int zpos = _syn_op.GetPos('Z');
-            List<int> zpos_List = new List<int>();
-            _syn_op.MoveTo('Z', -48000, false);
-            for (int i = 0; i < 1500; i++)
-            {
-                _syn_op.MoveTo('Z', -1);
-                if (dataIntensityAverage != 0)
-                {
-                    zpos = _syn_op.GetPos('Z');
-                    zpos_List.Add(zpos);
-                }
-            }
-            _syn_op.MoveTo('Z', zpos_List[zpos_List.Count / 2], false);
-        }
-        #endregion
         #region btn_ClearAlarm_Click
         private void btn_ClearAlarm_Click(object sender, EventArgs e)
         {
@@ -1989,8 +1945,8 @@ namespace Velociraptor
                 ExceptionDialog(ex, "Halcon Find Angle");
             }
             int threshold1;
-            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 8;
-            _cur_bitmap.Save("C:/Users/User/Desktop/Test.bmp", ImageFormat.Bmp);
+            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 6;
+            _cur_bitmap.Save("C:/Users/User/Desktop.bmp", ImageFormat.Bmp);
             try
             {             
                 fs.find_angle(_cur_bitmap, threshold1, die_size);
@@ -2017,7 +1973,6 @@ namespace Velociraptor
             {
                 if (_client.ClientIsConnected)
                 {
-                    if (!MoveToMeaCamera()) return;
                     SaveFileDialog sfd_upload = new SaveFileDialog();
                     sfd_upload.Filter = "DATA file|*.data";
                     sfd_upload.Title = "Save a File";
@@ -2032,10 +1987,13 @@ namespace Velociraptor
                         if (sfd_upload.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                         {
                             _measure_filename = sfd_upload.FileName;
-                            DoMeasurement();
+                            PointF pos = new PointF((float)_syn_op.GetPos('X')
+                                                       , (float)_syn_op.GetPos('Y'));
+                            List<string> f_list = new List<string> { Path.GetDirectoryName(_measure_filename) };
+                            List<PointF> p_list = new List<PointF> { pos };
+                            DoMeasure(f_list, p_list);
                         }
                     }
-                    MoveBackFromMeaCamera();
                 }
             }
             catch (Exception ex)
@@ -2070,81 +2028,6 @@ namespace Velociraptor
             #endregion
         }
         #endregion
-
-
-
-        private void DoMeasurement()
-        {
-            try
-            {
-                _in_trigger = true;
-                _acquisitionTab.StartMeasureXPos = int.Parse(ntb_x_cur_pos.Text);
-                _acquisitionTab.StartMeasureYPos = int.Parse(ntb_y_cur_pos.Text);
-                _acquisitionTab.StartMeasureZPos = int.Parse(ntb_z_cur_pos.Text);
-                _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureXPos);
-                _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureYPos);
-                _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _acquisitionTab.StartMeasureZPos);
-                _dataAcquisitionNumber = _measure_distance / _syn_op.TriggerInterval;
-
-
-                _fifoDataSample.CalculationOfFifo.Reset();
-                _client.ClearDataSampleFifo();
-                _client.DnldCommand.StopDownloadRaw();
-
-                bool set_EncoderParameter = Set_EncoderParameter(_acquisitionTab.StartMeasureXPos
-                                            ,1 ,_dataAcquisitionNumber);
-                if (set_EncoderParameter != true) return;
-                if (cb_selectMeasurePrecision.SelectedIndex == 0) _dataAcquisitionNumber *= 5;//1um測量時set_EncoderParameter參數TrigNum不必*5
-                _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
-
-
-                if (cb_selectMeasurePrecision.SelectedIndex == 1)
-                {
-                    _syn_op.Move5um(_measure_distance);
-                } 
-                else if (cb_selectMeasurePrecision.SelectedIndex == 0)
-                {
-                    _syn_op.Move1um(_measure_distance);
-                }
-            }
-            catch(Exception ex)
-            {
-                ExceptionDialog(ex, "DoMeasurement");
-            }
-        }
-        private bool MoveToMeaCamera()
-        {
-            try
-            { 
-                GrabOff();
-                _pos_keep[0] = _syn_op.GetPos('X');
-                _pos_keep[1] = _syn_op.GetPos('Y');
-                _pos_keep[2] = _syn_op.GetPos('Z');
-                _syn_op.MoveToMeasurePos();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "DoMeasurement");
-                return false;
-            }
-        }
-        private bool MoveBackFromMeaCamera()
-        {
-            try
-            {
-                char[] axes = { 'X', 'Y', 'Z' };
-                _syn_op.MoveTo(axes, _pos_keep, false);
-                GrabOn();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "DoMeasurement");
-                return false;
-            }
-       }
-
         #region Image Grabbing
         private void OnImageGrabbed(Object sender, EventArgs e)
         {
@@ -2154,12 +2037,10 @@ namespace Velociraptor
             {
                 //Debug.WriteLine("In OnImageGrabbed BeginInvoke:"+Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnImageGrabbed), sender, e);
-
                 return;
             }
 
-            if (camera.CameraState != AvvaCamera.EAvvaCameraState.ImageGrabbing
-                && camera.CameraState != AvvaCamera.EAvvaCameraState.ImageSnapping) return;
+            if (camera.CameraState==AvvaCamera.EAvvaCameraState.Closed) return;
 
             //Debug.WriteLine("In OnImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
             if (camera.ImageData != null)
@@ -2207,7 +2088,16 @@ namespace Velociraptor
                 //==Picture Box
 
                 //Hobject==
-                hp.ConvertImage(camera.ImageData, camera.ImageWidth, camera.ImageHeight, ref cur_img);
+                try
+                {
+                    hp.ConvertImage(camera.ImageData, camera.ImageWidth, camera.ImageHeight, ref cur_img);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    badImageData = true;
+                }
+
                 //==Hobject
 
                 if (isGarpping == true)
@@ -2218,10 +2108,10 @@ namespace Velociraptor
         {
             try
             {
-                Debug.WriteLine("In GrabOn");
+                Debug.WriteLine("In GrabOn"+Thread.CurrentThread.ManagedThreadId.ToString());
 
                 if (isGarpping) return;
-                Debug.WriteLine("Begin GrabStart");
+                Debug.WriteLine("Begin GrabStart" + Thread.CurrentThread.ManagedThreadId.ToString());
                 camera.GrabStart();
                 isGarpping = true;
             }
@@ -2235,10 +2125,10 @@ namespace Velociraptor
         {
             try
             {
-                Debug.WriteLine("In GrabOff");
+                Debug.WriteLine("In GrabOff" + Thread.CurrentThread.ManagedThreadId.ToString());
                 if (isGarpping)
                 {
-                    Debug.WriteLine("Begin GrabStop");
+                    Debug.WriteLine("Begin GrabStop" + Thread.CurrentThread.ManagedThreadId.ToString());
                     camera.GrabStop();
                     isGarpping = false;
                 }
@@ -2257,12 +2147,12 @@ namespace Velociraptor
 
             if (InvokeRequired)
             {
-                //Debug.WriteLine("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                Debug.WriteLine("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnAutoFocusImageGrabbed), sender, e);
 
                 return;
             }
-            //Debug.WriteLine("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            Debug.WriteLine("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
 
             if (camera.ImageData != null)
             {
@@ -2300,7 +2190,7 @@ namespace Velociraptor
                 if ((imageClone == true &&
                     camera.UserData != null &&
                     zPosition == (int)camera.UserData &&
-                    ++zImgCount > 1) || _syn_op.IsSimulat)
+                    ++zImgCount > 1) || _syn_op.IsSimulate)
                 {
                     focusImage = BitmapConverter.ToMat(bitmap);
                     imageClone = false;
@@ -2322,11 +2212,10 @@ namespace Velociraptor
             MoveEventArgs moveEventArgs;
 
             GrabOn();
-            //if (!_syn_op.HasGoHome) _syn_op.GoHome();
             Console.WriteLine("Auto Focusing Fisrt Run:");
-            //Min Mag(0.7X)
-            beginPosition = -34000;
-            endPosition = -32000;
+            //Max Mag
+            beginPosition = _syn_op.MaxMagAutoFocusBegin;
+            endPosition = _syn_op.MaxMagAutoFocusEnd;
 
             positionNo = (Math.Abs(endPosition - beginPosition)) / 1000 + 1;
 
@@ -2341,9 +2230,9 @@ namespace Velociraptor
             for (int position = beginPosition, i = 0; position <= endPosition; position += 1000, i++)
             {
                 runPosition[i] = position;
-                moveEventArgs = new MoveEventArgs { relative = false, position = position };
-                AutoFocusMove(sender, moveEventArgs);
-                AutoFocusMoveWait(position);
+                moveEventArgs = new MoveEventArgs('Z', position, false);
+                OnAsyncMove(sender, moveEventArgs);
+                AsyncMoveWait('Z', position);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2401,9 +2290,9 @@ namespace Velociraptor
             for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
             {
                 runPosition[i] = position;
-                moveEventArgs = new MoveEventArgs { relative = false, position = position };
-                AutoFocusMove(sender, moveEventArgs);
-                AutoFocusMoveWait(position);
+                moveEventArgs = new MoveEventArgs('Z', position, false);
+                OnAsyncMove(sender, moveEventArgs);
+                AsyncMoveWait('Z', positionId);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2435,37 +2324,73 @@ namespace Velociraptor
                     positionId = i;
                 }
             }
-            //_syn_op.MoveTo('Z', runPosition[positionId], false);
-            moveEventArgs = new MoveEventArgs { relative = false, position = runPosition[positionId] };
-            AutoFocusMove(sender, moveEventArgs);
-            AutoFocusMoveWait(runPosition[positionId]);
+            moveEventArgs = new MoveEventArgs('Z', runPosition[positionId], false);
+            OnAsyncMove(sender, moveEventArgs);
+            AsyncMoveWait('Z', runPosition[positionId]);
 
             Console.WriteLine("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
             Console.WriteLine("Max AF func elapsed ms: " + maxAFFuncMs + ", Min AF func elapsed ms: " + minAFFuncMs);
         }
-        private void AutoFocusMove(Object sender, EventArgs e)
+        private void OnAsyncMove(Object sender, EventArgs e)
         {
-            MoveEventArgs moveEventArgs;
-
             if (InvokeRequired)
             {
-                BeginInvoke(new EventHandler(AutoFocusMove), sender, e);
-
+                Debug.WriteLine("OnAsyncMove InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
+                Invoke(new EventHandler(OnAsyncMove), sender, e);
+                Debug.WriteLine("OnAsyncMove InvokeRequired Finished: " + Thread.CurrentThread.ManagedThreadId);
                 return;
             }
 
+            Debug.WriteLine("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
+            MoveEventArgs moveEventArgs;
             moveEventArgs = (MoveEventArgs)e;
-
-            _syn_op.MoveTo('Z', moveEventArgs.position, moveEventArgs.relative);
+            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
         }
-
-        private void AutoFocusMoveWait(int position)
+        private void OnScanParamSet(Object sender, EventArgs e)
         {
-            while (_syn_op.GetPos('Z') != position)
+            if (InvokeRequired)
+            {
+                Debug.WriteLine("OnScanParamSet InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
+                Invoke(new EventHandler(OnScanParamSet), sender, e);
+
+                return;
+            }
+            Debug.WriteLine("OnScanParamSet: " + Thread.CurrentThread.ManagedThreadId);
+
+            MoveEventArgs m_arg = (MoveEventArgs)e;
+            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('X'));
+            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Y'));
+            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Z'));
+            _dataAcquisitionNumber = _measure_distance / _syn_op.TriggerInterval;
+            if (_scan_type == eScanType.Scan1Um)
+                _dataAcquisitionNumber *= 5;
+            _fifoDataSample.CalculationOfFifo.Reset();
+            _client.ClearDataSampleFifo();
+
+            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _dataAcquisitionNumber);
+            _measure_filename = _syn_op.ScanFileName;
+            if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
+                _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
+            else
+                MessageBox.Show("設定量測trigger失敗");
+            _syn_op.EncoderSet.Set();
+        }
+        private void AsyncMoveWait(char[]axis, double[] position)
+        {
+            for (int i=0; i<axis.Length; i++)
+            {
+                while (_syn_op.GetPos(axis[i]) != position[i])
+                {
+                    Thread.Sleep(50);
+                }
+            }
+        }
+        private void AsyncMoveWait(char axis, double position)
+        {
+            while (_syn_op.GetPos(axis) != position)
             {
                 Thread.Sleep(50);
             }
-            zPosition = position;
         }
         private void AutoFocusRun_Callback(IAsyncResult result)
         {
@@ -2528,6 +2453,33 @@ namespace Velociraptor
         }
 
         #endregion
+        #region Alignment
+        private bool Alignment(Object o)
+        {
+            try
+            {
+                int offset = (int)o;
+                camera.MinMagSet();
+                char[] axis = { 'X', 'Y' };
+                double[] center = _syn_op.GetCenter();
+                MoveEventArgs moveEventArgs = new MoveEventArgs(axis, center, false);
+                OnAsyncMove(this, moveEventArgs);
+                AsyncMoveWait(axis, center);
+                fs.find_angle(_cur_bitmap, offset, die_size);
+                moveEventArgs = new MoveEventArgs('R', fs.AngleAverage * 1000, true);
+                OnAsyncMove(this, moveEventArgs);
+                AsyncMoveWait(axis, center);
+                VisionCalibrator vc = new VisionCalibrator();
+                EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
+                EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "DoAlignment()");
+                return false;
+            }
+        }
         private void DoAlignment()
         {
             if (tb_dieX.Text == "" || tb_dieY.Text == "")
@@ -2545,20 +2497,26 @@ namespace Velociraptor
             die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
             int offset = Int32.Parse(tbThreshold1.Text);
+            alignDone.Reset();
+            isAligning = true;
+            alignmentFunc.BeginInvoke(offset, new AsyncCallback(Alignment_Callback), alignmentFunc);
+        }
+        private void Alignment_Callback(IAsyncResult result)
+        {
+            AlignmentFunc func = (AlignmentFunc)result.AsyncState;
+            alignmentSucceed = func.EndInvoke(result);
+            alignDone.Set();
+        }
+        private void Alignment_Done(object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                Debug.WriteLine("In Alignment_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                BeginInvoke(new EventHandler(Alignment_Done), sender, e);
 
-            try
-            {
-                _syn_op.MoveToCenter();
-                fs.find_angle(_cur_bitmap, offset, die_size);
-                _syn_op.MoveTo('R', fs.AngleAverage*1000);
-                EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
-                EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "DoAlignment()");
                 return;
             }
+            MessageBox.Show("轉正完成");
         }
         private void DoAlignment_halcon()
         {
@@ -2590,47 +2548,50 @@ namespace Velociraptor
                 return;
             }
         }
-        private bool DoAutoScan(string pathname, List<PointF> pos)
+        #endregion
+        #region Sync Move emulating function
+        private void DoSyncMove(char[] axis_char, double[] distance, bool isRelative = true)
         {
-            Debug.WriteLine("Begin DoAutoScan");
-            GrabOff();
-            if (!Directory.Exists(pathname)) Directory.CreateDirectory(pathname);
-            char[] axis = { 'X', 'Y' };
-            for (int i = 0; i < pos.Count; i++)
-            {
-                string filename = Path.Combine(pathname, "Data_" + i.ToString());
-                _measure_filename = filename;
-                double[] distance = { pos[i].X, pos[i].Y };
-                if (!DoSnapAndSave(filename)) return false;
-                _syn_op.MoveTo(axis, distance, false);
-                MoveToMeaCamera();
-                DoMeasurement();
-                //MoveBackFromMeaCamera();
-            }
-            return true;
+            Debug.WriteLine("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
+            syncMoveFunc.BeginInvoke(moveEventArgs
+                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
+            grp_move.Enabled = false;
         }
-        private bool DoSnapAndSave(string fname)
+        private void DoSyncMove(char axis_char, double distance, bool isRelative = true)
         {
-            Debug.WriteLine("Begin DoSnapAndSave");
-            _cur_bitmap = null;
-            if (cur_img != null) cur_img.Dispose();
-            cur_img = null;
-            camera.SnapImage();
-            int retry = 0;
-            while (_cur_bitmap == null && retry < 20)
-            {
-                Thread.Sleep(100);
-                Debug.WriteLine("curbitmap = null");
-                retry++;
-            }
-            if (_cur_bitmap == null)
-            {
-                MessageBox.Show(fname + " 取像失敗:逾時");
-                return false;
-            }
-            _threadActionProcess.EventUserList[(int)eThreadAction.eSnap].Set();
-            return true;
+            Debug.WriteLine("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
+            syncMoveFunc.BeginInvoke(moveEventArgs
+                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
+            grp_move.Enabled = false;
         }
+        #endregion
+        #region scan
+        private void DoMeasure(List<string> f_list, List<PointF> pos)
+        {
+            Debug.WriteLine("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            startmeasure = true;
+            measureFunc.BeginInvoke(f_list, pos
+                , _scan_type
+                , _measure_distance
+                , new AsyncCallback(Measure_Callback), measureFunc);
+            panel1.Enabled = false;
+        }
+
+        private void OnSynOpError(object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                Debug.WriteLine("OnSynOpError BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                BeginInvoke(new EventHandler(OnSynOpError), sender, e);
+
+                return;
+            }
+            SynOpErrorArgs error = (SynOpErrorArgs)e;
+            ExceptionDialog(error.Ex, error.Message);
+        }
+        #endregion
         private void RawDownloadStart()
         {
             if ((_client != null) && (_client.DnldCommand != null))
@@ -2642,6 +2603,7 @@ namespace Velociraptor
 
         private void RawDownloadStop()
         {
+            if (_syn_op.IsSimulate) return;
             if ((_client != null) && (_client.DnldCommand != null))
             {
                 if (_client.DnldCommand.IsBusyDownloadRaw)
@@ -2680,12 +2642,68 @@ namespace Velociraptor
             }
             MessageBox.Show(dialog_message);
         }
-
         private void btn_autofocus_Click_1(object sender, EventArgs e)
         {
             camera.ImageGrabbed -= OnImageGrabbed;
             camera.ImageGrabbed += OnAutoFocusImageGrabbed;
             autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
+        }
+        private void cb_wafersize_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //if (cb_wafersize.SelectedIndex==0) chuck.Set_12inchWafer();
+            //else chuck.Set_8inchWafer();
+        }
+        private void SyncMove_Callback(IAsyncResult result)
+        {
+            MoveDelegate func = (MoveDelegate)result.AsyncState;
+            func.EndInvoke(result);
+            Debug.WriteLine("SyncMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            grp_move.Enabled = true;
+        }
+        private void Measure_Callback(IAsyncResult result)
+        {
+            MeasureDelegate func = (MeasureDelegate)result.AsyncState;
+            func.EndInvoke(result);
+            timer_measure.Enabled = true;
+            Debug.WriteLine("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            panel1.Enabled = true;
+        }
+        public void MeasureTimeout(object sender, EventArgs e)
+        {
+            SaveMeasureData();
+        }       
+        private void SaveMeasureData()
+        {
+            if (_syn_op.IsSimulate)
+            {
+                Debug.WriteLine("SaveMeasureData" + Thread.CurrentThread.ManagedThreadId.ToString());
+                return;
+            }
+            _ccsvWriteFiles.Save(_syn_op.DataDirection, (int)_syn_op.GetPos('Z'));
+            _ccsvWriteFiles.Close();
+            _client.TriggerStop();
+            _in_trigger = false;
+            startmeasure = false;
+        }
+        private void ScanMove_Callback(IAsyncResult result)
+        {
+            ScanMoveDelegate func = (ScanMoveDelegate)result.AsyncState;
+            func.EndInvoke(result);
+            Debug.WriteLine("ScanMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+        }
+        private void btn_test_Click(object sender, EventArgs e)
+        {
+            Debug.WriteLine("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
+
+            scanMove1umFunc.BeginInvoke(1000, new AsyncCallback(ScanMove_Callback), scanMove1umFunc);
+
+            //_syn_op.AsyncMove5um(1000);
+        }
+
+        private void cb_selectMeasurePrecision_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            _scan_type = (cb_selectMeasurePrecision.SelectedIndex == 0) 
+                         ? eScanType.Scan1Um : eScanType.Scan5Um;
         }
     }
     [Serializable]
@@ -2704,10 +2722,14 @@ namespace Velociraptor
             if (inner == null) throw new ArgumentNullException("inner");
         }
     }
-    public class MoveEventArgs : EventArgs
+    public class AlignEventArgs : EventArgs
     {
-        public bool relative { get; set; }
-        public int position { get; set; }
+        public int Offset { get; set; }
+    }
+    public class SynOpErrorArgs : EventArgs
+    {
+        public string Message { get; set; }
+        public Exception Ex { get; set; }
     }
 
 }

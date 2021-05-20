@@ -99,7 +99,7 @@ namespace Velociraptor
             }
             double img_ratio = h_height.D / h_width.D;
             double win_ratio = (double)h / w;
-            if(HvDefaultWinHandle!=null) HOperatorSet.SetPart(HvDefaultWinHandle, 0, 0, h_height, h_width);
+            HOperatorSet.SetPart(HvDefaultWinHandle, 0, 0, h_height, h_width);
             if (win_ratio < img_ratio)
             {
                 hWindow.Width = (int)(h_width.D * h / h_height.D);
@@ -108,8 +108,8 @@ namespace Velociraptor
             {
                 hWindow.Height = (int)(h_height.D * w / h_width.D);
             }
-            if (HvDefaultWinHandle != null) HOperatorSet.ClearWindow(HvDefaultWinHandle);
-            if (HvDefaultWinHandle != null) HOperatorSet.DispObj(img, HvDefaultWinHandle);
+            HOperatorSet.ClearWindow(HvDefaultWinHandle);
+            HOperatorSet.DispObj(img, HvDefaultWinHandle);
         }
         public void PrepareGrayImage(HObject img, out HObject gray_img)
         {

@@ -12,7 +12,7 @@ namespace Velociraptor
         public string errstr = "";
 
         //設定8吋晶圓位置
-        private bool Set_8inchWafer()
+        public bool Set_8inchWafer()
         {
             StaticDO_Set(1, false);
             StaticDO_Set(0, true);
@@ -24,7 +24,7 @@ namespace Velociraptor
         }
 
         //設定12吋晶圓位置
-        private bool Set_12inchWafer()
+        public bool Set_12inchWafer()
         {
             StaticDO_Set(0, false);
             StaticDO_Set(1, true);
@@ -36,7 +36,7 @@ namespace Velociraptor
         }
 
         //壓緊晶圓
-        private bool PressWafer()
+        public bool PressWafer()
         {
             StaticDO_Set(3, false);
             StaticDO_Set(2, true);
@@ -48,7 +48,7 @@ namespace Velociraptor
         }
 
         //鬆開晶圓
-        private bool ReleaseWafer()
+        public bool ReleaseWafer()
         {
             StaticDO_Set(2, false);
             StaticDO_Set(3, true);
@@ -59,7 +59,7 @@ namespace Velociraptor
             return true;
         }
         #region StaticDI_Get
-        public int StaticDI_Get(int channel)
+        private int StaticDI_Get(int channel)
         {
             try
             {
