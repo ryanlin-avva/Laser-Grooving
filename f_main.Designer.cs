@@ -181,6 +181,7 @@
             this.hWindowControl1 = new HalconDotNet.HWindowControl();
             this.btn_threshold = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.grp_op = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.nud_dynamic)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nud_cursor_v2)).BeginInit();
@@ -201,6 +202,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pic_camera)).BeginInit();
             this.grp_align_test.SuspendLayout();
             this.grp_manual_buttons.SuspendLayout();
+            this.grp_op.SuspendLayout();
             this.SuspendLayout();
             // 
             // ntb_led_intensity
@@ -1458,7 +1460,7 @@
             // btn_moveto_WaferCenter_point
             // 
             this.btn_moveto_WaferCenter_point.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_moveto_WaferCenter_point.Location = new System.Drawing.Point(807, 204);
+            this.btn_moveto_WaferCenter_point.Location = new System.Drawing.Point(7, 207);
             this.btn_moveto_WaferCenter_point.Margin = new System.Windows.Forms.Padding(4);
             this.btn_moveto_WaferCenter_point.Name = "btn_moveto_WaferCenter_point";
             this.btn_moveto_WaferCenter_point.Size = new System.Drawing.Size(134, 64);
@@ -1675,7 +1677,7 @@
             // btn_manual_mode
             // 
             this.btn_manual_mode.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_manual_mode.Location = new System.Drawing.Point(806, 291);
+            this.btn_manual_mode.Location = new System.Drawing.Point(7, 281);
             this.btn_manual_mode.Margin = new System.Windows.Forms.Padding(4);
             this.btn_manual_mode.Name = "btn_manual_mode";
             this.btn_manual_mode.Size = new System.Drawing.Size(134, 62);
@@ -1687,7 +1689,7 @@
             // btn_unload_wafer
             // 
             this.btn_unload_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_unload_wafer.Location = new System.Drawing.Point(807, 117);
+            this.btn_unload_wafer.Location = new System.Drawing.Point(7, 101);
             this.btn_unload_wafer.Margin = new System.Windows.Forms.Padding(4);
             this.btn_unload_wafer.Name = "btn_unload_wafer";
             this.btn_unload_wafer.Size = new System.Drawing.Size(134, 68);
@@ -1699,7 +1701,7 @@
             // btn_load_wafer
             // 
             this.btn_load_wafer.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
-            this.btn_load_wafer.Location = new System.Drawing.Point(807, 27);
+            this.btn_load_wafer.Location = new System.Drawing.Point(7, 21);
             this.btn_load_wafer.Margin = new System.Windows.Forms.Padding(4);
             this.btn_load_wafer.Name = "btn_load_wafer";
             this.btn_load_wafer.Size = new System.Drawing.Size(134, 70);
@@ -1710,6 +1712,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.grp_op);
             this.panel1.Controls.Add(this.label15);
             this.panel1.Controls.Add(this.cb_selectMeasurePrecision);
             this.panel1.Controls.Add(this.label17);
@@ -1746,12 +1749,8 @@
             this.panel1.Controls.Add(this.ntb_y_cur_pos);
             this.panel1.Controls.Add(this.hWindowControl1);
             this.panel1.Controls.Add(this.btn_threshold);
-            this.panel1.Controls.Add(this.btn_moveto_WaferCenter_point);
             this.panel1.Controls.Add(this.ntb_x_cur_pos);
-            this.panel1.Controls.Add(this.btn_manual_mode);
             this.panel1.Controls.Add(this.grp_move);
-            this.panel1.Controls.Add(this.btn_unload_wafer);
-            this.panel1.Controls.Add(this.btn_load_wafer);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(4);
@@ -2229,6 +2228,18 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
+            // grp_op
+            // 
+            this.grp_op.Controls.Add(this.btn_load_wafer);
+            this.grp_op.Controls.Add(this.btn_unload_wafer);
+            this.grp_op.Controls.Add(this.btn_moveto_WaferCenter_point);
+            this.grp_op.Controls.Add(this.btn_manual_mode);
+            this.grp_op.Location = new System.Drawing.Point(784, 12);
+            this.grp_op.Name = "grp_op";
+            this.grp_op.Size = new System.Drawing.Size(151, 353);
+            this.grp_op.TabIndex = 198;
+            this.grp_op.TabStop = false;
+            // 
             // f_main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(144F, 144F);
@@ -2274,6 +2285,7 @@
             this.grp_align_test.ResumeLayout(false);
             this.grp_align_test.PerformLayout();
             this.grp_manual_buttons.ResumeLayout(false);
+            this.grp_op.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -2430,6 +2442,7 @@
         private System.Windows.Forms.ComboBox cb_selectMeasurePrecision;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Button btn_test;
+        private System.Windows.Forms.GroupBox grp_op;
     }
 }
 

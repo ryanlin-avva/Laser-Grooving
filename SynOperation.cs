@@ -22,6 +22,7 @@ namespace Velociraptor
         private double[] _target_pos = new double[9];
         private char[] _target_axis;
         private bool hasGoHome = false;
+        private log4net.ILog _log;
 
         #region Scan
         public delegate void MeasureDelegate(List<string> pathname, List<PointF> pos
@@ -39,13 +40,14 @@ namespace Velociraptor
         public AutoResetEvent EncoderSet;
         #endregion
 
-        public SynOperation(HalconProc hp, string para_path, AvvaCamera camera, log4net.ILog log = null)
+        public SynOperation(HalconProc hp, string para_path, AvvaCamera camera, log4net.ILog log = null,log4net.ILog log_motion = null)
         {
             _hp = hp;
             _camera = camera;
+            _log = log;
             IAvvaMotion yaskawa = new YaskawaMotion();
             string path = Path.Combine(para_path, Constants.motionParaFilename);
-            _motion = new AvvaMotion(yaskawa, path, log);
+            _motion = new AvvaMotion(yaskawa, path, log_motion);
             path = Path.Combine(para_path, Constants.paraFilename);
             _paraReader = new ParamReader(path);
             AsyncMove += OnAsyncMove;
@@ -64,17 +66,17 @@ namespace Velociraptor
         public int MaxMagAutoFocusEnd { get { return _paraReader.MaxMagAutoFocusEnd; } }
         public void AsyncMoveTo(char axis_char, double distance, bool isRelative = true)
         {
-            Debug.WriteLine("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
             _motion.AsyncMoveTo(axis_char, distance, isRelative);
         }
         public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative = true)
         {
-            Debug.WriteLine("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
             _motion.AsyncMoveTo(axis_char, distance, isRelative);
         }
         public void SyncMoveTo(MoveEventArgs moveEventArgs)
         {
-            Debug.WriteLine("SynOp MoveTo Emu:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("SynOp MoveTo Emu:" + Thread.CurrentThread.ManagedThreadId.ToString());
             //AsyncMove.BeginInvoke(this, moveEventArgs, new AsyncCallback(SyncMoveEmu_Callback), null);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
@@ -141,11 +143,11 @@ namespace Velociraptor
             {
                 _target_pos = moveEventArgs.Position;
             }
-            Debug.WriteLine("SynOp OnAsyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("SynOp OnAsyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
         private void AsyncMoveWait()
         {
-            Debug.WriteLine("SynOp AsyncMoveWait:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("SynOp AsyncMoveWait:" + Thread.CurrentThread.ManagedThreadId.ToString());
             if (IsSimulate)
             {
                 Thread.Sleep(1000);
@@ -162,14 +164,14 @@ namespace Velociraptor
 
         public void AsyncMove5um(int measureDistance)
         {
-            Debug.WriteLine("AsyncMove5um with distance="
+            _log.Debug("AsyncMove5um with distance="
                             +measureDistance.ToString()+":" 
                             + Thread.CurrentThread.ManagedThreadId);
-            Debug.WriteLine("AsyncMove5um 1st Wait over");
+            _log.Debug("AsyncMove5um 1st Wait over");
             MoveEventArgs moveEventArgs = new MoveEventArgs('X', measureDistance + 200, true);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
-            Debug.WriteLine("AsyncMove5um 2nd Wait over");
+            _log.Debug("AsyncMove5um 2nd Wait over");
         }
         public void AsyncMove1um(int measureDistance)
         {
@@ -177,19 +179,19 @@ namespace Velociraptor
             double[] move_x = { measureDistance+buffer2, -measureDistance-buffer2 
                               , measureDistance+buffer2, -measureDistance-buffer2  
                               , measureDistance+Constants.MeasureScanBuffer };
-            Debug.WriteLine("AsyncMove1um to begin pos");
+            _log.Debug("AsyncMove1um to begin pos");
             for (int i = 0; i < 5; i++)
             {
                 MoveEventArgs moveEventArgs = new MoveEventArgs('X', move_x[i], true);
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
-                Debug.WriteLine("AsyncMove1um finish line "+i.ToString());
+                _log.Debug("AsyncMove1um finish line "+i.ToString());
                 if (i < 4)
                 {
                     moveEventArgs = new MoveEventArgs('Y', 1, true);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
-                    Debug.WriteLine("AsyncMove1um Move Y ");
+                    _log.Debug("AsyncMove1um Move Y ");
                 }
             }
         }
@@ -207,7 +209,7 @@ namespace Velociraptor
                 for (int i = 0; i < pos.Count; i++)
                 {
                     ScanFileName = pathname[i];
-                    Debug.WriteLine("MeasureScan filename:"+ ScanFileName);
+                    _log.Debug("MeasureScan filename:"+ ScanFileName);
                     double[] distance = { pos[i].X, pos[i].Y };
                     moveEventArgs = new MoveEventArgs(axisXY, distance, false);
                     AsyncMove(this, moveEventArgs);

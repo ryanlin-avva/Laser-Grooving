@@ -248,6 +248,7 @@ namespace Velociraptor
         System.Timers.Timer timer1;
         System.Timers.Timer timer_measure;
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
+        log4net.ILog _log;
         #endregion
         #region 主程式開關
         #region Constructor
@@ -305,7 +306,6 @@ namespace Velociraptor
                 #region halcon window control init
                 hp.SetHWindow(hWindowControl1);
                 hp.WinSize = hWindowControl1.Size;
-                Debug.WriteLine("Camera Started");
 
                 string backgroud = Path.Combine(Constants.appConfigFolder, "background.jpg");
                 if (File.Exists(backgroud))
@@ -313,17 +313,22 @@ namespace Velociraptor
                 #endregion
 
                 #region Motion, Camera, Log Initialization
+                ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaLaserGrooving");
+                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
+                    , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaLaserGrooving.log4net.xml")));
+                _log = log4net.LogManager.GetLogger("AvvaLaserGrooving", "AvvaMain");
+
                 ILoggerRepository repository1 = log4net.LogManager.CreateRepository("AvvaCamera1");
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(repository1
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaCamera.log4net.xml")));
-                log4net.ILog log1 = log4net.LogManager.GetLogger("AvvaCamera1", "AvvaCamera");
-                camera = new AvvaCamera(basler, new Mvotem0745("COM7"), new ILPSC("COM6"), log1);
+                log4net.ILog log_cam = log4net.LogManager.GetLogger("AvvaCamera1", "AvvaCamera");
+                camera = new AvvaCamera(basler, new Mvotem0745("COM7"), new ILPSC("COM6"), log_cam);
 
-                ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaMotion1");
-                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
+                ILoggerRepository repository2 = log4net.LogManager.CreateRepository("AvvaMotion1");
+                log4net.Config.XmlConfigurator.ConfigureAndWatch(repository2
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
-                log4net.ILog log = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
-                _syn_op = new SynOperation(hp, Constants.appConfigFolder, camera, log);
+                log4net.ILog log_motion = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
+                _syn_op = new SynOperation(hp, Constants.appConfigFolder, camera, _log, log_motion);
                 _syn_op.MotorOn();
                 _syn_op.GoHome();
                 _syn_op.AsyncMove += OnAsyncMove;
@@ -333,7 +338,6 @@ namespace Velociraptor
                 scanMove1umFunc = new ScanMoveDelegate(_syn_op.AsyncMove1um);
                 syncMoveFunc = new MoveDelegate(_syn_op.SyncMoveTo);
                 measureFunc = new MeasureDelegate(_syn_op.MeasureScan);
-                log.Info("SynOperation Started");
 
                 camera.ImageFileDirPath = _syn_op.SavingPath;
                 camera.Open(_syn_op.IsSimulate);
@@ -344,6 +348,7 @@ namespace Velociraptor
                 imageCloneDone = new AutoResetEvent(false);
                 alignDone = new AutoResetEvent(false);
                 _db = new DBKeeper();
+                _log.Info("Form construction finished");
             }
             catch (Exception ex)
             {
@@ -441,6 +446,7 @@ namespace Velociraptor
                 timer_measure.AutoReset = false;
 
                 GrabOn();
+                _log.Debug("Camera Start Grabbing");
                 btn_grab.Image = Properties.Resources.green;
 
                 cb_SelectMeasureDistance.SelectedIndex = 0;
@@ -462,7 +468,7 @@ namespace Velociraptor
         {
             if (_cancelFormClosing)
             {
-                Debug.WriteLine("_cancelFormClosing");
+                _log.Debug("_cancelFormClosing with e.cancel=true");
                 timer.Enabled = false;
                 timer.Dispose();
                 GrabOff();
@@ -478,7 +484,7 @@ namespace Velociraptor
                 return;
             }
 
-            Debug.WriteLine("f_main_FormClosing");
+            _log.Debug("f_main_FormClosing");
             #region _client
             if (_client != null)
             {
@@ -665,7 +671,7 @@ namespace Velociraptor
                     //Debug.WriteLine("ThreadLoop");
                     if (_threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].WaitOne(0))
                     {
-                        Debug.WriteLine("_threadActionProcess EventExitProcessThread");
+                        _log.Debug("_threadActionProcess EventExitProcessThread");
                         if (_threadMeasure != null)
                         {
                             _threadMeasure.StopThread(500);
@@ -698,15 +704,15 @@ namespace Velociraptor
                                     {
                                         _threadAction = eThreadAction.None;
                                         sVersion version = _client.Version;
-                                        _generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
-                                        _generalSettings.General.SodxCommand.Signal.AltitudePeak1 = true;
-                                        _generalSettings.General.SodxCommand.Signal.IntensityLevelPeak1 = true;
-                                        _generalSettings.General.SodxCommand.Signal.IntensityRawPeak1 = true;
-                                        _generalSettings.General.SodxCommand.GlobalSignal.SampleCounter = true;
-                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionX = true;
-                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionY = true;
-                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionZ = true;
-                                        _client.SelectOutputFormat = _generalSettings.General.SodxCommand;
+                                        //_generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
+                                        //_generalSettings.General.SodxCommand.Signal.AltitudePeak1 = true;
+                                        //_generalSettings.General.SodxCommand.Signal.IntensityLevelPeak1 = true;
+                                        //_generalSettings.General.SodxCommand.Signal.IntensityRawPeak1 = true;
+                                        //_generalSettings.General.SodxCommand.GlobalSignal.SampleCounter = true;
+                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionX = true;
+                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionY = true;
+                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionZ = true;
+                                        //_client.SelectOutputFormat = _generalSettings.General.SodxCommand;
                                         _client.TriggerStop();
                                     }
                                     else
@@ -750,7 +756,7 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ExceptionDialog(ex, string.Format("Error : {0}.{1}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name));
             }
             finally
             {
@@ -858,6 +864,7 @@ namespace Velociraptor
 
             //if (psForm.ShowDialog() == DialogResult.OK)
             //{
+            _log.Debug("AdvancedMode");
             is_advanced_mode = true;
             //timer.Enabled = false;
             timer1.Enabled = true; //定時器啟動
@@ -877,7 +884,7 @@ namespace Velociraptor
         #region general mode
         public void GeneralMode(object sender, EventArgs e)
         {
-            Debug.WriteLine("GeneralMode");
+            _log.Debug("GeneralMode");
             is_advanced_mode = false;
             timer1.Enabled = false;
 
@@ -889,18 +896,21 @@ namespace Velociraptor
             grp_test.Visible = false;
         }
         #endregion
-        #endregion
-        #region btn_sodx_Click 
-        private void btn_sodx_Click(object sender, EventArgs e)
+        private void FreezeControls()
         {
-            f_selected_sodx selected_sodx = new f_selected_sodx();
-            cSodxCommand sodxCommand = new cSodxCommand();
-            sodxCommand = _client.SelectOutputFormat;
-            selected_sodx.SodxCommand = sodxCommand;
-            if (selected_sodx.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                _client.SelectOutputFormat = selected_sodx.BackupSodxCommand.Copy();
-            }
+            grp_move.Enabled = false;
+            grp_op.Enabled = false;
+            cb_SelectMeasureDistance.Enabled = false;
+            cb_selectMeasurePrecision.Enabled = false;
+            cb_wafersize.Enabled = false;
+        }
+        private void DefreezeControls()
+        {
+            grp_move.Enabled = true;
+            grp_op.Enabled = true;
+            cb_SelectMeasureDistance.Enabled = true;
+            cb_selectMeasurePrecision.Enabled = true;
+            cb_wafersize.Enabled = true;
         }
         #endregion
         #region btn_move_distance
@@ -1310,8 +1320,6 @@ namespace Velociraptor
                 if (form.ShowDialog() != DialogResult.OK) return;
 
                 RawDownloadStop();
-                panel1.Enabled = false;
-                tabControlMain.Enabled = false;
 
                 _wafer_id = form.tb_wafer_id.Text;
                 _notch_idx = form.cmb_notch.SelectedIndex;
@@ -1376,14 +1384,13 @@ namespace Velociraptor
                 //full pathname = data directory/wafer_id_datetime/DataSet_n.data
                 for (int i = 0; i < _mea_pos.Count; i++)
                     f_list.Add(Path.Combine(path, "DataSet_" + i.ToString()));
+                FreezeControls();
                 DoMeasure(f_list, _mea_pos);
 
                 _db.Insert(data);
 
-                Debug.WriteLine("Auto Measurement Grab on");
+                _log.Debug("Auto Measurement Grab on");
                 GrabOn();
-                panel1.Enabled = true;
-                tabControlMain.Enabled = true;
                 RawDownloadStart();
                 btn_grab.Enabled = true;
             }
@@ -1406,7 +1413,7 @@ namespace Velociraptor
                     : int.Parse(btn_move_distance.Text);
                 if (name[1] == '-') move_distance = -move_distance;
                 DoSyncMove(axis, move_distance);
-                Debug.WriteLine("btn_move_Click finished:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("btn_move_Click finished:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
             {
@@ -1422,7 +1429,7 @@ namespace Velociraptor
                 int move_distance = int.Parse(btn_move_distance_r.Text);
                 if (name=="CCW") move_distance = -move_distance;
                 DoSyncMove('R', move_distance);
-                Debug.WriteLine("btn_move_Click finished:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("btn_move_Click finished:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
             {
@@ -1635,14 +1642,14 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ExceptionDialog(ex, string.Format("Error : {0}.{1}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name));
             }
         }
         #endregion
         #region DisplayCommandData
         private void DisplayCommandData(cClsCommandData clsCommand)
         {
-            Debug.WriteLine("DisplayCommandData");
+            _log.Debug("DisplayCommandData");
 
             if ((clsCommand != null) && (clsCommand.ErrorEventArgs == null))
             {
@@ -1683,7 +1690,7 @@ namespace Velociraptor
         #region DisplayDataFormat
         private void DisplayDataFormat(cClientCommunication client)
         {
-            Debug.WriteLine("DisplayDataFormat");
+            _log.Debug("DisplayDataFormat");
         }
         #endregion 
         #region DisplayStatistics
@@ -1770,13 +1777,13 @@ namespace Velociraptor
                     }
                     if (_threadGui == null)
                     {
-                        Debug.WriteLine("->> {0} : Error {1}"
-                            , sender.GetType().FullName.ToString(), e.Message.Text);
+                        _log.Debug(String.Format("->> {0} : Error {1}"
+                            , sender.GetType().FullName.ToString(), e.Message.Text));
                     }
                     else
                     {
                         _threadGui.EventUserList[(int)enEventThreadGui.DisplayError].Set();
-                        Debug.WriteLine("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text);
+                        _log.Debug(String.Format("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text));
                     }
                 }
             }
@@ -1991,6 +1998,7 @@ namespace Velociraptor
                                                        , (float)_syn_op.GetPos('Y'));
                             List<string> f_list = new List<string> { Path.GetDirectoryName(_measure_filename) };
                             List<PointF> p_list = new List<PointF> { pos };
+                            FreezeControls();
                             DoMeasure(f_list, p_list);
                         }
                     }
@@ -1998,7 +2006,7 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("Error : {0}.{1} : {2}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name, ex.Message), "Attention", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ExceptionDialog(ex, string.Format("Error : {0}.{1}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name));
             }
         }
         private void btn_connect_Click(object sender, EventArgs e)
@@ -2035,14 +2043,14 @@ namespace Velociraptor
 
             if (InvokeRequired)
             {
-                //Debug.WriteLine("In OnImageGrabbed BeginInvoke:"+Thread.CurrentThread.ManagedThreadId.ToString());
+                //_log.Debug("In OnImageGrabbed BeginInvoke:"+Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnImageGrabbed), sender, e);
                 return;
             }
 
             if (camera.CameraState==AvvaCamera.EAvvaCameraState.Closed) return;
 
-            //Debug.WriteLine("In OnImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            //_log.Debug("In OnImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
             if (camera.ImageData != null)
             {
                 //Picture Box==
@@ -2108,10 +2116,10 @@ namespace Velociraptor
         {
             try
             {
-                Debug.WriteLine("In GrabOn"+Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("In GrabOn: "+Thread.CurrentThread.ManagedThreadId.ToString());
 
                 if (isGarpping) return;
-                Debug.WriteLine("Begin GrabStart" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("Begin GrabStart:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 camera.GrabStart();
                 isGarpping = true;
             }
@@ -2125,17 +2133,16 @@ namespace Velociraptor
         {
             try
             {
-                Debug.WriteLine("In GrabOff" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("In GrabOff" + Thread.CurrentThread.ManagedThreadId.ToString());
                 if (isGarpping)
                 {
-                    Debug.WriteLine("Begin GrabStop" + Thread.CurrentThread.ManagedThreadId.ToString());
+                    _log.Debug("Begin GrabStop" + Thread.CurrentThread.ManagedThreadId.ToString());
                     camera.GrabStop();
                     isGarpping = false;
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.ToString());
                 ExceptionDialog(ex, "Camera.GrabStop() failed!");
             }
         }
@@ -2147,16 +2154,16 @@ namespace Velociraptor
 
             if (InvokeRequired)
             {
-                Debug.WriteLine("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnAutoFocusImageGrabbed), sender, e);
 
                 return;
             }
-            Debug.WriteLine("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
 
             if (camera.ImageData != null)
             {
-                //Debug.WriteLine("In OnAutoFocusImageGrabbed ImageData !=null:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                //_log.Debug("In OnAutoFocusImageGrabbed ImageData !=null:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 bool badImageData = false;
 
                 Bitmap bitmap = new Bitmap(camera.ImageWidth, camera.ImageHeight, PixelFormat.Format32bppRgb);
@@ -2335,13 +2342,13 @@ namespace Velociraptor
         {
             if (InvokeRequired)
             {
-                Debug.WriteLine("OnAsyncMove InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
+                _log.Debug("OnAsyncMove InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
                 Invoke(new EventHandler(OnAsyncMove), sender, e);
-                Debug.WriteLine("OnAsyncMove InvokeRequired Finished: " + Thread.CurrentThread.ManagedThreadId);
+                _log.Debug("OnAsyncMove InvokeRequired Finished: " + Thread.CurrentThread.ManagedThreadId);
                 return;
             }
 
-            Debug.WriteLine("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
+            _log.Debug("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
             MoveEventArgs moveEventArgs;
             moveEventArgs = (MoveEventArgs)e;
             _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
@@ -2350,12 +2357,12 @@ namespace Velociraptor
         {
             if (InvokeRequired)
             {
-                Debug.WriteLine("OnScanParamSet InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
+                _log.Debug("OnScanParamSet InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
                 Invoke(new EventHandler(OnScanParamSet), sender, e);
 
                 return;
             }
-            Debug.WriteLine("OnScanParamSet: " + Thread.CurrentThread.ManagedThreadId);
+            _log.Debug("OnScanParamSet: " + Thread.CurrentThread.ManagedThreadId);
 
             MoveEventArgs m_arg = (MoveEventArgs)e;
             _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('X'));
@@ -2372,7 +2379,7 @@ namespace Velociraptor
             if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
                 _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
             else
-                MessageBox.Show("設定量測trigger失敗");
+                ExceptionDialog("設定量測trigger失敗");
             _syn_op.EncoderSet.Set();
         }
         private void AsyncMoveWait(char[]axis, double[] position)
@@ -2400,12 +2407,12 @@ namespace Velociraptor
         {
             if (InvokeRequired)
             {
-                Debug.WriteLine("In AutoFocusRun_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("In AutoFocusRun_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(AutoFocusRun_Done), sender, e);
 
                 return;
             }
-            Debug.WriteLine("In AutoFocusRun_Done:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("In AutoFocusRun_Done:" + Thread.CurrentThread.ManagedThreadId.ToString());
             GrabOff();
             camera.ImageGrabbed -= OnAutoFocusImageGrabbed;
             camera.ImageGrabbed += OnImageGrabbed;
@@ -2511,12 +2518,12 @@ namespace Velociraptor
         {
             if (InvokeRequired)
             {
-                Debug.WriteLine("In Alignment_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("In Alignment_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(Alignment_Done), sender, e);
 
                 return;
             }
-            MessageBox.Show("轉正完成");
+            _log.Debug("轉正完成");
         }
         private void DoAlignment_halcon()
         {
@@ -2552,7 +2559,7 @@ namespace Velociraptor
         #region Sync Move emulating function
         private void DoSyncMove(char[] axis_char, double[] distance, bool isRelative = true)
         {
-            Debug.WriteLine("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
             MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
             syncMoveFunc.BeginInvoke(moveEventArgs
                 , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
@@ -2560,7 +2567,7 @@ namespace Velociraptor
         }
         private void DoSyncMove(char axis_char, double distance, bool isRelative = true)
         {
-            Debug.WriteLine("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
             MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
             syncMoveFunc.BeginInvoke(moveEventArgs
                 , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
@@ -2570,20 +2577,19 @@ namespace Velociraptor
         #region scan
         private void DoMeasure(List<string> f_list, List<PointF> pos)
         {
-            Debug.WriteLine("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
             startmeasure = true;
             measureFunc.BeginInvoke(f_list, pos
                 , _scan_type
                 , _measure_distance
                 , new AsyncCallback(Measure_Callback), measureFunc);
-            panel1.Enabled = false;
         }
 
         private void OnSynOpError(object sender, EventArgs e)
         {
             if (InvokeRequired)
             {
-                Debug.WriteLine("OnSynOpError BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("OnSynOpError BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnSynOpError), sender, e);
 
                 return;
@@ -2640,7 +2646,13 @@ namespace Velociraptor
             {
                 dialog_message += Environment.NewLine + e.InnerException?.Message;
             }
+            _log.Warn(dialog_message);
             MessageBox.Show(dialog_message);
+        }
+        private void ExceptionDialog(string message)
+        {
+            _log.Warn(message);
+            MessageBox.Show(message);
         }
         private void btn_autofocus_Click_1(object sender, EventArgs e)
         {
@@ -2657,7 +2669,7 @@ namespace Velociraptor
         {
             MoveDelegate func = (MoveDelegate)result.AsyncState;
             func.EndInvoke(result);
-            Debug.WriteLine("SyncMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("SyncMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             grp_move.Enabled = true;
         }
         private void Measure_Callback(IAsyncResult result)
@@ -2665,8 +2677,8 @@ namespace Velociraptor
             MeasureDelegate func = (MeasureDelegate)result.AsyncState;
             func.EndInvoke(result);
             timer_measure.Enabled = true;
-            Debug.WriteLine("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            panel1.Enabled = true;
+            _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            DefreezeControls();
         }
         public void MeasureTimeout(object sender, EventArgs e)
         {
@@ -2676,7 +2688,7 @@ namespace Velociraptor
         {
             if (_syn_op.IsSimulate)
             {
-                Debug.WriteLine("SaveMeasureData" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("SaveMeasureData" + Thread.CurrentThread.ManagedThreadId.ToString());
                 return;
             }
             _ccsvWriteFiles.Save(_syn_op.DataDirection, (int)_syn_op.GetPos('Z'));
@@ -2689,11 +2701,11 @@ namespace Velociraptor
         {
             ScanMoveDelegate func = (ScanMoveDelegate)result.AsyncState;
             func.EndInvoke(result);
-            Debug.WriteLine("ScanMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("ScanMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
         private void btn_test_Click(object sender, EventArgs e)
         {
-            Debug.WriteLine("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _log.Debug("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
 
             scanMove1umFunc.BeginInvoke(1000, new AsyncCallback(ScanMove_Callback), scanMove1umFunc);
 
