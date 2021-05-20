@@ -8,7 +8,6 @@ namespace Velociraptor
         static public string motionParaFilename = "AVVAMotionConfig.ini";
         static public string appConfigFolder = "c:/avva/MeasureConfig/";
         static public int AutoMeasureDistance = 1000; //um
-        static public int MeasureScanBuffer = 100; //um
 
         //----------------------------------------
         //Precitec參數

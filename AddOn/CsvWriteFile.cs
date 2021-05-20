@@ -2,10 +2,8 @@
 using MagicServerLibrary;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace Velociraptor.AddOn
@@ -28,9 +26,8 @@ namespace Velociraptor.AddOn
         }
         #endregion
         #region Open
-        public bool Open(string fileName, int ScanningMode)
+        public bool Open(string directory, string fileName, int ScanningMode)
         {
-            Debug.WriteLine("CsvWriteFile.Open()"+Thread.CurrentThread.ManagedThreadId.ToString());
             Close();
             _scan_mode = ScanningMode;
             _line_cnt = (_scan_mode == 5) ? 1 : 5;
@@ -40,7 +37,7 @@ namespace Velociraptor.AddOn
             }
 
             _file = new sCsvWriteFiles();
-            return _file.Open(fileName);
+            return _file.Open(Path.Combine(directory, fileName));
         }
         #endregion
         #region Close
@@ -59,7 +56,7 @@ namespace Velociraptor.AddOn
         public bool Add(List<sSignalData> signalDataList, int line=0)
         {
             if (signalDataList == null || signalDataList.Count == 0) return false;
-            if ((line % 2) != 0)
+            if ((line % 2) == 0)
                 line_keeper[line].Add(signalDataList);
             else
                 line_keeper[line].Insert(0, signalDataList);
@@ -69,7 +66,6 @@ namespace Velociraptor.AddOn
         #region Save
         public bool Save(int DataDirection, int ZPos)
         {
-            Debug.WriteLine("CsvWriteFile.Save()");
             //檢查資料正確性
             int cnt = line_keeper[0].Count;
             for (int i = 1; i < _line_cnt; i++)
@@ -102,7 +98,7 @@ namespace Velociraptor.AddOn
                     for (int i = 0; i < _line_cnt; i++)
                     {
                         if (k == line_points - 1 && i == _line_cnt - 1)
-                            _file.WriteEnd(line_keeper[i].Intensity(j)[k]);
+                            _file.WriteEnd(line_keeper[i].Intensity(j)[k]);                           
                         else
                             _file.Write(line_keeper[i].Intensity(j)[k]);
                     }
@@ -197,6 +193,7 @@ namespace Velociraptor.AddOn
         {
             if ((_streamWriter != null))
                 _streamWriter.Write(string.Format("{0}", value));
+                _streamWriter.WriteLine("");
             return (true);
         }
         public bool WriteList(List<double> values, bool with_end = false)

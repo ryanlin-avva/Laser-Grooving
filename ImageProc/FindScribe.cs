@@ -8,7 +8,7 @@ namespace Velociraptor.ImageProc
 {
     class FindScribe
     {
-        int _img_height, _img_width;
+        int _img_height=3036, _img_width=4024;//影像寬與高
         List<List<Point>> Hor_Line = new List<List<Point>>();
         List<List<Point>> Ver_Line = new List<List<Point>>();
         List<List<Point>> centerpoint_list = new List<List<Point>>();
@@ -16,6 +16,13 @@ namespace Velociraptor.ImageProc
         public double AngleAverage { get; private set; }
         public double WidthAverage { get; private set; }
         public double HeightAverage { get; private set; }
+
+        public double ratio = 0.15;
+        public double Ratio { get { return ratio; } set { } }
+        public int minHeight { get { return (int)(_img_height * ratio); } }
+        public int maxHeight { get { return (int)(_img_height * (1 - ratio)); } }
+        public int minWidth { get { return (int)(_img_width * ratio); } }
+        public int maxWidth { get { return (int)(_img_width * (1 - ratio)); } }
         public void find_angle(Bitmap bitmap, int threshold, double[]die_size)
         {
             _img_height = bitmap.Height;
@@ -28,7 +35,7 @@ namespace Velociraptor.ImageProc
             HeightAverage = die_size[1];
 
             byte[,] array_Outline = GetScribeLine(_fast_pixel, threshold);
-            Targets(array_Outline, _fast_pixel.nx, _fast_pixel.ny, die_size);
+            Targets(array_Outline, _fast_pixel.image_width, _fast_pixel.image_height, die_size);
         }
 
         private double TwoPointFindDistance(Point FirstP, Point SecondP)
@@ -54,10 +61,10 @@ namespace Velociraptor.ImageProc
         private byte[,] GetScribeLine(FastPixel f, int offset)
         {
             byte[,] b = f.array_Green;
-            byte[,] Q = new byte[f.nx, f.ny];
-            for (int i = 1; i < f.nx - 1; i++)
+            byte[,] Q = new byte[f.image_width, f.image_height];
+            for (int i = 1; i < f.image_width - 1; i++)
             {
-                for (int j = 1; j < f.ny - 1; j++)
+                for (int j = 1; j < f.image_height - 1; j++)
                 {
                     if ((-offset < b[i - 1, j] - b[i, j] && b[i - 1, j] - b[i, j] < offset) &&
                         (-offset < b[i + 1, j] - b[i, j] && b[i + 1, j] - b[i, j] < offset) &&
@@ -82,8 +89,9 @@ namespace Velociraptor.ImageProc
             for (int k = 0; k < C.Count; k++)
             {
                 TgInfo T = (TgInfo)C[k];
-                if (T.height < _img_height * 0.8 && T.width < _img_width * 0.8) continue;
-                D.Add(T);
+                if (T.height > maxHeight && T.width > maxWidth) D.Add(T);
+                if (T.height > maxHeight && T.width < minWidth) D.Add(T);
+                if (T.height < minHeight && T.width > maxWidth) D.Add(T);
             }
             C = D;
             //依長寬排序
@@ -176,19 +184,19 @@ namespace Velociraptor.ImageProc
             for (int m = 0; m < _target.P.Count; m++)
             {
                 Point p = (Point)_target.P[m];
-                if (p.X == _target.xmn || p.X == _target.xmn + 1)
+                if (p.X == 1 || p.X == 2)
                 {
                     _target.left_point_list.Add(p);
                 }
-                if (p.X == _target.xmx || p.X == _target.xmx - 1)
+                if (p.X == _img_width - 1 || p.X == _img_width - 2)
                 {
                     _target.right_point_list.Add(p);
                 }
-                if (p.Y == _target.ymn || p.Y == _target.ymn + 1)
+                if (p.Y == 1 || p.Y == 2)
                 {
                     _target.top_point_list.Add(p);
                 }
-                if (p.Y == _target.ymx || p.Y == _target.ymx - 1)
+                if (p.Y == _img_height - 1 || p.Y == _img_height - 2)
                 {
                     _target.down_point_list.Add(p);
                 }
@@ -359,7 +367,7 @@ namespace Velociraptor.ImageProc
                             error_point = error_point + 1;
                         }
                     }
-                    if (error_point < 200)
+                    if (error_point < minWidth)
                     {
                         Point_Set.Add(_target.left_centerpoint_list[w]);
                         Point_Set.Add(_target.right_centerpoint_list[s]);
@@ -385,7 +393,7 @@ namespace Velociraptor.ImageProc
                             error_point = error_point + 1;
                         }
                     }
-                    if (error_point < 200)
+                    if (error_point < minHeight)
                     {
                         Point_Set.Add(_target.top_centerpoint_list[w]);
                         Point_Set.Add(_target.down_centerpoint_list[s]);
