@@ -59,7 +59,7 @@ namespace Velociraptor.AddOn
         public bool Add(List<sSignalData> signalDataList, int line=0)
         {
             if (signalDataList == null || signalDataList.Count == 0) return false;
-            if ((line % 2) != 0)
+            if ((line % 2) == 0)
                 line_keeper[line].Add(signalDataList);
             else
                 line_keeper[line].Insert(0, signalDataList);
