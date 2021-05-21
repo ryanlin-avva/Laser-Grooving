@@ -330,7 +330,7 @@ namespace Velociraptor
                 log4net.ILog log_motion = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
                 _syn_op = new SynOperation(hp, Constants.appConfigFolder, camera, _log, log_motion);
                 _syn_op.MotorOn();
-                _syn_op.GoHome();
+                _syn_op.GoHome();                
                 _syn_op.AsyncMove += OnAsyncMove;
                 _syn_op.ScanParamSet += OnScanParamSet;
                 _syn_op.OnError += OnSynOpError;
@@ -389,6 +389,9 @@ namespace Velociraptor
 
             _client.OnError += _eventOnError;
             _client.Dark();
+            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, 0);
+            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, 0);
+            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, 0);
 
             spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
             spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
@@ -794,7 +797,18 @@ namespace Velociraptor
                                         _ccsvWriteFiles.Add(dataSample.SignalDataList, 0);
                                     }
                                     _dataAcquisitionNumber--;
-                                }                             
+                                }
+                                double pos_x = 0;
+                                foreach (sSignalData signalData in dataSample.SignalDataList)
+                                {
+                                    signalData.DataType = eDataType.LongInt;
+                                    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
+                                    {
+                                        pos_x = (int)signalData.DataToDouble;
+                                        Debug.WriteLine("pos_x:" + pos_x.ToString());
+                                        break;
+                                    }
+                                }
                                 if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
@@ -2009,7 +2023,7 @@ namespace Velociraptor
         {
             #region set triggerParameter
             _client.TriggerStop();
-            int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));
+            int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));//TrigNum代表一行的點個數
             bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, 1);
             bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, 1);
             bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, 0);
@@ -2341,7 +2355,14 @@ namespace Velociraptor
             _log.Debug("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
             MoveEventArgs moveEventArgs;
             moveEventArgs = (MoveEventArgs)e;
-            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
+            if (_in_trigger)
+            { 
+                _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Velocity, moveEventArgs.Relative); 
+            }
+            else
+            {
+                _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
+            }
         }
         private void OnScanParamSet(Object sender, EventArgs e)
         {
@@ -2354,17 +2375,14 @@ namespace Velociraptor
             }
             _log.Debug("OnScanParamSet: " + Thread.CurrentThread.ManagedThreadId);
 
-            MoveEventArgs m_arg = (MoveEventArgs)e;
-            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('X'));
-            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Y'));
-            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Z'));
+            MoveEventArgs m_arg = (MoveEventArgs)e;                    
             _dataAcquisitionNumber = _measure_distance / _syn_op.TriggerInterval;
-            if (_scan_type == eScanType.Scan1Um)
-                _dataAcquisitionNumber *= 5;
+            if (_scan_type == eScanType.Scan1Um)           
+                _dataAcquisitionNumber *= 5;        
             _fifoDataSample.CalculationOfFifo.Reset();
             _client.ClearDataSampleFifo();
-
-            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _dataAcquisitionNumber);
+                   
+            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _measure_distance / _syn_op.TriggerInterval);                   
             _measure_filename = _syn_op.ScanFileName;
             if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
                 _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
@@ -2567,8 +2585,7 @@ namespace Velociraptor
         #region scan
         private void DoMeasure(List<string> f_list, List<PointF> pos)
         {
-            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            _in_trigger = true;
+            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());           
             measureFunc.BeginInvoke(f_list, pos
                 , _scan_type
                 , _measure_distance
