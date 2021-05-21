@@ -131,17 +131,13 @@ namespace Velociraptor
             MoveEventArgs moveEventArgs = (MoveEventArgs)e;
             _target_axis = moveEventArgs.Axis;
             _target_pos = new double[_target_axis.Length];
-            if (moveEventArgs.Relative)
+            for (int i = 0; i < _target_axis.Length; i++)
             {
-                for (int i = 0; i < _target_axis.Length; i++)
-                {
+                if (moveEventArgs.Relative)
                     _target_pos[i] = moveEventArgs.Position[i]
-                                   + _motion.GetPos(_target_axis[i]);
-                }
-            }
-            else
-            {
-                _target_pos = moveEventArgs.Position;
+                               + _motion.GetPos(_target_axis[i]);
+                else
+                    _target_pos[i] = moveEventArgs.Position[i];
             }
             _log.Debug("SynOp OnAsyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
