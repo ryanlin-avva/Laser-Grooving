@@ -2682,7 +2682,7 @@ namespace Velociraptor
         }
         public void MeasureTimeout(object sender, EventArgs e)
         {
-            SaveMeasureData();
+            if (startmeasure) SaveMeasureData();
         }       
         private void SaveMeasureData()
         {
@@ -2707,7 +2707,7 @@ namespace Velociraptor
         {
             _log.Debug("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
 
-            scanMove1umFunc.BeginInvoke(1000, new AsyncCallback(ScanMove_Callback), scanMove1umFunc);
+            DefreezeControls();
 
             //_syn_op.AsyncMove5um(1000);
         }
