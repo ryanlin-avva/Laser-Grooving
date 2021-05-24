@@ -615,9 +615,13 @@ namespace Velociraptor
                             if (sBuffer != null)
                             {
                                 sSpectraRaw spectra = new sSpectraRaw(_client.DnldCommand.SpectrumRaw, sBuffer, _client.FibersParameters);
-                                clsRawImage.Data = spectra.Data;
-                                if (spectra.Data != null)
-                                    this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
+                                if (!startmeasure)//避免掃完第一點後要掃第二點時client因為clsRawImage而斷線
+                                {
+                                    clsRawImage.Data = spectra.Data;
+                                    if (spectra.Data != null)
+                                        this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
+                                }
+                                
                             }
                         }
                     }
@@ -772,7 +776,7 @@ namespace Velociraptor
             _ccsvWriteFiles = new CsvWriteFile();
             while (!_threadMeasure.EventExitProcessThread.WaitOne(timeout))
             {
-                //Debug.WriteLine("ThreadMeasureLoop");
+                //Debug.WriteLine("ThreadMeasureLoop");              
                 if (_threadMeasure.EventUserList[(int)eThreadMeasure.eData].WaitOne(0))
                 {
                     if (_fifoDataSample != null)
@@ -1318,11 +1322,11 @@ namespace Velociraptor
             }
             try
             {
-                DoAlignment();
+                DoAlignment();//對焦，算角度轉正，
                 AutoParamsForm form = new AutoParamsForm();
                 if (form.ShowDialog() != DialogResult.OK) return;
 
-                RawDownloadStop();
+                RawDownloadStop();//停止顯示CLS raw data
 
                 _wafer_id = form.tb_wafer_id.Text;
                 _notch_idx = form.cmb_notch.SelectedIndex;
@@ -1382,7 +1386,6 @@ namespace Velociraptor
                 }
                 _mea_pos = _syn_op.TransformDiePos(_die_row_count, _die_col_count, EstimatedDieSide, _mea_pts);
                 _measure_distance = Constants.AutoMeasureDistance;
-                RawDownloadStop();
                 List<string> f_list = new List<string>();
                 //full pathname = data directory/wafer_id_datetime/DataSet_n.data
                 for (int i = 0; i < _mea_pos.Count; i++)
@@ -2379,6 +2382,15 @@ namespace Velociraptor
             if (_scan_type == eScanType.Scan1Um)           
                 _dataAcquisitionNumber *= 5;        
             _fifoDataSample.CalculationOfFifo.Reset();
+            //while (!_client.ClientIsOpening)
+            //{
+            //    Thread.Sleep(20);
+            //    _client.Open();
+            //}
+            while (!_client.ClientIsConnected)
+            {            
+                _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
+            }
             _client.ClearDataSampleFifo();
 
             _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, (int)m_arg.Position[0]);
@@ -2511,8 +2523,12 @@ namespace Velociraptor
             }
             VisionCalibrator vc = new VisionCalibrator();
             die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));           
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
+            fs.WidthAverage = die_size[Constants.WAY_HORIZONTAL];
+            fs.HeightAverage = die_size[Constants.WAY_VERTICAL];
+            EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
+            EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
             int offset = Int32.Parse(tbThreshold1.Text);
             alignDone.Reset();
             isAligning = true;
@@ -2587,7 +2603,7 @@ namespace Velociraptor
         #region scan
         private void DoMeasure(List<string> f_list, List<PointF> pos)
         {
-            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());           
+            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());              
             measureFunc.BeginInvoke(f_list, pos
                 , _scan_type
                 , _measure_distance

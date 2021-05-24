@@ -14,8 +14,8 @@ namespace Velociraptor.ImageProc
         List<List<Point>> centerpoint_list = new List<List<Point>>();
         List<Point> _target_points = new List<Point>();
         public double AngleAverage { get; private set; }
-        public double WidthAverage { get; private set; }
-        public double HeightAverage { get; private set; }
+        public double WidthAverage { get; set; }
+        public double HeightAverage { get; set; }
         public void find_angle(Bitmap bitmap, int threshold, double[]die_size)
         {
             _img_height = bitmap.Height;

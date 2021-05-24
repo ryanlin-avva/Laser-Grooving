@@ -216,16 +216,20 @@ namespace Velociraptor
         public void MeasureScan(List<string> pathname, List<PointF> pos
                                 , eScanType scan_type, int measureDistance)
         {
+            char[] axisZ = { 'Z' };
             char[] axisXY = { 'X', 'Y' };
             char[] axisXYZ = { 'X', 'Y', 'Z' };
-            double[] relative2Measure = { _paraReader.RelToMeasureCameraX-Constants.MeasureScanBuffer
-                                        , _paraReader.RelToMeasureCameraY
-                                        , _paraReader.RelToMeasureCameraZ };
+            double[] CLStoBaslerDistance = { _paraReader.RelToMeasureCameraZ };
+           
+            
             try
             {
                 MoveEventArgs moveEventArgs;
+                moveEventArgs = new MoveEventArgs(axisZ, CLStoBaslerDistance, _motion.GetAxisDefaultSpeed(axisZ), true);
+                AsyncMove(this, moveEventArgs);
+                AsyncMoveWait();
                 for (int i = 0; i < pos.Count; i++)
-                {
+                {                   
                     ScanFileName = pathname[i];
                     _log.Debug("MeasureScan filename:"+ ScanFileName);
                     double[] distance = { pos[i].X, pos[i].Y };
@@ -233,7 +237,9 @@ namespace Velociraptor
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     _camera.SaveImage(pathname + ".bmp");
-                    moveEventArgs = new MoveEventArgs(axisXYZ, relative2Measure, _motion.GetAxisDefaultSpeed(axisXYZ), true);
+                    double[] relative2Measure = { _paraReader.RelToMeasureCameraX
+                                        , _paraReader.RelToMeasureCameraY};//放外面relative2Measure經過一次for loop會*10倍
+                    moveEventArgs = new MoveEventArgs(axisXY, relative2Measure, _motion.GetAxisDefaultSpeed(axisXY), true);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     moveEventArgs = new MoveEventArgs('X', _paraReader.RelToMeasureCameraX, _motion.GetAxisDefaultSpeed('X'), true);
