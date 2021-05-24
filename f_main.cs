@@ -774,7 +774,7 @@ namespace Velociraptor
                                 {
                                     if (_scan_type==eScanType.Scan1Um)
                                     {
-                                        int line_no = 4 - _dataAcquisitionNumber / _measure_distance;
+                                        int line_no = 4 - (_dataAcquisitionNumber-1) / _measure_distance;
                                         _ccsvWriteFiles.Add(dataSample.SignalDataList, line_no);
                                     }
                                     else
@@ -782,17 +782,7 @@ namespace Velociraptor
                                         _ccsvWriteFiles.Add(dataSample.SignalDataList, 0);
                                     }
                                     _dataAcquisitionNumber--;
-                                }
-                                double pos_x = 0;
-                                foreach (sSignalData signalData in dataSample.SignalDataList)
-                                {
-                                    signalData.DataType = eDataType.LongInt;
-                                    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
-                                    {
-                                        pos_x = (int)signalData.DataToDouble;
-                                        break;
-                                    }
-                                }
+                                }                             
                                 if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
@@ -2256,7 +2246,7 @@ namespace Velociraptor
                 runPosition[i] = position;
                 moveEventArgs = new MoveEventArgs('Z', position, false);
                 OnAsyncMove(sender, moveEventArgs);
-                AsyncMoveWait('Z', positionId);
+                AsyncMoveWait('Z', position);
                 //_syn_op.MoveTo('Z', position, false);
                 zPosition = position;
                 camera.SetUserData((object)position);
@@ -2505,7 +2495,7 @@ namespace Velociraptor
         private void DoMeasure(List<string> f_list, List<PointF> pos)
         {
             _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            startmeasure = true;
+            _in_trigger = true;
             measureFunc.BeginInvoke(f_list, pos
                 , _scan_type
                 , _measure_distance
@@ -2609,7 +2599,7 @@ namespace Velociraptor
         }
         public void MeasureTimeout(object sender, EventArgs e)
         {
-            if (startmeasure) SaveMeasureData();
+            if (startmeasure||_in_trigger) SaveMeasureData();
         }       
         private void SaveMeasureData()
         {
