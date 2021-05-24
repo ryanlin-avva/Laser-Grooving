@@ -389,9 +389,7 @@ namespace Velociraptor
 
             _client.OnError += _eventOnError;
             _client.Dark();
-            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, 0);
-            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, 0);
-            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, 0);
+           
 
             spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
             spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
@@ -707,15 +705,15 @@ namespace Velociraptor
                                     {
                                         _threadAction = eThreadAction.None;
                                         sVersion version = _client.Version;
-                                        //_generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
-                                        //_generalSettings.General.SodxCommand.Signal.AltitudePeak1 = true;
-                                        //_generalSettings.General.SodxCommand.Signal.IntensityLevelPeak1 = true;
-                                        //_generalSettings.General.SodxCommand.Signal.IntensityRawPeak1 = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.SampleCounter = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionX = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionY = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionZ = true;
-                                        //_client.SelectOutputFormat = _generalSettings.General.SodxCommand;
+                                        _generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
+                                        _generalSettings.General.SodxCommand.Signal.AltitudePeak1 = true;//這邊需要收的資料須打開才能收的到
+                                        _generalSettings.General.SodxCommand.Signal.IntensityLevelPeak1 = true;
+                                        _generalSettings.General.SodxCommand.Signal.IntensityRawPeak1 = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.SampleCounter = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionX = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionY = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionZ = true;//這邊需要收的資料須打開才能收的到
+                                        _client.SelectOutputFormat = _generalSettings.General.SodxCommand;
                                         _client.TriggerStop();
                                     }
                                     else
@@ -805,17 +803,18 @@ namespace Velociraptor
                                     if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
                                     {
                                         pos_x = (int)signalData.DataToDouble;
-                                        Debug.WriteLine("pos_x:" + pos_x.ToString());
+                                        Debug.WriteLine("pos_x:" + signalData.DataToString);
                                         break;
                                     }
                                 }
                                 if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
-                                    SaveMeasureData();
+                                    SaveMeasureData();                                    
                                     Process profiler = new Process();
-                                    profiler.StartInfo.FileName = "SInspector.exe";
-                                    profiler.StartInfo.Arguments = Path.Combine(_syn_op.SavingPath, _measure_filename + ".data"); // if you need some
+                                    profiler.StartInfo.FileName = "ThickInspector.exe";
+                                    profiler.StartInfo.WorkingDirectory = @"C:\avva\InspectRes";
+                                    profiler.StartInfo.Arguments = @Path.Combine(_syn_op.SavingPath, _measure_filename + ".data"); // if you need some
                                     profiler.Start();
                                 }
                             }
@@ -2030,7 +2029,7 @@ namespace Velociraptor
             bool EndlessRountripTrigger = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, 0);
             bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
             bool SetStopPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, StopPos);
-            bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);
+            bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);          
             if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis
                 && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition
                 && SelectEncoderTriggerSource)) return false;
@@ -2381,9 +2380,12 @@ namespace Velociraptor
                 _dataAcquisitionNumber *= 5;        
             _fifoDataSample.CalculationOfFifo.Reset();
             _client.ClearDataSampleFifo();
-                   
+
+            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, (int)m_arg.Position[0]);
+            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Y'));
+            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Z'));
             _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _measure_distance / _syn_op.TriggerInterval);                   
-            _measure_filename = _syn_op.ScanFileName;
+            _measure_filename = Path.GetFileNameWithoutExtension(_measure_filename);
             if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
                 _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
             else

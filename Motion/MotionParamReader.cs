@@ -45,6 +45,7 @@ namespace Avva.MotionFramework
             _axisData = new AxisData[_axis_num];
             _homeData = new AxisData[_axis_num];
             _units = new double[_axis_num];
+
             string[] sections = { "MotorParameter", "HomeParameter" };
             for (int i = 0; i < _axis_num; i++)
             {
@@ -64,14 +65,21 @@ namespace Avva.MotionFramework
                 }
             }
         }
-        public int BuildAxisMapping(Dictionary<char, int> axis_map)
+        public int BuildAxisAndDefaultSpeedMapping(Dictionary<char, int> axis_map
+                                                 , Dictionary<char,double> speed)
         {
-            axis_map.Add('X', axis_x);
+            axis_map.Add('X', axis_x); 
+            if (axis_x != -1) speed.Add('X', _axisData[axis_x].Velocity);
             axis_map.Add('Y', axis_y);
+            if (axis_y != -1) speed.Add('Y', _axisData[axis_y].Velocity);
             axis_map.Add('Z', axis_z);
+            if (axis_z != -1) speed.Add('Z', _axisData[axis_z].Velocity);
             axis_map.Add('R', axis_r);
+            if (axis_r != -1) speed.Add('R', _axisData[axis_r].Velocity);
             axis_map.Add('A', axis_a);
+            if (axis_a != -1) speed.Add('A', _axisData[axis_a].Velocity);
             axis_map.Add('B', axis_b);
+            if (axis_b != -1) speed.Add('B', _axisData[axis_b].Velocity);
             return _axis_num;
         }
         public AxisData[] GetAllAxisData()

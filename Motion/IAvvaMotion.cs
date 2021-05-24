@@ -8,14 +8,10 @@ namespace Avva.MotionFramework
         void Init(AxisData[] axes, AxisData[] home);
         void MotorOn();
         void MotorOff();
-        void MoveTo(int axis, double distance, bool isRelative = true);
         void MoveTo(int axis, double distance,double velocity, bool isRelative = true);
-        void MoveTo(int[] axis, double[] distance, bool isRelative);
-        void MoveTo(int[] axis, double[] distance,double[] velocity, bool isRelative);
-        void AsyncMoveTo(int axis, double distance, bool isRelative = true);
+        void MoveTo(int[] axis, double[] distance,double[] velocity, bool isRelative = true);
         void AsyncMoveTo(int axis, double distance,double velocity, bool isRelative = true);
-        void AsyncMoveTo(int[] axis, double[] distance, bool isRelative);
-        void AsyncMoveTo(int[] axis, double[] distance,double[] velocity, bool isRelative);
+        void AsyncMoveTo(int[] axis, double[] distance,double[] velocity, bool isRelative = true);
         void StopMove();
         double GetPos(int axis);
         void JogStart(int axis, bool isPositive = true);

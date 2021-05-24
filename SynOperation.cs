@@ -229,14 +229,14 @@ namespace Velociraptor
                     ScanFileName = pathname[i];
                     _log.Debug("MeasureScan filename:"+ ScanFileName);
                     double[] distance = { pos[i].X, pos[i].Y };
-                    moveEventArgs = new MoveEventArgs(axisXY, distance, false);
+                    moveEventArgs = new MoveEventArgs(axisXY, distance,_motion.GetAxisDefaultSpeed(axisXY), false);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     _camera.SaveImage(pathname + ".bmp");
-                    moveEventArgs = new MoveEventArgs(axisXYZ, relative2Measure, true);
+                    moveEventArgs = new MoveEventArgs(axisXYZ, relative2Measure, _motion.GetAxisDefaultSpeed(axisXYZ), true);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
-                    moveEventArgs = new MoveEventArgs('X', _paraReader.RelToMeasureCameraX, true);
+                    moveEventArgs = new MoveEventArgs('X', _paraReader.RelToMeasureCameraX, _motion.GetAxisDefaultSpeed('X'), true);
                     EncoderSet.Reset();
                     ScanParamSet(this, moveEventArgs);
                     EncoderSet.WaitOne();
@@ -273,7 +273,7 @@ namespace Velociraptor
                                 , _paraReader.MoveToWaferCenterPointYDistance
                                  ,_paraReader.MoveToWaferCenterPointRDistance};
             if (!hasGoHome) GoHome();
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance, false);
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance,_motion.GetAxisDefaultSpeed(axis), false);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
         }
@@ -353,7 +353,7 @@ namespace Velociraptor
             double[] pos = { position };
             char[] a = { axis };
             Position = pos;
-            Axis = a;
+            Axis = a;           
         }
         public MoveEventArgs(char axis, double position,double velocity, bool isRelative)
         {

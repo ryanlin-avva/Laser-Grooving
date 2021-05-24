@@ -10,11 +10,13 @@ namespace Avva.MotionFramework
     public class AvvaMotion
     {
         public enum EAvvaMotionState { On, Off, Move, AsyncMove, StopMove, JogStart, JogStop, ClearAlarm, GoHome };
+        private enum EAvvaMotionType { Async, Sync };
 
         private IAvvaMotion _motion;
         private static log4net.ILog _log;
         private MotionParamReader _paraReader;
         private Dictionary<char, int> axis_map = new Dictionary<char, int>();
+        private Dictionary<char, double> _default_speed = new Dictionary<char, double>();
         private double[] _units;
         private Object _motionLock;
         private EAvvaMotionState _motionState = EAvvaMotionState.Off;
@@ -83,11 +85,10 @@ namespace Avva.MotionFramework
             }
             _paraReader = new MotionParamReader(paraFilename);
             IsSimulate = _paraReader.IsSimulate;
-            if (IsSimulate) return;
-
-            _paraReader.BuildAxisMapping(axis_map);
+            _paraReader.BuildAxisAndDefaultSpeedMapping(axis_map, _default_speed);
             _units = _paraReader.Units;
 
+            if (IsSimulate) return;
             _motion.Init(_paraReader.GetAllAxisData(), _paraReader.GetHomeData());
         }
         public void MotorOn()
@@ -137,126 +138,38 @@ namespace Avva.MotionFramework
         }
         public void MoveTo(char axis_char, double distance, bool isRelative = true)
         {
-            if (IsSimulate) return;
-            lock (_motionLock)
-            {
-                try
-                {
-                    if (!isRelative && !_hasHome)
-                        throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int my_axis = GetAxisNum(axis_char);
-                    _motion.MoveTo(my_axis, distance * _units[my_axis], isRelative);
-                    _motionState = EAvvaMotionState.Move;
-                }
-                catch (Exception ex)
-                {
-                    _log.Fatal("MoveTo()" + Environment.NewLine + ex.ToString());
-                    throw new AvvaMotionException("Exception in MoveTo()", ex);
-                }
-            }
+            MyMove(axis_char, distance, _default_speed[axis_char], isRelative, EAvvaMotionType.Sync);
         }
-        public void MoveTo(char axis_char, double distance, double velocity,bool isRelative = true)
+        public void MoveTo(char axis_char, double distance, double velocity, bool isRelative = true)
         {
-            if (IsSimulate) return;
-            lock (_motionLock)
-            {
-                try
-                {
-                    if (!isRelative && !_hasHome)
-                        throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int my_axis = GetAxisNum(axis_char);
-                    _motion.MoveTo(my_axis, distance * _units[my_axis], velocity * _units[my_axis], isRelative);
-                    _motionState = EAvvaMotionState.Move;
-                }
-                catch (Exception ex)
-                {
-                    _log.Fatal("MoveTo()" + Environment.NewLine + ex.ToString());
-                    throw new AvvaMotionException("Exception in MoveTo()", ex);
-                }
-            }
+            MyMove(axis_char, distance, velocity, isRelative, EAvvaMotionType.Sync);
         }
-        public void MoveTo(char[] axis_char, double[] distance, bool isRelative)
+        public void MoveTo(char[] axis_char, double[] distance, bool isRelative = true)
         {
-            if (IsSimulate) return;
-            lock (_motionLock)
-            {
-                try
-                {
-                    if (!isRelative && !_hasHome)
-                        throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int[] axis = MoveArrayConvert(axis_char, distance);
-                    _motion.MoveTo(axis, distance, isRelative);
-                    _motionState = EAvvaMotionState.Move;
-                }
-                catch (Exception ex)
-                {
-                    _log.Fatal("MoveTo()" + Environment.NewLine + ex.ToString());
-                    throw new AvvaMotionException("Exception in MoveTo()", ex);
-                }
-            }
+            MyMove(axis_char, distance, GetAxisDefaultSpeed(axis_char), isRelative, EAvvaMotionType.Sync);
         }
-        public void MoveTo(char[] axis_char, double[] distance,double[] velocity, bool isRelative)
+        public void MoveTo(char[] axis_char, double[] distance,double[] velocity, bool isRelative = true)
         {
-            if (IsSimulate) return;
-            lock (_motionLock)
-            {
-                try
-                {
-                    if (!isRelative && !_hasHome)
-                        throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int[] axis = MoveArrayConvert(axis_char, distance,velocity);
-                    _motion.MoveTo(axis, distance,velocity, isRelative);
-                    _motionState = EAvvaMotionState.Move;
-                }
-                catch (Exception ex)
-                {
-                    _log.Fatal("MoveTo()" + Environment.NewLine + ex.ToString());
-                    throw new AvvaMotionException("Exception in MoveTo()", ex);
-                }
-            }
+            MyMove(axis_char, distance, velocity, isRelative, EAvvaMotionType.Sync);
         }
         public void AsyncMoveTo(char axis_char, double distance, bool isRelative = true)
         {
-            if (IsSimulate) return;
-            lock (_motionLock)
-            {
-                try
-                {
-                    if (!isRelative && !_hasHome)
-                        throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int my_axis = GetAxisNum(axis_char);
-                    _motion.AsyncMoveTo(my_axis, distance * _units[my_axis], isRelative);
-                    _motionState = EAvvaMotionState.AsyncMove;
-                }
-                catch (Exception ex)
-                {
-                    _log.Fatal("AsyncMoveTo()" + Environment.NewLine + ex.ToString());
-                    throw new AvvaMotionException("Exception in AsyncMoveTo()", ex);
-                }
-            }
+            MyMove(axis_char, distance, _default_speed[axis_char], isRelative, EAvvaMotionType.Async);
         }
         public void AsyncMoveTo(char axis_char, double distance,double velocity, bool isRelative = true)
         {
-            if (IsSimulate) return;
-            lock (_motionLock)
-            {
-                try
-                {
-                    if (!isRelative && !_hasHome)
-                        throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int my_axis = GetAxisNum(axis_char);
-                    _motion.AsyncMoveTo(my_axis, distance * _units[my_axis], velocity * _units[my_axis], isRelative);
-                    _motionState = EAvvaMotionState.AsyncMove;
-                }
-                catch (Exception ex)
-                {
-                    _log.Fatal("AsyncMoveTo()" + Environment.NewLine + ex.ToString());
-                    throw new AvvaMotionException("Exception in AsyncMoveTo()", ex);
-                }
-            }
+            MyMove(axis_char, distance, velocity, isRelative, EAvvaMotionType.Async);
         }
 
-        public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative)
+        public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative = true)
+        {
+            MyMove(axis_char, distance, GetAxisDefaultSpeed(axis_char), isRelative, EAvvaMotionType.Async);
+        }
+        public void AsyncMoveTo(char[] axis_char, double[] distance,double[] velocity, bool isRelative = true)
+        {
+            MyMove(axis_char, distance, velocity, isRelative, EAvvaMotionType.Async);
+        }
+        private void MyMove(char[] axis_char, double[] distance, double[] velocity, bool isRelative, EAvvaMotionType m_type)
         {
             if (IsSimulate) return;
             lock (_motionLock)
@@ -265,8 +178,11 @@ namespace Avva.MotionFramework
                 {
                     if (!isRelative && !_hasHome)
                         throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int[] axis = MoveArrayConvert(axis_char, distance);
-                    _motion.AsyncMoveTo(axis, distance, isRelative);
+                    int[] axis = MoveArrayConvert(axis_char, distance, velocity);
+                    if (m_type == EAvvaMotionType.Async)
+                        _motion.AsyncMoveTo(axis, distance, velocity, isRelative);
+                    else
+                        _motion.MoveTo(axis, distance, velocity, isRelative);
                     _motionState = EAvvaMotionState.AsyncMove;
                 }
                 catch (Exception ex)
@@ -276,7 +192,7 @@ namespace Avva.MotionFramework
                 }
             }
         }
-        public void AsyncMoveTo(char[] axis_char, double[] distance,double[] velocity, bool isRelative)
+        private void MyMove(char axis_char, double distance, double velocity, bool isRelative, EAvvaMotionType m_type)
         {
             if (IsSimulate) return;
             lock (_motionLock)
@@ -285,8 +201,13 @@ namespace Avva.MotionFramework
                 {
                     if (!isRelative && !_hasHome)
                         throw new AvvaMotionException("Absolute Move Before Go Zero");
-                    int[] axis = MoveArrayConvert(axis_char, distance,velocity);
-                    _motion.AsyncMoveTo(axis, distance,velocity, isRelative);
+                    int axis = GetAxisNum(axis_char);
+                    if (m_type == EAvvaMotionType.Async)
+                        _motion.AsyncMoveTo(axis, distance * _units[axis]
+                                          , velocity * _units[axis], isRelative);
+                    else
+                        _motion.MoveTo(axis, distance * _units[axis]
+                                     , velocity * _units[axis], isRelative);
                     _motionState = EAvvaMotionState.AsyncMove;
                 }
                 catch (Exception ex)
@@ -438,6 +359,18 @@ namespace Avva.MotionFramework
             }
             return my_axis;
         }
+        public double GetAxisDefaultSpeed(char axis)
+        {                  
+            double speed = _default_speed[axis];
+            return speed;
+        }
+        public double[] GetAxisDefaultSpeed(char[] axis)
+        {
+            double[] speed = new double[axis.Length];
+            for (int i = 0; i < axis.Length; i++)
+                speed[i] = _default_speed[axis[i]];
+            return speed;
+        }
         private int[] GetAxisNumArray(char[] axis)
         {
             int[] axis_array = new int[axis.Length];
@@ -452,36 +385,26 @@ namespace Avva.MotionFramework
             }
             return axis_array;
         }
-        private int[] MoveArrayConvert(char[] axis, double[] distance)
-        {
-            int[] axis_array = new int[axis.Length];
-            for (int i=0; i<axis.Length; i++)
-            {
-                int my_axis = axis_map[axis[i]];
-                if (my_axis == -1)
-                {
-                    throw new AvvaMotionException("Axis" + axis + " NOT Found");
-                }
-                axis_array[i] = my_axis;
-                distance[i] *= _units[my_axis];
-            }
-            return axis_array;
-        }
-        private int[] MoveArrayConvert(char[] axis, double[] distance,double[] velocity)
+        private int[] MoveArrayConvert(char[] axis, double[] distance, double[] velocity)
         {
             int[] axis_array = new int[axis.Length];
             for (int i = 0; i < axis.Length; i++)
             {
-                int my_axis = axis_map[axis[i]];
-                if (my_axis == -1)
-                {
-                    throw new AvvaMotionException("Axis" + axis + " NOT Found");
-                }
+                int my_axis = AxisNo(axis[i]);
                 axis_array[i] = my_axis;
                 distance[i] *= _units[my_axis];
                 velocity[i] *= _units[my_axis];
             }
             return axis_array;
+        }
+        private int AxisNo(char axis)
+        {
+            int my_axis = axis_map[axis];
+            if (my_axis == -1)
+            {
+                throw new AvvaMotionException("Axis" + axis + " NOT Found");
+            }
+            return my_axis;
         }
     }
 }

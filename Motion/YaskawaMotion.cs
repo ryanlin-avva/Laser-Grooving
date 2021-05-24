@@ -64,57 +64,22 @@ namespace Avva.MotionFramework
             }
             #endregion
         }
-        public void MoveTo(int axis, double distance, bool isRelative = true)
-        {
-            BaseMoveTo(axis, distance, WaitForCompletion, isRelative);
-        }
 		public void MoveTo(int axis, double distance,double velocity, bool isRelative = true)
 		{
 			BaseMoveTo(axis, distance, velocity, WaitForCompletion,isRelative);
 		}
-		public void MoveTo(int[] axis, double[] distance, bool isRelative)
-        {
-            BaseMoveTo(axis, distance, WaitForCompletion, isRelative);
-        }
 		public void MoveTo(int[] axis, double[] distance,double[] velocity, bool isRelative)
 		{
 			BaseMoveTo(axis, distance,velocity, WaitForCompletion, isRelative);
 		}
-		public void AsyncMoveTo(int axis, double distance, bool isRelative = true)
-        {
-            BaseMoveTo(axis, distance, WaitForStart, isRelative);
-        }
 		public void AsyncMoveTo(int axis, double distance,double velocity, bool isRelative = true)
 		{
 			BaseMoveTo(axis, distance,velocity, WaitForStart, isRelative);
-		}
-		public void AsyncMoveTo(int[] axis, double[] distance, bool isRelative = true)
-		{
-			BaseMoveTo(axis, distance, WaitForStart, isRelative);
 		}
 		public void AsyncMoveTo(int[] axis, double[] distance,double[] velocity, bool isRelative)
         {
             BaseMoveTo(axis, distance,velocity, WaitForStart, isRelative);
         }
-        private void BaseMoveTo(int axis, double distance, UInt16[] waitType, bool isRelative = true)
-        {
-            CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
-            move_pos[axis].PositionData = (int)distance;
-            //Keep other axis to be relative, and pos = 0
-            //=> No impact on axis except the assigned one
-            for (int i = 0; i < _axis_num; i++)
-                MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
-            if (!isRelative)
-                MotionData[axis].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
-			OpenController();
-			DeclareDevice();
-			rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0,"Start", waitType, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-				throw new AvvaMotionException("ymcMoveDriverPositioning error-"+MyErrorCode.ErrorMessage(rc));
-            }
-			
-		}
 		private void BaseMoveTo(int axis, double distance, double velocity, UInt16[] waitType, bool isRelative = true)
 		{
 			CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
@@ -138,38 +103,18 @@ namespace Avva.MotionFramework
 		}
 		//Default use relative move
 		//If use absolute move, ONLY SPECIFIED AXIS ARE SET TO ABS
-		private void BaseMoveTo(int[] axis, double[] distance, UInt16[] waitType, bool isRelative)
-        {
-            CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
-            for (int i = 0; i < _axis_num; i++)
-                MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
-
-            for (int i = 0; i < axis.Length; i++)
-            {
-                move_pos[axis[i]].PositionData = (int)distance[i];
-                if (!isRelative)
-                    MotionData[axis[i]].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
-            }
-			OpenController();
-			DeclareDevice();
-			rc = CMotionAPI.ymcMoveDriverPositioning(g_hDevice, MotionData, move_pos, 0,"Start", waitType, 0);
-            if (rc != CMotionAPI.MP_SUCCESS)
-            {
-				throw new AvvaMotionException("ymcMoveDriverPositioning error-" + MyErrorCode.ErrorMessage(rc));
-            }
-			
-		}
 		private void BaseMoveTo(int[] axis, double[] distance,double[] velocity, UInt16[] waitType, bool isRelative)
 		{
 			CMotionAPI.POSITION_DATA[] move_pos = (CMotionAPI.POSITION_DATA[])PosForMove.Clone();
 			for (int i = 0; i < _axis_num; i++)
+			{
 				MotionData[i].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_RELATIVE;
-			for (int i = 0; i < velocity.Length; i++)
-				MotionData[i].Velocity = (int)velocity[i];
+			}
 
 			for (int i = 0; i < axis.Length; i++)
 			{
 				move_pos[axis[i]].PositionData = (int)distance[i];
+				MotionData[axis[i]].Velocity = (int)velocity[i];
 				if (!isRelative)
 					MotionData[axis[i]].MoveType = (Int16)CMotionAPI.ApiDefs.MTYPE_ABSOLUTE;
 			}
