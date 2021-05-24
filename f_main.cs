@@ -1,6 +1,5 @@
 ﻿using System;
 using Velociraptor.AddOn;
-using HalconDotNet;
 using Velociraptor.MyForm;
 using System.Collections.Generic;
 using System.IO;
@@ -89,8 +88,6 @@ namespace Velociraptor
         }
         #endregion
         #region ImageProcessing
-        private HalconProc hp = new HalconProc();
-        private HObject cur_img;
         private string ImageFullPath;
         bool isGarpping=false;
         Bitmap _cur_bitmap = null;
@@ -233,7 +230,7 @@ namespace Velociraptor
         eScanType _scan_type;
         #endregion
         #region wafer info
-        //WaferChuck chuck = new WaferChuck();
+        WaferChuck chuck = new WaferChuck();
         private string _wafer_id;
         private int _notch_idx;
         private int _die_row_count = 0;
@@ -303,15 +300,6 @@ namespace Velociraptor
                 autoFocusRun = new EventHandler(AutoFocusRun);
                 alignmentFunc = new AlignmentFunc(Alignment);
                 #endregion
-                #region halcon window control init
-                hp.SetHWindow(hWindowControl1);
-                hp.WinSize = hWindowControl1.Size;
-
-                string backgroud = Path.Combine(Constants.appConfigFolder, "background.jpg");
-                if (File.Exists(backgroud))
-                    cur_img = hp.LoadImage(backgroud);
-                #endregion
-
                 #region Motion, Camera, Log Initialization
                 ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaLaserGrooving");
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(repository
@@ -328,7 +316,7 @@ namespace Velociraptor
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(repository2
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
                 log4net.ILog log_motion = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
-                _syn_op = new SynOperation(hp, Constants.appConfigFolder, camera, _log, log_motion);
+                _syn_op = new SynOperation(Constants.appConfigFolder, camera, _log, log_motion);
                 _syn_op.MotorOn();
                 _syn_op.GoHome();
                 _syn_op.AsyncMove += OnAsyncMove;
@@ -1295,7 +1283,7 @@ namespace Velociraptor
                 MessageBox.Show("請先輸入die的邊長");
                 return;
             }
-            if (tbThreshold.Text == "")
+            if (tbThreshold1.Text == "")
             {
                 MessageBox.Show("請先輸入影像分割閥值");
                 return;
@@ -1919,17 +1907,13 @@ namespace Velociraptor
                 GrabOff();
                 ParamMgr param = new ParamMgr();
                 param.Read(openFileDialog1.FileName);
-                tbThreshold.Text = param.ThresholdStr;
                 die_size[0] = param.Width;
                 die_size[1] = param.Height;
                 die_size[2] = Constants.SCRIBE_LINE_WIDTH;
-                tbThreshold.Text = param.Threshold.ToString();
+                tbThreshold1.Text = param.Threshold.ToString();
                 tb_dieX.Text = param.Width.ToString();
                 tb_dieY.Text = param.Height.ToString();
                 ImageFullPath = param.ImageFilePath;
-
-                cur_img = hp.LoadImage(ImageFullPath);
-
                 _cur_bitmap = new Bitmap(ImageFullPath);
                 pic_camera.Image = _cur_bitmap;
             }
@@ -1937,23 +1921,9 @@ namespace Velociraptor
         private void btn_find_angle_Click(object sender, EventArgs e)
         {
             VisionCalibrator vc = new VisionCalibrator();
-            double w = 0, h = 0, angle = 0;
-            int threshold = Int32.Parse(tbThreshold.Text);
-            try {
-                _syn_op.find_angle(cur_img, threshold, ref die_size, ref angle);
-                w = vc.Pixel2Um_X(die_size[0]);
-                h = vc.Pixel2Um_Y(die_size[1]);
-                lb_die_side.Text = "邊長h: " + w.ToString("0.#")
-                    + " X " + h.ToString("0.#");
-                lb_angle.Text = "角度h: " + angle.ToString("0.####");
-            }
-            catch (Exception ex) 
-            { 
-                ExceptionDialog(ex, "Halcon Find Angle");
-            }
             int threshold1;
             if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 6;
-            _cur_bitmap.Save("C:/Users/User/Desktop.bmp", ImageFormat.Bmp);
+            _cur_bitmap.Save("test.bmp", ImageFormat.Bmp);
             try
             {             
                 fs.find_angle(_cur_bitmap, threshold1, die_size);
@@ -2053,6 +2023,7 @@ namespace Velociraptor
             //_log.Debug("In OnImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
             if (camera.ImageData != null)
             {
+                if (!isGarpping) return;
                 //Picture Box==
                 bool badImageData = false;
 
@@ -2093,20 +2064,6 @@ namespace Velociraptor
                 //}
 
                 bitmapOld?.Dispose();
-                //==Picture Box
-
-                //Hobject==
-                try
-                {
-                    hp.ConvertImage(camera.ImageData, camera.ImageWidth, camera.ImageHeight, ref cur_img);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    badImageData = true;
-                }
-
-                //==Hobject
 
                 if (isGarpping == true)
                     camera.ImageData = null;
@@ -2525,36 +2482,6 @@ namespace Velociraptor
             }
             _log.Debug("轉正完成");
         }
-        private void DoAlignment_halcon()
-        {
-            if (tb_dieX.Text == "" || tb_dieY.Text == "")
-            {
-                MessageBox.Show("請先輸入die的邊長");
-                return;
-            }
-            if (tbThreshold.Text == "")
-            {
-                MessageBox.Show("請先輸入影像分割閥值");
-                return;
-            }
-
-            VisionCalibrator vc = new VisionCalibrator();
-            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
-            die_size[2] = Constants.SCRIBE_LINE_WIDTH;
-            int threshold = Int32.Parse(tbThreshold.Text);
-            try
-            {
-                _syn_op.DoAlignment(cur_img, threshold, ref die_size);
-                die_size[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(die_size[Constants.WAY_HORIZONTAL]);
-                die_size[Constants.WAY_VERTICAL] = vc.Pixel2Um_Y(die_size[Constants.WAY_VERTICAL]);
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "DoAlignment()");
-                return;
-            }
-        }
         #endregion
         #region Sync Move emulating function
         private void DoSyncMove(char[] axis_char, double[] distance, bool isRelative = true)
@@ -2634,7 +2561,7 @@ namespace Velociraptor
 
         private void btn_threshold_Click(object sender, EventArgs e)
         {
-            hp.DoThreshold(cur_img, Int32.Parse(tbThreshold.Text));
+            GrabOff();
             pic_camera.Image = fs.DoThreshold(_cur_bitmap, int.Parse(tbThreshold1.Text));
         }
         private void ExceptionDialog(Exception e, string message)
@@ -2662,8 +2589,8 @@ namespace Velociraptor
         }
         private void cb_wafersize_SelectedIndexChanged(object sender, EventArgs e)
         {
-            //if (cb_wafersize.SelectedIndex==0) chuck.Set_12inchWafer();
-            //else chuck.Set_8inchWafer();
+            if (cb_wafersize.SelectedIndex == 0) chuck.Set_12inchWafer();
+            else chuck.Set_8inchWafer();
         }
         private void SyncMove_Callback(IAsyncResult result)
         {
@@ -2717,6 +2644,16 @@ namespace Velociraptor
             _scan_type = (cb_selectMeasurePrecision.SelectedIndex == 0) 
                          ? eScanType.Scan1Um : eScanType.Scan5Um;
         }
+
+        private void tbThreshold1_TextChanged(object sender, EventArgs e)
+        {
+            tr_threshold.Value = int.Parse(tbThreshold1.Text);
+        }
+
+        private void tbLight_TextChanged(object sender, EventArgs e)
+        {
+            tr_light.Value = int.Parse(tbLight.Text);
+        }
     }
     [Serializable]
     class AvvaException : Exception
@@ -2743,5 +2680,4 @@ namespace Velociraptor
         public string Message { get; set; }
         public Exception Ex { get; set; }
     }
-
 }

@@ -169,7 +169,8 @@ namespace Velociraptor.ImageProc
             _target.right_centerpoint_list = new List<Point>();
             _target.top_centerpoint_list = new List<Point>();
             _target.down_centerpoint_list = new List<Point>();
-
+            Ver_Line.Clear();
+            Hor_Line.Clear();
             //輪廓點內補滿 
             byte[,] Tbin = Fill(_target.P, nx, ny);
             #region 找出左右上下點集合
