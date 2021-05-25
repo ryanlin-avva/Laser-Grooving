@@ -201,10 +201,11 @@ namespace Velociraptor
         private SynOperation _syn_op;
         private DBKeeper _db;
         private string _measure_filename;
-        private bool _in_trigger = false;
+        public bool _in_trigger = false;
         private int _trigger_end = 0;
         private bool _cancelFormClosing = true;
-        private bool startmeasure = false;
+        public bool startmeasure = false;
+        public bool measureFinish = true;
         private FindScribe fs = new FindScribe();
         #endregion
         #region autofocus
@@ -800,17 +801,17 @@ namespace Velociraptor
                                     }
                                     _dataAcquisitionNumber--;
                                 }
-                                double pos_x = 0;
-                                foreach (sSignalData signalData in dataSample.SignalDataList)
-                                {
-                                    signalData.DataType = eDataType.LongInt;
-                                    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
-                                    {
-                                        pos_x = (int)signalData.DataToDouble;
-                                        Debug.WriteLine("pos_x:" + signalData.DataToString);
-                                        break;
-                                    }
-                                }
+                                //double pos_x = 0;
+                                //foreach (sSignalData signalData in dataSample.SignalDataList)
+                                //{
+                                //    signalData.DataType = eDataType.LongInt;
+                                //    if (signalData.Signal == eSodxSignal.Global_Signal_Start_Position_X)
+                                //    {
+                                //        pos_x = (int)signalData.DataToDouble;
+                                //        Debug.WriteLine("pos_x:" + signalData.DataToString);
+                                //        break;
+                                //    }
+                                //}
                                 if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
@@ -2382,22 +2383,19 @@ namespace Velociraptor
             if (_scan_type == eScanType.Scan1Um)           
                 _dataAcquisitionNumber *= 5;        
             _fifoDataSample.CalculationOfFifo.Reset();
-            //while (!_client.ClientIsOpening)
-            //{
-            //    Thread.Sleep(20);
-            //    _client.Open();
-            //}
-            while (!_client.ClientIsConnected)
-            {            
-                _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
-            }
+            //while (!_client.ClientIsConnected) _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
+            if(!_client.ClientIsConnected) ConnectMeasure();
             _client.ClearDataSampleFifo();
 
             _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, (int)m_arg.Position[0]);
             _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Y'));
             _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Z'));
-            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _measure_distance / _syn_op.TriggerInterval);                   
-            _measure_filename = Path.GetFileNameWithoutExtension(_measure_filename);
+            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _measure_distance / _syn_op.TriggerInterval);   
+            
+            //_measure_filename = Path.GetFileNameWithoutExtension(_measure_filename);
+            //if(_measure_filename==null) 
+                _measure_filename = _syn_op.ScanFileName;
+            //while (measureFinish) measureFinish = false;
             if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
                 _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
             else

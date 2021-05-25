@@ -219,13 +219,13 @@ namespace Velociraptor
             char[] axisZ = { 'Z' };
             char[] axisXY = { 'X', 'Y' };
             char[] axisXYZ = { 'X', 'Y', 'Z' };
-            double[] CLStoBaslerDistance = { _paraReader.RelToMeasureCameraZ };
+            double[] CLStoBaslerDistance = { -40200 };
            
             
             try
             {
                 MoveEventArgs moveEventArgs;
-                moveEventArgs = new MoveEventArgs(axisZ, CLStoBaslerDistance, _motion.GetAxisDefaultSpeed(axisZ), true);
+                moveEventArgs = new MoveEventArgs(axisZ, CLStoBaslerDistance, _motion.GetAxisDefaultSpeed(axisZ), false);
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 for (int i = 0; i < pos.Count; i++)
@@ -243,6 +243,7 @@ namespace Velociraptor
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     moveEventArgs = new MoveEventArgs('X', _paraReader.RelToMeasureCameraX, _motion.GetAxisDefaultSpeed('X'), true);
+                    Thread.Sleep(1000);
                     EncoderSet.Reset();
                     ScanParamSet(this, moveEventArgs);
                     EncoderSet.WaitOne();
