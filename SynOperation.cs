@@ -1,6 +1,5 @@
 ﻿using Avva.CameraFramework;
 using Avva.MotionFramework;
-using HalconDotNet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,9 +15,7 @@ namespace Velociraptor
 
         private AvvaMotion _motion;
         private AvvaCamera _camera;
-        private HalconProc _hp;
         private ParamReader _paraReader;
-        private double[] _2_mea = new double[3];
         private double[] _target_pos = new double[9];
         private char[] _target_axis;
         private bool hasGoHome = false;
@@ -40,9 +37,8 @@ namespace Velociraptor
         public AutoResetEvent EncoderSet;
         #endregion
 
-        public SynOperation(HalconProc hp, string para_path, AvvaCamera camera, log4net.ILog log = null,log4net.ILog log_motion = null)
+        public SynOperation(string para_path, AvvaCamera camera, log4net.ILog log = null,log4net.ILog log_motion = null)
         {
-            _hp = hp;
             _camera = camera;
             _log = log;
             IAvvaMotion yaskawa = new YaskawaMotion();
@@ -94,42 +90,6 @@ namespace Velociraptor
             //AsyncMove.BeginInvoke(this, moveEventArgs, new AsyncCallback(SyncMoveEmu_Callback), null);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
-        }
-        public void DoAlignment(HObject cur_img, int threshold, ref double[] die_side)
-        {
-            double angle = 0;
-            try
-            {
-                find_angle(cur_img, threshold, ref die_side, ref angle);
-                _motion.MoveTo('R', angle * 1000.0);
-            }
-            catch (Exception ex)
-            {
-                throw new AvvaException("轉正失敗：請重新調整焦距或切割道閥值", ex);
-            }
-        }
-        public void find_angle(HObject cur_img, int threshold, ref double[] die_side, ref double angle)
-        {
-            if (die_side[0] == 0 || die_side[1] == 0)
-                throw new AvvaException("Die Size is required");
-            HObject gray_img = null;
-            _hp.PrepareGrayImage(cur_img, out gray_img);
-            if (gray_img == null)
-                throw new AvvaException("No Gray Image Generated");
-            int[] side_int = new int[die_side.Length];
-            for (int i = 0; i < die_side.Length; i++)
-                side_int[i] = (int)die_side[i];
-            GridBuilder grid = new GridBuilder(gray_img, side_int
-                                    , Constants.SCRIBE_IS_DARK
-                                    , threshold, _hp);
-            if (!grid.DoLineSegment(_hp))
-                throw new AvvaException(grid.ErrMsg);
-
-            //hp.DrawGrid(cur_img, grid.Getlines(0), grid.Getlines(1));
-            _hp.DrawGrid(null, grid.Getlines(0), grid.Getlines(1));
-            die_side[0] = grid.EstimatedWidth();
-            die_side[1] = grid.EstimatedHeight();
-            angle = grid.EstimatedThetaByDegree();
         }
         public double GetPos(char axis_char)
         {

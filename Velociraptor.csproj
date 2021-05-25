@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\OpenCvSharp4.runtime.win.4.5.2.20210404\build\net\OpenCvSharp4.runtime.win.props" Condition="Exists('packages\OpenCvSharp4.runtime.win.4.5.2.20210404\build\net\OpenCvSharp4.runtime.win.props')" />
   <PropertyGroup>
     <ApplicationIcon>my_icon.ico</ApplicationIcon>
     <ProjectGuid>{18384F98-244B-4EC1-9DB4-FAA33D52FCB3}</ProjectGuid>
@@ -102,15 +103,6 @@
     </Compile>
     <Compile Include="ImageProc\FastPixel.cs" />
     <Compile Include="ImageProc\FindScribe.cs" />
-    <Compile Include="ImageProc\GMList.cs" />
-    <Compile Include="ImageProc\GridBuilder.cs" />
-    <Compile Include="ImageProc\Grouper.cs" />
-    <Compile Include="ImageProc\GrouperMgr.cs" />
-    <Compile Include="ImageProc\HalconProc.cs" />
-    <Compile Include="ImageProc\Hints.cs" />
-    <Compile Include="ImageProc\LinePair.cs" />
-    <Compile Include="ImageProc\MyLine.cs" />
-    <Compile Include="ImageProc\MyPair.cs" />
     <Compile Include="ImageProc\ParamMgr.cs" />
     <Compile Include="ImageProc\VisionCalibrator.cs" />
     <Compile Include="Motion\AvvaMotion.cs" />
@@ -192,8 +184,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SynOperation.cs" />
-    <Compile Include="Tuner.cs" />
-    <Compile Include="TuningData.cs" />
     <Compile Include="WaferChuck.cs" />
     <EmbeddedResource Include="AddOn\f_dark.resx">
       <DependentUpon>f_dark.cs</DependentUpon>
@@ -264,6 +254,7 @@
     <None Include="Images\48\right3.png" />
     <None Include="Images\48\stop.png" />
     <None Include="Images\48\test.png" />
+    <None Include="Images\48\focus_icon.png" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />
@@ -357,9 +348,6 @@
     <Reference Include="DevComponents.Instrumentation">
       <HintPath>..\..\..\..\..\Program Files (x86)\CLS_SDK\ClsExplorer\DevComponents.Instrumentation.dll</HintPath>
     </Reference>
-    <Reference Include="halcondotnet">
-      <HintPath>..\..\..\..\..\Program Files\MVTec\HALCON-12.0\bin\dotnet35\halcondotnet.dll</HintPath>
-    </Reference>
     <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
     </Reference>
@@ -445,6 +433,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\SQLitePCLRaw.lib.e_sqlite3.2.0.4\build\net461\SQLitePCLRaw.lib.e_sqlite3.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\SQLitePCLRaw.lib.e_sqlite3.2.0.4\build\net461\SQLitePCLRaw.lib.e_sqlite3.targets'))" />
+    <Error Condition="!Exists('packages\OpenCvSharp4.runtime.win.4.5.2.20210404\build\net\OpenCvSharp4.runtime.win.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\OpenCvSharp4.runtime.win.4.5.2.20210404\build\net\OpenCvSharp4.runtime.win.props'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
