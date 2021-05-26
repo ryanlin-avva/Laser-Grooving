@@ -92,8 +92,11 @@ namespace Velociraptor
             _log.Debug("AsyncMove5um with distance="
                             +measureDistance.ToString()+":" 
                             + Thread.CurrentThread.ManagedThreadId);
+            MoveEventArgs moveEventArgs = new MoveEventArgs('X', -Constants.MeasureScanBuffer, Constants.MeasureScanVelocity, true);
+            AsyncMove(this, moveEventArgs);
+            AsyncMoveWait();
             _log.Debug("AsyncMove5um 1st Wait over");
-            MoveEventArgs moveEventArgs = new MoveEventArgs('X', measureDistance + 200, true);
+            moveEventArgs = new MoveEventArgs('X', measureDistance + Constants.MeasureScanBuffer, Constants.MeasureScanVelocity, true);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
             _log.Debug("AsyncMove5um 2nd Wait over");
@@ -104,16 +107,19 @@ namespace Velociraptor
             double[] move_x = { measureDistance+buffer2, -measureDistance-buffer2 
                               , measureDistance+buffer2, -measureDistance-buffer2  
                               , measureDistance+Constants.MeasureScanBuffer };
+            MoveEventArgs moveEventArgs = new MoveEventArgs('X', -Constants.MeasureScanBuffer, Constants.MeasureScanVelocity, true);
+            AsyncMove(this, moveEventArgs);
+            AsyncMoveWait();
             _log.Debug("AsyncMove1um to begin pos");
             for (int i = 0; i < 5; i++)
             {
-                MoveEventArgs moveEventArgs = new MoveEventArgs('X', move_x[i], true);
+                moveEventArgs = new MoveEventArgs('X', move_x[i],Constants.MeasureScanVelocity, true);
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 _log.Debug("AsyncMove1um finish line "+i.ToString());
                 if (i < 4)
                 {
-                    moveEventArgs = new MoveEventArgs('Y', 1, true);
+                    moveEventArgs = new MoveEventArgs('Y', 1, Constants.MeasureScanVelocity, true);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     _log.Debug("AsyncMove1um Move Y ");
@@ -127,28 +133,34 @@ namespace Velociraptor
             MeasureOK = false;
             Alignment(mymap, die_size, threshold);
             if (!AlignmentOK) return;
+            char[] axisZ = { 'Z' };
             char[] axisXY = { 'X', 'Y' };
             char[] axisXYZ = { 'X', 'Y', 'Z' };
-            double[] relative2Measure = { _paraReader.RelToMeasureCameraX-Constants.MeasureScanBuffer
-                                        , _paraReader.RelToMeasureCameraY
-                                        , _paraReader.RelToMeasureCameraZ };
+            double[] CLStoBaslerDistance = { -40200 };
+           
+            
             try
             {
                 MoveEventArgs moveEventArgs;
+                moveEventArgs = new MoveEventArgs(axisZ, CLStoBaslerDistance, _motion.GetAxisDefaultSpeed(axisZ), false);
+                AsyncMove(this, moveEventArgs);
+                AsyncMoveWait();
                 for (int i = 0; i < pos.Count; i++)
-                {
+                {                   
                     ScanFileName = pathname[i];
                     ScanFileIndex = i;
                     _log.Debug("MeasureScan filename:"+ ScanFileName);
                     double[] distance = { pos[i].X, pos[i].Y };
-                    moveEventArgs = new MoveEventArgs(axisXY, distance, false);
+                    moveEventArgs = new MoveEventArgs(axisXY, distance,_motion.GetAxisDefaultSpeed(axisXY), false);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     _camera.SaveImage(pathname + ".bmp");
-                    moveEventArgs = new MoveEventArgs(axisXYZ, relative2Measure, true);
+                    double[] relative2Measure = { _paraReader.RelToMeasureCameraX
+                                        , _paraReader.RelToMeasureCameraY};//放外面relative2Measure經過一次for loop會*10倍
+                    moveEventArgs = new MoveEventArgs(axisXY, relative2Measure, _motion.GetAxisDefaultSpeed(axisXY), true);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
-                    moveEventArgs = new MoveEventArgs('X', _paraReader.RelToMeasureCameraX, true);
+                    moveEventArgs = new MoveEventArgs('X', _paraReader.RelToMeasureCameraX, _motion.GetAxisDefaultSpeed('X'), true);
                     EncoderSet.Reset();
                     ScanParamSet(this, moveEventArgs);
                     EncoderSet.WaitOne();
@@ -292,7 +304,7 @@ namespace Velociraptor
                                 , _paraReader.MoveToWaferCenterPointYDistance
                                  ,_paraReader.MoveToWaferCenterPointRDistance};
             if (!hasGoHome) GoHome();
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance, false);
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance,_motion.GetAxisDefaultSpeed(axis), false);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
         }
@@ -360,16 +372,34 @@ namespace Velociraptor
             Position = position;
             Axis = axis;
         }
+        public MoveEventArgs(char[] axis, double[] position,double[] velocity, bool isRelative)
+        {
+            Relative = isRelative;
+            Position = position;
+            Axis = axis;
+            Velocity = velocity;
+        }
         public MoveEventArgs(char axis, double position, bool isRelative)
         {
             Relative = isRelative;
             double[] pos = { position };
             char[] a = { axis };
             Position = pos;
+            Axis = a;           
+        }
+        public MoveEventArgs(char axis, double position,double velocity, bool isRelative)
+        {
+            Relative = isRelative;
+            double[] pos = { position };
+            char[] a = { axis };
+            double[] vel = { velocity};
+            Position = pos;
             Axis = a;
+            Velocity = vel;
         }
         public bool Relative { get; set; }
         public double[] Position { get; set; }
         public char[] Axis { get; set; }
+        public double[] Velocity { get; set; }
     }
 }

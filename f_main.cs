@@ -203,10 +203,12 @@ namespace Velociraptor
         private SynOperation _syn_op;
         private DBKeeper _db;
         private string _measure_filename;
-        private bool _in_trigger = false;
+        public bool _in_trigger = false;
         private int _trigger_end = 0;
         private bool _cancelFormClosing = true;
-        private bool startmeasure = false;
+        public bool startmeasure = false;
+        public bool measureFinish = true;
+
         #endregion
         #region autofocus
         long minAFFuncMs;
@@ -319,7 +321,7 @@ namespace Velociraptor
                 log4net.ILog log_motion = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
                 _syn_op = new SynOperation(Constants.appConfigFolder, camera, _log, log_motion);
                 _syn_op.MotorOn();
-                _syn_op.GoHome();
+                _syn_op.GoHome();                
                 _syn_op.AsyncMove += OnAsyncMove;
                 _syn_op.ScanParamSet += OnScanParamSet;
                 _syn_op.OnError += OnSynOpError;
@@ -379,6 +381,7 @@ namespace Velociraptor
 
             _client.OnError += _eventOnError;
             _client.Dark();
+           
 
             spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
             spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
@@ -603,9 +606,13 @@ namespace Velociraptor
                             if (sBuffer != null)
                             {
                                 sSpectraRaw spectra = new sSpectraRaw(_client.DnldCommand.SpectrumRaw, sBuffer, _client.FibersParameters);
-                                clsRawImage.Data = spectra.Data;
-                                if (spectra.Data != null)
-                                    this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
+                                if (!startmeasure)//避免掃完第一點後要掃第二點時client因為clsRawImage而斷線
+                                {
+                                    clsRawImage.Data = spectra.Data;
+                                    if (spectra.Data != null)
+                                        this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
+                                }
+                                
                             }
                         }
                     }
@@ -689,15 +696,15 @@ namespace Velociraptor
                                     {
                                         _threadAction = eThreadAction.None;
                                         sVersion version = _client.Version;
-                                        //_generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
-                                        //_generalSettings.General.SodxCommand.Signal.AltitudePeak1 = true;
-                                        //_generalSettings.General.SodxCommand.Signal.IntensityLevelPeak1 = true;
-                                        //_generalSettings.General.SodxCommand.Signal.IntensityRawPeak1 = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.SampleCounter = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionX = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionY = true;
-                                        //_generalSettings.General.SodxCommand.GlobalSignal.StartPositionZ = true;
-                                        //_client.SelectOutputFormat = _generalSettings.General.SodxCommand;
+                                        _generalSettings.General.Sensor.NumberOfFibers = _client.FibersParameters.NumberOfFibersUsed;
+                                        _generalSettings.General.SodxCommand.Signal.AltitudePeak1 = true;//這邊需要收的資料須打開才能收的到
+                                        _generalSettings.General.SodxCommand.Signal.IntensityLevelPeak1 = true;
+                                        _generalSettings.General.SodxCommand.Signal.IntensityRawPeak1 = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.SampleCounter = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionX = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionY = true;
+                                        _generalSettings.General.SodxCommand.GlobalSignal.StartPositionZ = true;//這邊需要收的資料須打開才能收的到
+                                        _client.SelectOutputFormat = _generalSettings.General.SodxCommand;
                                         _client.TriggerStop();
                                     }
                                     else
@@ -759,7 +766,7 @@ namespace Velociraptor
             _ccsvWriteFiles = new CsvWriteFile();
             while (!_threadMeasure.EventExitProcessThread.WaitOne(timeout))
             {
-                //Debug.WriteLine("ThreadMeasureLoop");
+                //Debug.WriteLine("ThreadMeasureLoop");              
                 if (_threadMeasure.EventUserList[(int)eThreadMeasure.eData].WaitOne(0))
                 {
                     if (_fifoDataSample != null)
@@ -786,7 +793,7 @@ namespace Velociraptor
                                 if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
-                                    SaveMeasureData();
+                                    SaveMeasureData();                                    
                                     Process profiler = new Process();
                                     profiler.StartInfo.FileName = "ThickInspector.exe";
                                     if (_threadAction==eThreadAction.eAutoMeasure)
@@ -1411,14 +1418,14 @@ namespace Velociraptor
         {
             #region set triggerParameter
             _client.TriggerStop();
-            int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));
+            int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));//TrigNum代表一行的點個數
             bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, 1);
             bool EnableTriggerDuringReturnMovement = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EnableTriggerDuringReturnMovement, 1);
             bool ChooseAxis = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.ChooseAxis, 0);
             bool EndlessRountripTrigger = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.EndlessRountripTrigger, 0);
             bool SetStartPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStartPosition, StartPos);
             bool SetStopPosition = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetStopPosition, StopPos);
-            bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);
+            bool SetTriggerInterval = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SetTriggerInterval, (float)TrigInterval);          
             if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis
                 && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition
                 && SelectEncoderTriggerSource)) return false;
@@ -1765,7 +1772,7 @@ namespace Velociraptor
 
             VisionCalibrator vc = new VisionCalibrator();
             die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));           
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
 
             Bitmap map;

@@ -197,6 +197,7 @@ namespace Velociraptor.AddOn
         {
             if ((_streamWriter != null))
                 _streamWriter.Write(string.Format("{0}", value));
+                _streamWriter.WriteLine("");
             return (true);
         }
         public bool WriteList(List<double> values, bool with_end = false)
