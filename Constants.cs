@@ -12,6 +12,12 @@ namespace Velociraptor
         static public int MeasureScanVelocity = 1000; //um
 
         //----------------------------------------
+        //Timer設定 (unit:ms)
+        //----------------------------------------
+        public const int INTL_gui_update = 100;
+        public const int INTL_Engineering_mode = 300000;
+        public const int INTL_DataSaveDelay = 3000;
+        //----------------------------------------
         //Precitec參數
         //----------------------------------------
         public const int PREC_FirstChannel = 0;

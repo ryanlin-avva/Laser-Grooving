@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using Velociraptor.ImageProc;
 
 namespace Velociraptor
 {
@@ -21,103 +22,71 @@ namespace Velociraptor
         private bool hasGoHome = false;
         private log4net.ILog _log;
 
-        #region Scan
+        public SynOperation(string para_path, AvvaCamera camera, log4net.ILog log = null,log4net.ILog log_motion = null)
+        {
+        _camera = camera;
+        _log = log;
+        IAvvaMotion yaskawa = new YaskawaMotion();
+        string path = Path.Combine(para_path, Constants.motionParaFilename);
+        _motion = new AvvaMotion(yaskawa, path, log_motion);
+        path = Path.Combine(para_path, Constants.paraFilename);
+        _paraReader = new ParamReader(path);
+        AsyncMove += OnAsyncMove;
+        EncoderSet = new AutoResetEvent(false);
+        DataSaved = new AutoResetEvent(false);
+        ScanFileIndex = -1;
+        }
+        #region Find Angle
+        public delegate void FindAngleDelegate(Bitmap mymap, double[] die_size, int threshold);
+        private FindScribe _fs = new FindScribe();
+        private double[] _estimatedDieSide = new double[2];
+        public double[] EstimatedDieSide { get { return _estimatedDieSide; } }
+        public double AngleAverage { get { return _fs.AngleAverage;  } }
+        public void Draw(ref Bitmap bmp) { _fs.Draw(ref bmp); }
+        public Bitmap Threshold(Bitmap mymap, int threshold) { return _fs.DoThreshold(mymap, threshold); }
+        public bool FindAngleOK { get; set; }
+        public void FindAngle(Bitmap mymap, double[] die_size, int threshold)
+        {
+            VisionCalibrator vc = new VisionCalibrator();
+            try
+            {
+                FindAngleOK = true;
+                Console.WriteLine("Synop findangle _cur_map:" + mymap.Width);
+                _fs.FindAngle(mymap, threshold, die_size);
+                _estimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(_fs.WidthAverage);
+                _estimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(_fs.HeightAverage);
+                //Bitmap bmp = new Bitmap(_cur_bitmap.Width, _cur_bitmap.Height);
+            }
+            catch (Exception ex)
+            {
+                SynOpErrorArgs arg = new SynOpErrorArgs();
+                arg.Ex = ex;
+                arg.Message = "SynOp.FindAngle()";
+                FindAngleOK = false;
+                OnError(this, arg);
+            }
+        }
+        #endregion
+        #region Scan & measure
         public delegate void MeasureDelegate(List<string> pathname, List<PointF> pos
-                                           , eScanType scan_type
-                                           , int measureDistance);
+                                           , eScanType scan_type, int measureDistance
+                                           , Bitmap mymap, double[] die_size, int threshold);
         public delegate void CameraAutoFocusDelegate();
         public delegate void MoveDelegate(MoveEventArgs m_args);
         public bool IsScanning { get; set; }
         public string ScanFileName { get; set; }
+        public int ScanFileIndex { get; set; }
         public bool EncoderParamSetOk { get; set; }
+
+        //Delegate For move 1um/5um testing
         public delegate void ScanMoveDelegate(int distance);
         public event EventHandler AsyncMove;
         public event EventHandler ScanParamSet;
         public event EventHandler OnError;
         public AutoResetEvent EncoderSet;
-        #endregion
+        public AutoResetEvent DataSaved;
 
-        public SynOperation(string para_path, AvvaCamera camera, log4net.ILog log = null,log4net.ILog log_motion = null)
-        {
-            _camera = camera;
-            _log = log;
-            IAvvaMotion yaskawa = new YaskawaMotion();
-            string path = Path.Combine(para_path, Constants.motionParaFilename);
-            _motion = new AvvaMotion(yaskawa, path, log_motion);
-            path = Path.Combine(para_path, Constants.paraFilename);
-            _paraReader = new ParamReader(path);
-            AsyncMove += OnAsyncMove;
-            EncoderSet = new AutoResetEvent(false);
-        }
-        public void MotorOn() { _motion.MotorOn(); }
-        public void MotorOff() { _motion.MotorOff(); }
-        public void GoHome() { _motion.GoHome(); }
-        public void StopMove() { _motion.StopMove(); }
-        public void ClearAlarm() { _motion.ClearAlarm(); }
-        public bool IsSimulate { get { return _motion.IsSimulate; } }
-        public int DataDirection { get { return _paraReader.DataDirection; } }
-        public int TriggerInterval { get { return _paraReader.TriggerInterval; } }
-        public string SavingPath { get { return _paraReader.SavingPath; } }
-        public int MaxMagAutoFocusBegin { get { return _paraReader.MaxMagAutoFocusBegin; } }
-        public int MaxMagAutoFocusEnd { get { return _paraReader.MaxMagAutoFocusEnd; } }
-        public void AsyncMoveTo(char axis_char, double distance, bool isRelative = true)
-        {
-            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            _motion.AsyncMoveTo(axis_char, distance, isRelative);
-        }
-        public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative = true)
-        {
-            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            _motion.AsyncMoveTo(axis_char, distance, isRelative);
-        }
-        public void SyncMoveTo(MoveEventArgs moveEventArgs)
-        {
-            _log.Debug("SynOp MoveTo Emu:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            //AsyncMove.BeginInvoke(this, moveEventArgs, new AsyncCallback(SyncMoveEmu_Callback), null);
-            AsyncMove(this, moveEventArgs);
-            AsyncMoveWait();
-        }
-        public double GetPos(char axis_char)
-        {
-            return _motion.GetPos(axis_char);
-        }
-        //public void MoveToMeasurePos()
-        //{
-        //    char[] axes = { 'X', 'Y', 'Z' };
-        //    MoveTo(axes, _2_mea, true);
-        //}
-        private void OnAsyncMove(Object sender, EventArgs e)
-        {
-            MoveEventArgs moveEventArgs = (MoveEventArgs)e;
-            _target_axis = moveEventArgs.Axis;
-            _target_pos = new double[_target_axis.Length];
-            for (int i = 0; i < _target_axis.Length; i++)
-            {
-                if (moveEventArgs.Relative)
-                    _target_pos[i] = moveEventArgs.Position[i]
-                               + _motion.GetPos(_target_axis[i]);
-                else
-                    _target_pos[i] = moveEventArgs.Position[i];
-            }
-            _log.Debug("SynOp OnAsyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
-        }
-        private void AsyncMoveWait()
-        {
-            _log.Debug("SynOp AsyncMoveWait:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            if (IsSimulate)
-            {
-                Thread.Sleep(1000);
-                return;
-            }
-            for (int i = 0; i < _target_axis.Length; i++)
-            {
-                while (GetPos(_target_axis[i]) != _target_pos[i])
-                {
-                    Thread.Sleep(50);
-                }
-            }
-        }
-
+        public bool MeasureOK { get; set; }
         public void AsyncMove5um(int measureDistance)
         {
             _log.Debug("AsyncMove5um with distance="
@@ -152,8 +121,12 @@ namespace Velociraptor
             }
         }
         public void MeasureScan(List<string> pathname, List<PointF> pos
-                                , eScanType scan_type, int measureDistance)
+                                , eScanType scan_type, int measureDistance
+                                , Bitmap mymap, double[] die_size, int threshold)
         {
+            MeasureOK = false;
+            Alignment(mymap, die_size, threshold);
+            if (!AlignmentOK) return;
             char[] axisXY = { 'X', 'Y' };
             char[] axisXYZ = { 'X', 'Y', 'Z' };
             double[] relative2Measure = { _paraReader.RelToMeasureCameraX-Constants.MeasureScanBuffer
@@ -165,6 +138,7 @@ namespace Velociraptor
                 for (int i = 0; i < pos.Count; i++)
                 {
                     ScanFileName = pathname[i];
+                    ScanFileIndex = i;
                     _log.Debug("MeasureScan filename:"+ ScanFileName);
                     double[] distance = { pos[i].X, pos[i].Y };
                     moveEventArgs = new MoveEventArgs(axisXY, distance, false);
@@ -180,10 +154,17 @@ namespace Velociraptor
                     EncoderSet.WaitOne();
                     if (EncoderParamSetOk)
                     {
+                        DataSaved.Reset();
                         if (scan_type == eScanType.Scan5Um) AsyncMove5um(measureDistance);
                         else AsyncMove1um(measureDistance);
+                        DataSaved.WaitOne();                        
+                    }
+                    else
+                    {
+                        return;
                     }
                 }
+                MeasureOK = true;
             }
             catch(Exception ex)
             {
@@ -193,6 +174,74 @@ namespace Velociraptor
                 OnError(this, arg);
             }
         }
+        public List<PointF> TransformDiePos(int die_row, int die_col, List<Point> pts)
+        {
+            double[] _center_pos = { _paraReader.MoveToWaferCenterPointXDistance
+                                    , _paraReader.MoveToWaferCenterPointYDistance };
+            int offset_x = 0;
+            int offset_y = 0;
+            if (die_col % 2 == 1)
+            {
+                _center_pos[0] -= _estimatedDieSide[0] / 2;
+            }
+            else
+            {
+                offset_x = 1;
+            }
+            if (die_row % 2 == 1)
+            {
+                _center_pos[1] -= _estimatedDieSide[1] / 2;
+            }
+            else
+            {
+                offset_y = 1;
+            }
+            List<PointF> pos = new List<PointF>();
+            foreach (var p in pts)
+            {
+                float x = (float)((p.X > 0)
+                            ? _center_pos[0] + (p.X - offset_x) * _estimatedDieSide[0]
+                            : _center_pos[0] + p.X * _estimatedDieSide[0]);
+                float y = (float)((p.Y > 0)
+                            ? _center_pos[1] + (p.Y - offset_y) * _estimatedDieSide[1]
+                            : _center_pos[1] + p.Y * _estimatedDieSide[1]);
+                PointF f = new PointF(x, y);
+                pos.Add(f);
+            }
+            return pos;
+        }
+        #endregion
+        #region alignment
+        public bool AlignmentOK { get; set; }
+        public void Alignment(Bitmap mymap, double[] die_size, int threshold)
+        {
+            try
+            {
+                AlignmentOK = false;
+                _camera.MinMagSet();
+                char[] axis = { 'X', 'Y' };
+                double[] center = GetCenter();
+                MoveEventArgs moveEventArgs = new MoveEventArgs(axis, GetCenter(), false);
+                OnAsyncMove(this, moveEventArgs);
+                AsyncMoveWait();
+                FindAngle(mymap, die_size, threshold);
+                if (!FindAngleOK) return;
+                moveEventArgs = new MoveEventArgs('R', _fs.AngleAverage * 1000, true);
+                OnAsyncMove(this, moveEventArgs);
+                AsyncMoveWait();
+                _camera.MaxMagSet();
+                AlignmentOK = true;
+            }
+            catch (Exception ex)
+            {
+                SynOpErrorArgs arg = new SynOpErrorArgs();
+                arg.Ex = ex;
+                arg.Message = "SynOp.Alignment()";
+                OnError(this, arg);
+            }
+        }
+        #endregion
+        #region Move and Jog
         public void JogY(bool toStart, bool isPositive = true)
         {
             if (toStart)
@@ -204,6 +253,38 @@ namespace Velociraptor
                 _motion.JogStop();
             }
         }
+        private void OnAsyncMove(Object sender, EventArgs e)
+        {
+            MoveEventArgs moveEventArgs = (MoveEventArgs)e;
+            _target_axis = moveEventArgs.Axis;
+            _target_pos = new double[_target_axis.Length];
+            for (int i = 0; i < _target_axis.Length; i++)
+            {
+                if (moveEventArgs.Relative)
+                    _target_pos[i] = moveEventArgs.Position[i]
+                               + _motion.GetPos(_target_axis[i]);
+                else
+                    _target_pos[i] = moveEventArgs.Position[i];
+            }
+            _log.Debug("SynOp OnAsyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+        }
+        private void AsyncMoveWait()
+        {
+            _log.Debug("SynOp AsyncMoveWait:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            if (IsSimulate)
+            {
+                //Thread.Sleep(1000);
+                return;
+            }
+            for (int i = 0; i < _target_axis.Length; i++)
+            {
+                while (GetPos(_target_axis[i]) != _target_pos[i])
+                {
+                    Thread.Sleep(50);
+                }
+            }
+        }
+
         public void MoveToCenter()
         {
             char[] axis = { 'X', 'Y', 'R' };
@@ -222,6 +303,23 @@ namespace Velociraptor
                                 };
             return distance;
         }
+        public void AsyncMoveTo(char axis_char, double distance, bool isRelative = true)
+        {
+            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _motion.AsyncMoveTo(axis_char, distance, isRelative);
+        }
+        public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative = true)
+        {
+            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _motion.AsyncMoveTo(axis_char, distance, isRelative);
+        }
+        public void SyncMoveTo(MoveEventArgs moveEventArgs)
+        {
+            _log.Debug("SynOp MoveTo Emu:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            //AsyncMove.BeginInvoke(this, moveEventArgs, new AsyncCallback(SyncMoveEmu_Callback), null);
+            AsyncMove(this, moveEventArgs);
+            AsyncMoveWait();
+        }
         public void MoveToUnload()
         {
             if (!hasGoHome) GoHome();
@@ -233,42 +331,26 @@ namespace Velociraptor
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
         }
-        public List<PointF> TransformDiePos(int die_row, int die_col, double[] estimated_size, List<Point> pts)
+        #endregion
+        #region Motor Operation
+        public double GetPos(char axis_char)
         {
-            double[] _center_pos = { _paraReader.MoveToWaferCenterPointXDistance
-                                    , _paraReader.MoveToWaferCenterPointYDistance };
-            int offset_x = 0;
-            int offset_y = 0;
-            if (die_col % 2 == 1)
-            {
-                _center_pos[0] -= estimated_size[0] / 2;
-            }
-            else
-            {
-                offset_x = 1;
-            }
-            if (die_row % 2 == 1)
-            {
-                _center_pos[1] -= estimated_size[1] / 2;
-            }
-            else
-            {
-                offset_y = 1;
-            }
-            List<PointF> pos = new List<PointF>();
-            foreach (var p in pts)
-            {
-                float x = (float)((p.X > 0)
-                            ? _center_pos[0] + (p.X - offset_x) * estimated_size[0]
-                            : _center_pos[0] + p.X * estimated_size[0]);
-                float y = (float)((p.Y > 0)
-                            ? _center_pos[1] + (p.Y - offset_y) * estimated_size[1]
-                            : _center_pos[1] + p.Y * estimated_size[1]);
-                PointF f = new PointF(x, y);
-                pos.Add(f);
-            }
-            return pos;
+            return _motion.GetPos(axis_char);
         }
+        public void MotorOn() { _motion.MotorOn(); }
+        public void MotorOff() { _motion.MotorOff(); }
+        public void GoHome() { _motion.GoHome(); }
+        public void StopMove() { _motion.StopMove(); }
+        public void ClearAlarm() { _motion.ClearAlarm(); }
+        #endregion
+        #region Get Param
+        public bool IsSimulate { get { return _motion.IsSimulate; } }
+        public int DataDirection { get { return _paraReader.DataDirection; } }
+        public int TriggerInterval { get { return _paraReader.TriggerInterval; } }
+        public string SavingPath { get { return _paraReader.SavingPath; } }
+        public int MaxMagAutoFocusBegin { get { return _paraReader.MaxMagAutoFocusBegin; } }
+        public int MaxMagAutoFocusEnd { get { return _paraReader.MaxMagAutoFocusEnd; } }
+        #endregion
     }
     public class MoveEventArgs : EventArgs
     {

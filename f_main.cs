@@ -43,7 +43,8 @@ namespace Velociraptor
             eFindAngle,
             /// <summary>do alignment</summary>
             eAlignment,
-            /// <summary>do auto measure</summary>
+            /// <summary>do measure</summary>
+            eManualMeasure,
             eAutoMeasure,
             /// <summary>close application</summary>
             eCloseApplication,
@@ -206,7 +207,6 @@ namespace Velociraptor
         private int _trigger_end = 0;
         private bool _cancelFormClosing = true;
         private bool startmeasure = false;
-        private FindScribe fs = new FindScribe();
         #endregion
         #region autofocus
         long minAFFuncMs;
@@ -220,18 +220,17 @@ namespace Velociraptor
         AutoFocusFunc runAFFunc;
         #endregion
         #region Move, Alignment, Scan
-        readonly EventHandler autoFocusRun; 
-        delegate bool AlignmentFunc(Object offset);
-        AlignmentFunc alignmentFunc;
-        bool isAligning = false;
-        readonly AutoResetEvent alignDone;
-        bool alignmentSucceed = true;
+        readonly EventHandler autoFocusRun;
+        FindAngleDelegate findAngleDelegate;
+        FindAngleDelegate alignmentFunc;
+        object _image_lock = new object();
 
         ScanMoveDelegate scanMove1umFunc;
         ScanMoveDelegate scanMove5umFunc;
         MoveDelegate syncMoveFunc;
         MeasureDelegate measureFunc;
         eScanType _scan_type;
+
         #endregion
         #region wafer info
         WaferChuck chuck = new WaferChuck();
@@ -241,7 +240,6 @@ namespace Velociraptor
         private int _die_col_count = 0;
         //die_side (um) 0:x邊長, 1:y邊長, 2:切割道寬度
         private double[] die_size = new double[3];
-        private double[] EstimatedDieSide = new double[2];
         private double[] _pos_keep = new double[3];
         #endregion
         #region Misc
@@ -302,7 +300,6 @@ namespace Velociraptor
                 _ccd_range = new sCCDRange(0, 0);
                 runAFFunc = new AutoFocusFunc(Cv2LaplacianVariance);
                 autoFocusRun = new EventHandler(AutoFocusRun);
-                alignmentFunc = new AlignmentFunc(Alignment);
                 #endregion
                 #region Motion, Camera, Log Initialization
                 ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaLaserGrooving");
@@ -330,6 +327,8 @@ namespace Velociraptor
                 scanMove1umFunc = new ScanMoveDelegate(_syn_op.AsyncMove1um);
                 syncMoveFunc = new MoveDelegate(_syn_op.SyncMoveTo);
                 measureFunc = new MeasureDelegate(_syn_op.MeasureScan);
+                findAngleDelegate = new FindAngleDelegate(_syn_op.FindAngle);
+                alignmentFunc = new FindAngleDelegate(_syn_op.Alignment);
 
                 camera.ImageFileDirPath = _syn_op.SavingPath;
                 camera.Open(_syn_op.IsSimulate);
@@ -338,7 +337,6 @@ namespace Velociraptor
                 camera.ImageGrabbed += OnImageGrabbed;
                 #endregion
                 imageCloneDone = new AutoResetEvent(false);
-                alignDone = new AutoResetEvent(false);
                 _db = new DBKeeper();
                 _log.Info("Form construction finished");
             }
@@ -426,14 +424,14 @@ namespace Velociraptor
                 ConnectMeasure();
 
                 Control.CheckForIllegalCrossThreadCalls = false;
-                timer = new System.Timers.Timer(100);//定時週期0.1秒
+                timer = new System.Timers.Timer(Constants.INTL_gui_update);//定時週期0.1秒
                 timer.Elapsed += UpdateUIControls;//定時時間到的時候的回撥函式
                 timer.AutoReset = true; //是否不斷重複定時器操作
                 timer.Enabled = true;
-                timer1 = new System.Timers.Timer(300000);//定時週期300秒
+                timer1 = new System.Timers.Timer(Constants.INTL_Engineering_mode);//定時週期300秒
                 timer1.Elapsed += GeneralMode;
                 timer1.AutoReset = false; //是否不斷重複定時器操作
-                timer_measure = new System.Timers.Timer(300000);
+                timer_measure = new System.Timers.Timer(Constants.INTL_DataSaveDelay);
                 timer_measure.Elapsed += MeasureTimeout;
                 timer_measure.AutoReset = false;
 
@@ -635,10 +633,6 @@ namespace Velociraptor
                         this.Invoke(new cClientIhm.UpdateDisplayErrorDelegateHandler(cClientIhm.FuncUpdateDisplayErrorDelegateHandler), lst_log, _errorList);
                     }
                     #endregion
-                    if (isAligning && alignDone.WaitOne(0))
-                    {
-                        isAligning = false;
-                    }
                 }
                 _threadGui.EventExitProcessThreadDo.Set();
             }
@@ -732,10 +726,6 @@ namespace Velociraptor
                                     _threadAction = eThreadAction.None;
                                     break;
                             }
-                            if (_threadActionProcess.EventUserList[(int)eThreadAction.eFindAngle].WaitOne(0))
-                            {
-                                //DoFindAngle();
-                            }
                             if (_threadGui != null)
                             {
                                 if (is_advanced_mode)
@@ -751,7 +741,10 @@ namespace Velociraptor
             }
             catch (Exception ex)
             {
-                ExceptionDialog(ex, string.Format("Error : {0}.{1}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name));
+                ExceptionDialog(ex, string.Format("Error : {0}.{1}(2)"
+                              , this.GetType().FullName.ToString()
+                              , System.Reflection.MethodInfo.GetCurrentMethod().Name
+                              , Thread.CurrentThread.ManagedThreadId));
             }
             finally
             {
@@ -795,8 +788,11 @@ namespace Velociraptor
                                 {
                                     SaveMeasureData();
                                     Process profiler = new Process();
-                                    profiler.StartInfo.FileName = "SInspector.exe";
-                                    profiler.StartInfo.Arguments = Path.Combine(_syn_op.SavingPath, _measure_filename + ".data"); // if you need some
+                                    profiler.StartInfo.FileName = "ThickInspector.exe";
+                                    if (_threadAction==eThreadAction.eAutoMeasure)
+                                        profiler.StartInfo.Arguments = Path.GetDirectoryName( _measure_filename); 
+                                    else
+                                        profiler.StartInfo.Arguments = _measure_filename;
                                     profiler.Start();
                                 }
                             }
@@ -804,11 +800,7 @@ namespace Velociraptor
                     } 
                     else if (_syn_op.IsSimulate)
                     {
-                        _ccsvWriteFiles.Save(_syn_op.DataDirection, (int)_syn_op.GetPos('Z'));
-                        _ccsvWriteFiles.Close();
-                        _client.TriggerStop();
-                        _in_trigger = false;
-                        startmeasure = false;
+                        SaveMeasureData();
                     }
                 }
                 if ((_client != null||_syn_op.IsSimulate) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
@@ -1361,8 +1353,6 @@ namespace Velociraptor
         #endregion
 
         #endregion
-        #endregion
-        #region _OnError
         private void _OnError(object sender, cErrorEventArgs e)
         {
             try
@@ -1648,35 +1638,6 @@ namespace Velociraptor
             moveEventArgs = (MoveEventArgs)e;
             _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
         }
-        private void OnScanParamSet(Object sender, EventArgs e)
-        {
-            if (InvokeRequired)
-            {
-                _log.Debug("OnScanParamSet InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
-                Invoke(new EventHandler(OnScanParamSet), sender, e);
-
-                return;
-            }
-            _log.Debug("OnScanParamSet: " + Thread.CurrentThread.ManagedThreadId);
-
-            MoveEventArgs m_arg = (MoveEventArgs)e;
-            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('X'));
-            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Y'));
-            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Z'));
-            _dataAcquisitionNumber = _measure_distance / _syn_op.TriggerInterval;
-            if (_scan_type == eScanType.Scan1Um)
-                _dataAcquisitionNumber *= 5;
-            _fifoDataSample.CalculationOfFifo.Reset();
-            _client.ClearDataSampleFifo();
-
-            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _dataAcquisitionNumber);
-            _measure_filename = _syn_op.ScanFileName;
-            if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
-                _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
-            else
-                ExceptionDialog("設定量測trigger失敗");
-            _syn_op.EncoderSet.Set();
-        }
         private void AsyncMoveWait(char[]axis, double[] position)
         {
             for (int i=0; i<axis.Length; i++)
@@ -1755,34 +1716,8 @@ namespace Velociraptor
         }
 
         #endregion
-        #region Alignment
-        private bool Alignment(Object o)
-        {
-            try
-            {
-                int offset = (int)o;
-                camera.MinMagSet();
-                char[] axis = { 'X', 'Y' };
-                double[] center = _syn_op.GetCenter();
-                MoveEventArgs moveEventArgs = new MoveEventArgs(axis, center, false);
-                OnAsyncMove(this, moveEventArgs);
-                AsyncMoveWait(axis, center);
-                fs.find_angle(_cur_bitmap, offset, die_size);
-                moveEventArgs = new MoveEventArgs('R', fs.AngleAverage * 1000, true);
-                OnAsyncMove(this, moveEventArgs);
-                AsyncMoveWait(axis, center);
-                VisionCalibrator vc = new VisionCalibrator();
-                EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
-                EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "DoAlignment()");
-                return false;
-            }
-        }
-        private void DoAlignment()
+        #region FindAngle, Alignment, Measure
+        private void DoFindAngle()
         {
             if (tb_dieX.Text == "" || tb_dieY.Text == "")
             {
@@ -1794,66 +1729,77 @@ namespace Velociraptor
                 MessageBox.Show("請先輸入影像分割閥值");
                 return;
             }
+            btn_find_angle.Enabled = false;
+
             VisionCalibrator vc = new VisionCalibrator();
             die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
             die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
-            int offset = Int32.Parse(tbThreshold1.Text);
-            alignDone.Reset();
-            isAligning = true;
-            alignmentFunc.BeginInvoke(offset, new AsyncCallback(Alignment_Callback), alignmentFunc);
-        }
-        private void Alignment_Callback(IAsyncResult result)
-        {
-            AlignmentFunc func = (AlignmentFunc)result.AsyncState;
-            alignmentSucceed = func.EndInvoke(result);
-            alignDone.Set();
-        }
-        private void Alignment_Done(object sender, EventArgs e)
-        {
-            if (InvokeRequired)
+            Bitmap map;
+            lock (_image_lock)
             {
-                _log.Debug("In Alignment_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
-                BeginInvoke(new EventHandler(Alignment_Done), sender, e);
+                map = new Bitmap(_cur_bitmap);
+            }
+            findAngleDelegate.BeginInvoke(map, die_size
+                             , int.Parse(tbThreshold1.Text)
+                             , new AsyncCallback(FindAngle_Callback), findAngleDelegate);
+            _log.Debug("DoFindAngle:" + Thread.CurrentThread.ManagedThreadId.ToString());
+        }
 
+        private void DoAlignment()
+        {
+            GrabOn();
+            if (tb_dieX.Text == "" || tb_dieY.Text == "")
+            {
+                MessageBox.Show("請先輸入die的邊長");
                 return;
             }
-            _log.Debug("轉正完成");
-        }
-        #endregion
-        #region Sync Move emulating function
-        private void DoSyncMove(char[] axis_char, double[] distance, bool isRelative = true)
-        {
-            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
-            syncMoveFunc.BeginInvoke(moveEventArgs
-                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
-            GroupMoveEnable(false);
-        }
-        private void DoSyncMove(char axis_char, double distance, bool isRelative = true)
-        {
-            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
-            syncMoveFunc.BeginInvoke(moveEventArgs
-                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
-            GroupMoveEnable(false);
-        }
-        #endregion
-        #region scan
-        private void DoMeasure(List<string> f_list, List<PointF> pos)
-        {
-            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            _in_trigger = true;
-            measureFunc.BeginInvoke(f_list, pos
-                , _scan_type
-                , _measure_distance
-                , new AsyncCallback(Measure_Callback), measureFunc);
-        }
+            if (tbThreshold1.Text == "")
+            {
+                MessageBox.Show("請先輸入影像分割閥值");
+                return;
+            }
+            grp_cmb.Enabled = false;
+            grp_op.Enabled = false;
+            grp_move.Enabled = false;
 
+            VisionCalibrator vc = new VisionCalibrator();
+            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_size[2] = Constants.SCRIBE_LINE_WIDTH;
+
+            Bitmap map;
+            lock (_image_lock)
+            {
+                map = new Bitmap(_cur_bitmap);
+            }
+            alignmentFunc.BeginInvoke(map, die_size
+                             , int.Parse(tbThreshold1.Text), new AsyncCallback(Alignment_Callback), alignmentFunc);
+            _log.Debug("DoAlignment:" + Thread.CurrentThread.ManagedThreadId.ToString());
+        }
+        private void DoMeasure(List<string> f_list, List<PointF> p_list)
+        {
+            RawDownloadStop();
+            GrabOn();
+            Bitmap map;
+            lock (_image_lock)
+            {
+                map = new Bitmap(_cur_bitmap);
+            }
+            measureFunc.BeginInvoke(f_list, p_list, _scan_type, _measure_distance
+                                  , map, die_size, int.Parse(tbThreshold1.Text)
+                                  , new AsyncCallback(Measure_Callback), measureFunc);
+        }
+        #endregion
+        #region callback
         private void OnSynOpError(object sender, EventArgs e)
         {
             if (InvokeRequired)
             {
+                if ((startmeasure || _in_trigger)&& _ccsvWriteFiles.IsOpen)
+                {
+                    _ccsvWriteFiles.Close();
+                }
                 _log.Debug("OnSynOpError BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
                 BeginInvoke(new EventHandler(OnSynOpError), sender, e);
 
@@ -1862,76 +1808,6 @@ namespace Velociraptor
             SynOpErrorArgs error = (SynOpErrorArgs)e;
             ExceptionDialog(error.Ex, error.Message);
         }
-        #endregion
-        private void RawDownloadStart()
-        {
-            if ((_client != null) && (_client.DnldCommand != null))
-            {
-                if (!_client.DnldCommand.IsBusyDownloadRaw)
-                    _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
-            }
-        }
-        private void RawDownloadStop()
-        {
-            if (_syn_op.IsSimulate) return;
-            if ((_client != null) && (_client.DnldCommand != null))
-            {
-                if (_client.DnldCommand.IsBusyDownloadRaw)
-                    _client.DnldCommand.StopDownloadRaw();
-            }
-        }
-        private void GrabOn()
-        {
-            try
-            {
-                _log.Debug("In GrabOn: " + Thread.CurrentThread.ManagedThreadId.ToString());
-
-                if (isGarpping) return;
-                _log.Debug("Begin GrabStart:" + Thread.CurrentThread.ManagedThreadId.ToString());
-                camera.GrabStart();
-                isGarpping = true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                ExceptionDialog(ex, "Camera.GrabStart() failed!");
-            }
-        }
-        private void GrabOff()
-        {
-            try
-            {
-                _log.Debug("In GrabOff" + Thread.CurrentThread.ManagedThreadId.ToString());
-                if (isGarpping)
-                {
-                    _log.Debug("Begin GrabStop" + Thread.CurrentThread.ManagedThreadId.ToString());
-                    camera.GrabStop();
-                    isGarpping = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "Camera.GrabStop() failed!");
-            }
-        }
-        private void ExceptionDialog(Exception e, string message)
-        {
-            string dialog_message;
-
-            dialog_message = "Main_Form: " + message + Environment.NewLine + e.Message;
-            if (e.InnerException != null)
-            {
-                dialog_message += Environment.NewLine + e.InnerException?.Message;
-            }
-            _log.Warn(dialog_message);
-            MessageBox.Show(dialog_message);
-        }
-        private void ExceptionDialog(string message)
-        {
-            _log.Warn(message);
-            MessageBox.Show(message);
-        }
-        #region callback
         private void OnImageGrabbed(Object sender, EventArgs e)
         {
             AvvaCamera camera = sender as AvvaCamera;
@@ -1973,7 +1849,10 @@ namespace Velociraptor
 
                 Bitmap bitmapOld = pic_camera.Image as Bitmap;
 
-                _cur_bitmap = bitmap;
+                lock (_image_lock)
+                {
+                    _cur_bitmap = bitmap;
+                }
                 pic_camera.Image = bitmap;
                 //if (is_advanced_mode)
                 //{
@@ -1994,6 +1873,35 @@ namespace Velociraptor
                     camera.ImageData = null;
             }
         }
+        private void OnScanParamSet(Object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                _log.Debug("OnScanParamSet InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
+                Invoke(new EventHandler(OnScanParamSet), sender, e);
+
+                return;
+            }
+            _log.Debug("OnScanParamSet: " + Thread.CurrentThread.ManagedThreadId);
+
+            MoveEventArgs m_arg = (MoveEventArgs)e;
+            _client.SetEncoderCounters(eEncoderId.Encoder_X, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('X'));
+            _client.SetEncoderCounters(eEncoderId.Encoder_Y, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Y'));
+            _client.SetEncoderCounters(eEncoderId.Encoder_Z, eEncoderFunc.SetPositionImmediately, _syn_op.GetPos('Z'));
+            _dataAcquisitionNumber = _measure_distance / _syn_op.TriggerInterval;
+            if (_scan_type == eScanType.Scan1Um)
+                _dataAcquisitionNumber *= 5;
+            _fifoDataSample.CalculationOfFifo.Reset();
+            _client.ClearDataSampleFifo();
+
+            _syn_op.EncoderParamSetOk = Set_EncoderParameter((int)m_arg.Position[0], 1, _dataAcquisitionNumber);
+            _measure_filename = _syn_op.ScanFileName;
+            if (_syn_op.EncoderParamSetOk || _syn_op.IsSimulate)
+                _threadMeasure.EventUserList[(int)eThreadMeasure.eRun].Set();
+            else
+                ExceptionDialog("設定量測trigger失敗");
+            _syn_op.EncoderSet.Set();
+        }
         private void SyncMove_Callback(IAsyncResult result)
         {
             MoveDelegate func = (MoveDelegate)result.AsyncState;
@@ -2001,13 +1909,84 @@ namespace Velociraptor
             _log.Debug("SyncMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             GroupMoveEnable(true);
         }
+        private void FindAngle_Callback(IAsyncResult result)
+        {
+            _threadAction = eThreadAction.None;
+            try
+            {
+                FindAngleDelegate func = (FindAngleDelegate)result.AsyncState;
+                func.EndInvoke(result);
+                FindAngle_Done(this, EventArgs.Empty);
+                _log.Debug("FindAngle_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "FindAngle_Callback");
+            }
+            Invoke((MethodInvoker)delegate { btn_find_angle.Enabled = true; });
+        }
+        private void FindAngle_Done(object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                _log.Debug("In FindAngle_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                BeginInvoke(new EventHandler(FindAngle_Done), sender, e);
+                return;
+            }
+
+            lb_die_side1.Text = "邊長: " + _syn_op.EstimatedDieSide[0].ToString("0.#")
+                + " X " + _syn_op.EstimatedDieSide[1].ToString("0.#");
+            lb_angle1.Text = "角度: " + _syn_op.AngleAverage.ToString("0.####");
+            _log.Debug("ScanMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            Bitmap bmp;
+            lock (_image_lock)
+            {
+                bmp = _cur_bitmap.Clone(
+                            new Rectangle(0, 0, _cur_bitmap.Width, _cur_bitmap.Height)
+                            , PixelFormat.Format24bppRgb);
+            }
+            _syn_op.Draw(ref bmp);
+            pic_camera.Image = bmp;
+        }
+        private void Alignment_Callback(IAsyncResult result)
+        {
+            _threadAction = eThreadAction.None;
+            try
+            {
+                FindAngleDelegate func = (FindAngleDelegate)result.AsyncState;
+                func.EndInvoke(result);
+                _log.Debug("Alignment_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "Alignment_Callback");
+            }
+            Invoke((MethodInvoker)delegate 
+                { 
+                    grp_cmb.Enabled = true;
+                    grp_op.Enabled = true;
+                    grp_move.Enabled = true;
+                });
+        }
         private void Measure_Callback(IAsyncResult result)
         {
-            MeasureDelegate func = (MeasureDelegate)result.AsyncState;
-            func.EndInvoke(result);
-            timer_measure.Enabled = true;
-            _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            DefreezeControls(true);
+            try
+            {
+                MeasureDelegate func = (MeasureDelegate)result.AsyncState;
+                func.EndInvoke(result);
+                timer_measure.Enabled = true;
+                _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "Measure_Callback");
+            }
+            Invoke((MethodInvoker)delegate
+            {
+                grp_cmb.Enabled = true;
+                grp_op.Enabled = true;
+                grp_move.Enabled = true;
+            });
         }
         private void MeasureTimeout(object sender, EventArgs e)
         {
@@ -2015,16 +1994,28 @@ namespace Velociraptor
         }       
         private void SaveMeasureData()
         {
-            if (_syn_op.IsSimulate)
-            {
-                _log.Debug("SaveMeasureData" + Thread.CurrentThread.ManagedThreadId.ToString());
-                return;
-            }
-            _ccsvWriteFiles.Save(_syn_op.DataDirection, (int)_syn_op.GetPos('Z'));
-            _ccsvWriteFiles.Close();
-            _client.TriggerStop();
+            RawDownloadStart();
             _in_trigger = false;
             startmeasure = false;
+            if (_syn_op.IsSimulate)
+            {
+                _log.Debug("SaveMeasureData:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            }
+            else
+            {
+                _ccsvWriteFiles.Save(_syn_op.DataDirection, (int)_syn_op.GetPos('Z'));
+                _client.TriggerStop();
+            }
+            _ccsvWriteFiles.Close();
+            _syn_op.DataSaved.Set();
+
+            Process profiler = new Process();
+            profiler.StartInfo.FileName = "ThickInspector.exe";
+            if (_threadAction == eThreadAction.eAutoMeasure)
+                profiler.StartInfo.Arguments = Path.GetDirectoryName(_measure_filename);
+            else
+                profiler.StartInfo.Arguments = _measure_filename;
+            profiler.Start();
         }
         private void ScanMove_Callback(IAsyncResult result)
         {
@@ -2059,38 +2050,26 @@ namespace Velociraptor
                 grp_move.Enabled = toEnabled;
             });
         }
-        private void DefreezeControls(bool yes)
+        #endregion
+        #region Sync Move emulating function
+        private void DoSyncMove(char[] axis_char, double[] distance, bool isRelative = true)
         {
-            Invoke((MethodInvoker)delegate
-            {
-                grp_move.Enabled = yes;
-                grp_op.Enabled = yes;
-                cb_SelectMeasureDistance.Enabled = yes;
-                cb_selectMeasurePrecision.Enabled = yes;
-                cb_wafersize.Enabled = yes;
-            });
+            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
+            syncMoveFunc.BeginInvoke(moveEventArgs
+                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
+            GroupMoveEnable(false);
+        }
+        private void DoSyncMove(char axis_char, double distance, bool isRelative = true)
+        {
+            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
+            syncMoveFunc.BeginInvoke(moveEventArgs
+                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
+            GroupMoveEnable(false);
         }
         #endregion
         #region btn_Click_event
-        private void btn_grab_Click(object sender, EventArgs e)
-        {
-            if (isGarpping)
-            {
-                GrabOff();
-                btn_grab.Image = Properties.Resources.red;
-            }
-            else
-            {
-                GrabOn();
-                btn_grab.Image = Properties.Resources.green;
-            }
-        }
-        #region cb_SelectMeasureDistance_SelectedIndexChanged
-        private void cb_SelectMeasureDistance_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _measure_distance = int.Parse(cb_SelectMeasureDistance.Text);
-        }
-        #endregion
         #region 運動控制
         #region btn_origin_return_Click
         private void btn_origin_return_Click(object sender, EventArgs e)
@@ -2118,7 +2097,73 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region btn_auto_measurement
+        #region btn measurement related
+        private void btn_find_angle_Click(object sender, EventArgs e)
+        {
+            _threadAction = eThreadAction.eFindAngle;
+            DoFindAngle();
+        }
+        private void btn_align_Click(object sender, EventArgs e)
+        {
+            _threadAction = eThreadAction.eAlignment;
+            DoAlignment();
+        }
+        private void btn_manual_mea_Click(object sender, EventArgs e)
+        {
+            if (!_syn_op.IsSimulate)
+            {
+                if (!_client.ClientIsConnected)
+                {
+                    MessageBox.Show("量測相機未連線，請先連結相機");
+                    return;
+                }
+                if ((_client == null) && (_client.DnldCommand == null))
+                {
+                    MessageBox.Show("量測相機初始化失敗，請重新啟動系統");
+                    return;
+                }
+            }
+            if (tb_dieX.Text == "" || tb_dieY.Text == "")
+            {
+                MessageBox.Show("請先輸入die的邊長");
+                return;
+            }
+            if (tbThreshold1.Text == "")
+            {
+                MessageBox.Show("請先輸入影像分割閥值");
+                return;
+            }
+            SaveFileDialog sfd_upload = new SaveFileDialog();
+            sfd_upload.Filter = "DATA file|*.data";
+            sfd_upload.Title = "Save a File";
+            sfd_upload.InitialDirectory = _syn_op.SavingPath;
+            sfd_upload.RestoreDirectory = true;
+            DateTime dt = DateTime.Now;
+            string dateTimeFileName = string.Format("_{0:yy_MM_dd_HH_mm_ss}", dt);
+            sfd_upload.FileName = dateTimeFileName;
+            sfd_upload.DefaultExt = "data";
+            if (sfd_upload.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                return;
+            _measure_filename = sfd_upload.FileName;
+
+            grp_cmb.Enabled = false;
+            grp_op.Enabled = false;
+            grp_move.Enabled = false;
+
+            VisionCalibrator vc = new VisionCalibrator();
+            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_size[2] = Constants.SCRIBE_LINE_WIDTH;
+
+            PointF pos = new PointF((float)_syn_op.GetPos('X')
+                                  , (float)_syn_op.GetPos('Y'));
+            List<string> f_list = new List<string> { _measure_filename };
+            List<PointF> p_list = new List<PointF> { pos };
+            _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            _in_trigger = true;
+            _threadAction = eThreadAction.eManualMeasure;
+            DoMeasure(f_list, p_list);
+        }
         private void btn_auto_measurement(object sender, EventArgs e)
         {
             if (!_syn_op.IsSimulate)
@@ -2136,11 +2181,29 @@ namespace Velociraptor
             }
             try
             {
-                DoAlignment();
+                if (tb_dieX.Text == "" || tb_dieY.Text == "")
+                {
+                    MessageBox.Show("請先輸入die的邊長");
+                    return;
+                }
+                if (tbThreshold1.Text == "")
+                {
+                    MessageBox.Show("請先輸入影像分割閥值");
+                    return;
+                }
+                VisionCalibrator vc = new VisionCalibrator();
+                die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
+                die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+                die_size[2] = Constants.SCRIBE_LINE_WIDTH;
+
+                _threadAction = eThreadAction.eAutoMeasure;
+                _threadActionProcess.EventUserList[(int)eThreadAction.eFindAngle].Set();
                 AutoParamsForm form = new AutoParamsForm();
                 if (form.ShowDialog() != DialogResult.OK) return;
 
-                RawDownloadStop();
+                grp_cmb.Enabled = false;
+                grp_op.Enabled = false;
+                grp_move.Enabled = false;
 
                 _wafer_id = form.tb_wafer_id.Text;
                 _notch_idx = form.cmb_notch.SelectedIndex;
@@ -2198,21 +2261,14 @@ namespace Velociraptor
                         _mea_pts.Add(new Point(-c, -r));
                     }
                 }
-                _mea_pos = _syn_op.TransformDiePos(_die_row_count, _die_col_count, EstimatedDieSide, _mea_pts);
+                _mea_pos = _syn_op.TransformDiePos(_die_row_count, _die_col_count, _mea_pts);
                 _measure_distance = Constants.AutoMeasureDistance;
                 List<string> f_list = new List<string>();
                 //full pathname = data directory/wafer_id_datetime/DataSet_n.data
                 for (int i = 0; i < _mea_pos.Count; i++)
                     f_list.Add(Path.Combine(path, "DataSet_" + i.ToString()));
-                DefreezeControls(false);
                 DoMeasure(f_list, _mea_pos);
-
                 _db.Insert(data);
-
-                _log.Debug("Auto Measurement Grab on");
-                GrabOn();
-                RawDownloadStart();
-                btn_grab.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -2397,6 +2453,26 @@ namespace Velociraptor
             }
         }
         #endregion
+        #region Miscellaneous
+        private void btn_grab_Click(object sender, EventArgs e)
+        {
+            if (isGarpping)
+            {
+                GrabOff();
+                btn_grab.Image = Properties.Resources.red;
+            }
+            else
+            {
+                GrabOn();
+                btn_grab.Image = Properties.Resources.green;
+            }
+        }
+        #region cb_SelectMeasureDistance_SelectedIndexChanged
+        private void cb_SelectMeasureDistance_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            _measure_distance = int.Parse(cb_SelectMeasureDistance.Text);
+        }
+        #endregion
         private void btn_ClearAlarm_Click(object sender, EventArgs e)
         {
             try
@@ -2412,15 +2488,6 @@ namespace Velociraptor
         {
             grp_manual_buttons.Visible = !grp_manual_buttons.Visible;
         }
-
-        private void btn_align_Click(object sender, EventArgs e)
-        {
-            GrabOff();
-            DoAlignment();
-            GrabOn();
-            btn_grab.Enabled = true;
-        }
-
         private void btn_download_Click(object sender, EventArgs e)
         {
             if ((_client != null) && (_client.DnldCommand != null))
@@ -2493,67 +2560,6 @@ namespace Velociraptor
                 pic_camera.Image = _cur_bitmap;
             }
         }
-        private void btn_find_angle_Click(object sender, EventArgs e)
-        {
-            VisionCalibrator vc = new VisionCalibrator();
-            int threshold1;
-            if (!int.TryParse(tbThreshold1.Text, out threshold1)) threshold1 = 6;
-            _cur_bitmap.Save("test.bmp", ImageFormat.Bmp);
-            try
-            {
-                fs.find_angle(_cur_bitmap, threshold1, die_size);
-                EstimatedDieSide[Constants.WAY_HORIZONTAL] = vc.Pixel2Um_X(fs.WidthAverage);
-                EstimatedDieSide[Constants.WAY_VERTICAL] = vc.Pixel2Um_X(fs.HeightAverage);
-                lb_die_side1.Text = "邊長: " + EstimatedDieSide[0].ToString("0.#")
-                    + " X " + EstimatedDieSide[1].ToString("0.#");
-                lb_angle1.Text = "角度: " + fs.AngleAverage.ToString("0.####");
-                //Bitmap bmp = new Bitmap(_cur_bitmap.Width, _cur_bitmap.Height);
-                Bitmap bmp = _cur_bitmap.Clone(
-                                new Rectangle(0, 0, _cur_bitmap.Width, _cur_bitmap.Height)
-                                , PixelFormat.Format24bppRgb);
-                fs.Draw(ref bmp);
-                pic_camera.Image = bmp;
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, "Pic Find Angle:");
-            }
-        }
-        private void btn_start_mea_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (_client.ClientIsConnected)
-                {
-                    SaveFileDialog sfd_upload = new SaveFileDialog();
-                    sfd_upload.Filter = "DATA file|*.data";
-                    sfd_upload.Title = "Save a File";
-                    sfd_upload.InitialDirectory = _syn_op.SavingPath;
-                    sfd_upload.RestoreDirectory = true;
-                    DateTime dt = DateTime.Now;
-                    string dateTimeFileName = string.Format("_{0:yy_MM_dd_HH_mm_ss}", dt);
-                    sfd_upload.FileName = dateTimeFileName;
-                    sfd_upload.DefaultExt = "data";
-                    if ((_client != null) && (_client.DnldCommand != null))
-                    {
-                        if (sfd_upload.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                        {
-                            _measure_filename = sfd_upload.FileName;
-                            PointF pos = new PointF((float)_syn_op.GetPos('X')
-                                                       , (float)_syn_op.GetPos('Y'));
-                            List<string> f_list = new List<string> { Path.GetDirectoryName(_measure_filename) };
-                            List<PointF> p_list = new List<PointF> { pos };
-                            DefreezeControls(false);
-                            DoMeasure(f_list, p_list);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, string.Format("Error : {0}.{1}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name));
-            }
-        }
         private void btn_connect_Click(object sender, EventArgs e)
         {
             ConnectMeasure();
@@ -2576,15 +2582,16 @@ namespace Velociraptor
         private void btn_threshold_Click(object sender, EventArgs e)
         {
             GrabOff();
-            pic_camera.Image = fs.DoThreshold(_cur_bitmap, int.Parse(tbThreshold1.Text));
+            Bitmap map;
+            lock (_image_lock)
+            {
+                map = new Bitmap(_cur_bitmap);
+            }
+            pic_camera.Image = _syn_op.Threshold(map, int.Parse(tbThreshold1.Text));
         }
         private void btn_test_Click(object sender, EventArgs e)
         {
             _log.Debug("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
-
-            DefreezeControls(true);
-
-            //_syn_op.AsyncMove5um(1000);
         }
 
         private void cb_selectMeasurePrecision_SelectedIndexChanged(object sender, EventArgs e)
@@ -2595,12 +2602,26 @@ namespace Velociraptor
 
         private void tbThreshold1_TextChanged(object sender, EventArgs e)
         {
-            tr_threshold.Value = int.Parse(tbThreshold1.Text);
+            int value;
+            if (int.TryParse(tbThreshold1.Text, out value))
+                tr_threshold.Value = value;
+            else
+            {
+                MessageBox.Show("Only number allowed");
+                tbThreshold1.Text = "1";
+            }
         }
 
         private void tbLight_TextChanged(object sender, EventArgs e)
         {
-            tr_light.Value = int.Parse(tbLight.Text);
+            int value;
+            if (int.TryParse(tbLight.Text, out value))
+                tr_light.Value = value;
+            else
+            {
+                MessageBox.Show("Only number allowed");
+                tbLight.Text = "0";
+            }
         }
         private void btn_autofocus_Click_1(object sender, EventArgs e)
         {
@@ -2613,7 +2634,97 @@ namespace Velociraptor
             if (cb_wafersize.SelectedIndex == 0) chuck.Set_12inchWafer();
             else chuck.Set_8inchWafer();
         }
+        private void RawDownloadStart()
+        {
+            if ((_client != null) && (_client.DnldCommand != null))
+            {
+                if (!_client.DnldCommand.IsBusyDownloadRaw)
+                    _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
+            }
+        }
+        private void RawDownloadStop()
+        {
+            if (_syn_op.IsSimulate) return;
+            if ((_client != null) && (_client.DnldCommand != null))
+            {
+                if (_client.DnldCommand.IsBusyDownloadRaw)
+                    _client.DnldCommand.StopDownloadRaw();
+            }
+        }
+        private void GrabOn()
+        {
+            try
+            {
+                _log.Debug("In GrabOn: " + Thread.CurrentThread.ManagedThreadId.ToString());
+
+                if (isGarpping) return;
+                _log.Debug("Begin GrabStart:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                camera.GrabStart();
+                isGarpping = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                ExceptionDialog(ex, "Camera.GrabStart() failed!");
+            }
+        }
+        private void GrabOff()
+        {
+            try
+            {
+                _log.Debug("In GrabOff" + Thread.CurrentThread.ManagedThreadId.ToString());
+                if (isGarpping)
+                {
+                    _log.Debug("Begin GrabStop" + Thread.CurrentThread.ManagedThreadId.ToString());
+                    camera.GrabStop();
+                    isGarpping = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "Camera.GrabStop() failed!");
+            }
+        }
+        private void ExceptionDialog(Exception e, string message)
+        {
+            string dialog_message;
+
+            dialog_message = "Main_Form: " + message + Environment.NewLine + e.Message;
+            if (e.InnerException != null)
+            {
+                dialog_message += Environment.NewLine + e.InnerException?.Message;
+            }
+            _log.Warn(dialog_message);
+            MessageBox.Show(dialog_message);
+        }
+        private void ExceptionDialog(string message)
+        {
+            _log.Warn(message);
+            MessageBox.Show(message);
+        }
         #endregion
+
+        #endregion
+
+        private void tb_dieX_TextChanged(object sender, EventArgs e)
+        {
+            int value;
+            if (!int.TryParse(tb_dieX.Text, out value))
+            {
+                MessageBox.Show("Only number allowed");
+                tb_dieX.Text = "1";
+            }
+        }
+
+        private void tb_dieY_TextChanged(object sender, EventArgs e)
+        {
+            int value;
+            if (!int.TryParse(tb_dieY.Text, out value))
+            {
+                MessageBox.Show("Only number allowed");
+                tb_dieY.Text = "1";
+            }
+        }
     }
     [Serializable]
     class AvvaException : Exception

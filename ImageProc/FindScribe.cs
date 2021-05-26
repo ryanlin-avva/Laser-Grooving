@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 
 namespace Velociraptor.ImageProc
 {
@@ -16,7 +17,7 @@ namespace Velociraptor.ImageProc
         public double AngleAverage { get; private set; }
         public double WidthAverage { get; private set; }
         public double HeightAverage { get; private set; }
-        public void find_angle(Bitmap bitmap, int threshold, double[]die_size)
+        public void FindAngle(Bitmap bitmap, int threshold, double[]die_size)
         {
             _img_height = bitmap.Height;
             _img_width = bitmap.Width;
@@ -621,6 +622,7 @@ namespace Velociraptor.ImageProc
         }
         public void Draw(ref Bitmap bmp)
         {
+            Console.WriteLine("FS_Draw:" + Thread.CurrentThread.ManagedThreadId.ToString());
             for (int m = 0; m < _target_points.Count; m++)
             {
                 Point p = _target_points[m];

@@ -103,6 +103,16 @@ namespace Velociraptor.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ccw_new {
+            get {
+                object obj = ResourceManager.GetObject("ccw_new", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap dart {
             get {
                 object obj = ResourceManager.GetObject("dart", resourceCulture);

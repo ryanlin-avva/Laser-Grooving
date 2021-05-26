@@ -250,6 +250,7 @@
     <None Include="Images\48\stop.png" />
     <None Include="Images\48\test.png" />
     <None Include="Images\48\focus_icon.png" />
+    <None Include="Images\48\ccw_new.png" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />
