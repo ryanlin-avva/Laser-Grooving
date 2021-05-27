@@ -818,6 +818,7 @@ namespace Velociraptor
                 {
                     int scan_mode = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
                     _ccsvWriteFiles.Open(Path.Combine(_syn_op.SavingPath, _measure_filename+".data"), scan_mode);
+                    timer_measure.Enabled = true;
                     _in_trigger = true;
                 }
             }
@@ -1985,7 +1986,6 @@ namespace Velociraptor
             {
                 MeasureDelegate func = (MeasureDelegate)result.AsyncState;
                 func.EndInvoke(result);
-                timer_measure.Enabled = true;
                 RawDownloadStart();
                 _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
@@ -2006,6 +2006,7 @@ namespace Velociraptor
         }       
         private void SaveMeasureData()
         {
+            timer_measure.Enabled = false;
             _in_trigger = false;
             startmeasure = false;
             if (_syn_op.IsSimulate)
