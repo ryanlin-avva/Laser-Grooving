@@ -255,6 +255,9 @@ namespace Velociraptor
         #region Constructor
         public f_main()
         {
+            Thread splashThread = new Thread(new ThreadStart(StartSplash));
+            splashThread.Start();
+
             InitializeComponent();
             try
             {
@@ -341,6 +344,7 @@ namespace Velociraptor
                 imageCloneDone = new AutoResetEvent(false);
                 _db = new DBKeeper();
                 _log.Info("Form construction finished");
+                splashThread.Abort();
             }
             catch (Exception ex)
             {
@@ -606,12 +610,12 @@ namespace Velociraptor
                             if (sBuffer != null)
                             {
                                 sSpectraRaw spectra = new sSpectraRaw(_client.DnldCommand.SpectrumRaw, sBuffer, _client.FibersParameters);
-                                if (!startmeasure)//避免掃完第一點後要掃第二點時client因為clsRawImage而斷線
-                                {
+                                //if (!startmeasure)//避免掃完第一點後要掃第二點時client因為clsRawImage而斷線
+                                //{
                                     clsRawImage.Data = spectra.Data;
                                     if (spectra.Data != null)
                                         this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
-                                }
+                                //}
                                 
                             }
                         }
@@ -1982,6 +1986,7 @@ namespace Velociraptor
                 MeasureDelegate func = (MeasureDelegate)result.AsyncState;
                 func.EndInvoke(result);
                 timer_measure.Enabled = true;
+                RawDownloadStart();
                 _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
@@ -2001,7 +2006,6 @@ namespace Velociraptor
         }       
         private void SaveMeasureData()
         {
-            RawDownloadStart();
             _in_trigger = false;
             startmeasure = false;
             if (_syn_op.IsSimulate)
@@ -2485,6 +2489,7 @@ namespace Velociraptor
             try
             {
                 _syn_op.ClearAlarm();
+                GroupMoveEnable(true);
             }
             catch (Exception ex)
             {
@@ -2732,6 +2737,11 @@ namespace Velociraptor
                 tb_dieY.Text = "1";
             }
         }
+        public void StartSplash()
+        {
+            Application.Run(new Splash());
+        }
+
     }
     [Serializable]
     class AvvaException : Exception

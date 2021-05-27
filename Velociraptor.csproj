@@ -110,6 +110,12 @@
     <Compile Include="Motion\IAvvaMotion.cs" />
     <Compile Include="Motion\MotionParamReader.cs" />
     <Compile Include="Motion\YaskawaMotion.cs" />
+    <Compile Include="MyForm\Splash.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MyForm\Splash.Designer.cs">
+      <DependentUpon>Splash.cs</DependentUpon>
+    </Compile>
     <Compile Include="ParamReader.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="MyForm\AutoParamsForm.cs">
@@ -215,6 +221,9 @@
     <EmbeddedResource Include="MyForm\PasswordEngineer.resx">
       <DependentUpon>PasswordEngineer.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="MyForm\Splash.resx">
+      <DependentUpon>Splash.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
@@ -256,6 +265,7 @@
     <None Include="Images\48\test.png" />
     <None Include="Images\48\focus_icon.png" />
     <None Include="Images\48\ccw_new.png" />
+    <Content Include="AvvaLaserGrooving.log4net.xml" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />
