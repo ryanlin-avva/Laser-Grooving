@@ -30,6 +30,7 @@ namespace Velociraptor
     //-------------------------------------------------------------------------------------------
     public partial class f_main : System.Windows.Forms.Form
     {
+        #region Variable Declaration
         #region eThreadAction
         public enum eThreadAction
         {
@@ -211,18 +212,10 @@ namespace Velociraptor
 
         #endregion
         #region autofocus
-        long minAFFuncMs;
-        long maxAFFuncMs;
-        int zImgCount;
-        int zPosition;
-        readonly AutoResetEvent imageCloneDone;
-        bool imageClone;
-        Object focusImage;
-        delegate double AutoFocusFunc(Object image);
-        AutoFocusFunc runAFFunc;
+        WaferLoadDelegate waferLoadDelegate;
+        SetMagDelegate toMagePosDelegate;
         #endregion
         #region Move, Alignment, Scan
-        readonly EventHandler autoFocusRun;
         FindAngleDelegate findAngleDelegate;
         FindAngleDelegate alignmentFunc;
         object _image_lock = new object();
@@ -250,12 +243,14 @@ namespace Velociraptor
         System.Timers.Timer timer_measure;
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
         log4net.ILog _log;
+        Thread splashThread;
+        #endregion
         #endregion
         #region 主程式開關
         #region Constructor
         public f_main()
         {
-            Thread splashThread = new Thread(new ThreadStart(StartSplash));
+            splashThread = new Thread(new ThreadStart(StartSplash));
             splashThread.Start();
 
             InitializeComponent();
@@ -303,8 +298,6 @@ namespace Velociraptor
                 _eventOnError = new cErrorEventArgs.OnErrorEventHandler(_OnError);
                 _eventCloseForm = new CloseFormDelegate(_OnCloseOnStart);
                 _ccd_range = new sCCDRange(0, 0);
-                runAFFunc = new AutoFocusFunc(Cv2LaplacianVariance);
-                autoFocusRun = new EventHandler(AutoFocusRun);
                 #endregion
                 #region Motion, Camera, Log Initialization
                 ILoggerRepository repository = log4net.LogManager.CreateRepository("AvvaLaserGrooving");
@@ -328,6 +321,10 @@ namespace Velociraptor
                 _syn_op.AsyncMove += OnAsyncMove;
                 _syn_op.ScanParamSet += OnScanParamSet;
                 _syn_op.OnError += OnSynOpError;
+                #endregion
+                #region synthesis operations initializations
+                waferLoadDelegate = new WaferLoadDelegate(_syn_op.WaferLoad);
+                toMagePosDelegate = new SetMagDelegate(_syn_op.ToMagPos);
                 scanMove5umFunc = new ScanMoveDelegate(_syn_op.AsyncMove5um);
                 scanMove1umFunc = new ScanMoveDelegate(_syn_op.AsyncMove1um);
                 syncMoveFunc = new MoveDelegate(_syn_op.SyncMoveTo);
@@ -340,8 +337,8 @@ namespace Velociraptor
                 camera.IntstSet(0, tr_light.Value);
                 camera.MaxMagSet();
                 camera.ImageGrabbed += OnImageGrabbed;
+                camera.ImageFiltered += OnImageFiltered;
                 #endregion
-                imageCloneDone = new AutoResetEvent(false);
                 _db = new DBKeeper();
                 _log.Info("Form construction finished");
                 splashThread.Abort();
@@ -1441,290 +1438,20 @@ namespace Velociraptor
         }
         #endregion
         #region AutoFocus
-        private void OnAutoFocusImageGrabbed(Object sender, EventArgs e)
+        private void DoWaferLoad()
         {
-            AvvaCamera camera = sender as AvvaCamera;
-
-            if (InvokeRequired)
-            {
-                //_log.Debug("In OnAutoFocusImageGrabbed BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
-                BeginInvoke(new EventHandler(OnAutoFocusImageGrabbed), sender, e);
-
-                return;
-            }
-            //_log.Debug("In OnAutoFocusImageGrabbed:" + Thread.CurrentThread.ManagedThreadId.ToString());
-
-            if (camera.ImageData != null)
-            {
-                //_log.Debug("In OnAutoFocusImageGrabbed ImageData !=null:" + Thread.CurrentThread.ManagedThreadId.ToString());
-                bool badImageData = false;
-
-                Bitmap bitmap = new Bitmap(camera.ImageWidth, camera.ImageHeight, PixelFormat.Format32bppRgb);
-                BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
-                IntPtr intPtr = bmpData.Scan0;
-
-                try
-                {
-                    camera.ConvertImage(bmpData.Stride, intPtr);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    badImageData = true;
-                }
-
-                bitmap.UnlockBits(bmpData);
-
-                if (badImageData == true)
-                {
-                    bitmap.Dispose();
-                    return;
-                }
-                
-                Bitmap bitmapOld = pic_camera.Image as Bitmap;
-                pic_camera.Image = bitmap;
-
-                bitmapOld?.Dispose();
-
-                if ((imageClone == true &&
-                    camera.UserData != null &&
-                    zPosition == (int)camera.UserData &&
-                    ++zImgCount > 1) || _syn_op.IsSimulate)
-                {
-                    focusImage = BitmapConverter.ToMat(bitmap);
-                    imageClone = false;
-                    camera.SetUserData(null);
-                    zImgCount = 0;
-                    imageCloneDone.Set();
-                } 
-                camera.ImageData = null;
-            }
+            OpButtonFreeze();
+            waferLoadDelegate.BeginInvoke(new AsyncCallback(AutoFocus_Callback)
+                                        , waferLoadDelegate);
+            _log.Debug("DoAutoFocus:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
-        private void DoAutoFocus()
+        private void DoSetMag(eMagType mag_type)
         {
-
-        }
-        private void AutoFocusRun(Object sender, EventArgs e)
-        {
-            int beginPosition, endPosition, positionNo, positionId;
-            int[] runPosition;
-            IAsyncResult[] result;
-            double[] variance;
-            double maxVariance;
-            Object[] runImage;
-            MoveEventArgs moveEventArgs;
-
-            GrabOn();
-            Console.WriteLine("Auto Focusing Fisrt Run:");
-            //Max Mag
-            beginPosition = _syn_op.MaxMagAutoFocusBegin;
-            endPosition = _syn_op.MaxMagAutoFocusEnd;
-
-            positionNo = (Math.Abs(endPosition - beginPosition)) / 1000 + 1;
-
-            minAFFuncMs = Int32.MaxValue;
-            maxAFFuncMs = 0;
-
-            runPosition = new int[positionNo];
-            result = new IAsyncResult[positionNo];
-            variance = new double[positionNo];
-            runImage = new Object[positionNo];
-
-            for (int position = beginPosition, i = 0; position <= endPosition; position += 1000, i++)
-            {
-                runPosition[i] = position;
-                moveEventArgs = new MoveEventArgs('Z', position, false);
-                OnAsyncMove(sender, moveEventArgs);
-                AsyncMoveWait('Z', position);
-                //_syn_op.MoveTo('Z', position, false);
-                zPosition = position;
-                camera.SetUserData((object)position);
-                zImgCount = 0;
-
-                imageCloneDone.Reset();
-                imageClone = true;
-                imageCloneDone.WaitOne();
-
-                runImage[i] = focusImage;
-
-                result[i] = runAFFunc.BeginInvoke(runImage[i], null, null);
-            }
-
-            for (int i = 0; i < positionNo; i++)
-            {
-                result[i].AsyncWaitHandle.WaitOne();
-                variance[i] = runAFFunc.EndInvoke(result[i]);
-                result[i].AsyncWaitHandle.Close();
-            }
-
-            maxVariance = variance[0];
-            positionId = 0;
-            for (int i = 0; i < positionNo; i++)
-            {
-                Console.WriteLine("variance[" + i + "]= " + variance[i]);
-                if (variance[i] > maxVariance)
-                {
-                    maxVariance = variance[i];
-                    positionId = i;
-                }
-            }
-
-            Console.WriteLine("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
-
-            Console.WriteLine("Auto Focusing Second Run:");
-
-            if (positionId == 0)
-                beginPosition = runPosition[0];
-            else
-                beginPosition = runPosition[positionId - 1];
-
-            if (positionId == positionNo - 1)
-                endPosition = runPosition[positionNo - 1];
-            else
-                endPosition = runPosition[positionId + 1];
-
-            positionNo = (Math.Abs(endPosition - beginPosition)) / 100 + 1;
-
-            runPosition = new int[positionNo];
-            result = new IAsyncResult[positionNo];
-            variance = new double[positionNo];
-            runImage = new Object[positionNo];
-
-            for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
-            {
-                runPosition[i] = position;
-                moveEventArgs = new MoveEventArgs('Z', position, false);
-                OnAsyncMove(sender, moveEventArgs);
-                AsyncMoveWait('Z', position);
-                //_syn_op.MoveTo('Z', position, false);
-                zPosition = position;
-                camera.SetUserData((object)position);
-                zImgCount = 0;
-
-                imageCloneDone.Reset();
-                imageClone = true;
-                imageCloneDone.WaitOne();
-
-                runImage[i] = focusImage;
-                result[i] = runAFFunc.BeginInvoke(runImage[i], null, null);
-            }
-
-            for (int i = 0; i < positionNo; i++)
-            {
-                result[i].AsyncWaitHandle.WaitOne();
-                variance[i] = runAFFunc.EndInvoke(result[i]);
-                result[i].AsyncWaitHandle.Close();
-            }
-
-            maxVariance = variance[0];
-            positionId = 0;
-            for (int i = 0; i < positionNo; i++)
-            {
-                Console.WriteLine("variance[" + i + "]: " + variance[i]);
-                if (variance[i] > maxVariance)
-                {
-                    maxVariance = variance[i];
-                    positionId = i;
-                }
-            }
-            moveEventArgs = new MoveEventArgs('Z', runPosition[positionId], false);
-            OnAsyncMove(sender, moveEventArgs);
-            AsyncMoveWait('Z', runPosition[positionId]);
-
-            Console.WriteLine("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
-            Console.WriteLine("Max AF func elapsed ms: " + maxAFFuncMs + ", Min AF func elapsed ms: " + minAFFuncMs);
-        }
-        private void OnAsyncMove(Object sender, EventArgs e)
-        {
-            if (InvokeRequired)
-            {
-                _log.Debug("OnAsyncMove InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
-                Invoke(new EventHandler(OnAsyncMove), sender, e);
-                _log.Debug("OnAsyncMove InvokeRequired Finished: " + Thread.CurrentThread.ManagedThreadId);
-                return;
-            }
-
-            _log.Debug("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
-            MoveEventArgs moveEventArgs;
-            moveEventArgs = (MoveEventArgs)e;
-            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
-        }
-        private void AsyncMoveWait(char[]axis, double[] position)
-        {
-            for (int i=0; i<axis.Length; i++)
-            {
-                while (_syn_op.GetPos(axis[i]) != position[i])
-                {
-                    Thread.Sleep(50);
-                }
-            }
-        }
-        private void AsyncMoveWait(char axis, double position)
-        {
-            while (_syn_op.GetPos(axis) != position)
-            {
-                Thread.Sleep(50);
-            }
-        }
-        private void AutoFocusRun_Callback(IAsyncResult result)
-        {
-            AutoFocusRun_Done(this, EventArgs.Empty);
-        }
-        private void AutoFocusRun_Done(object sender, EventArgs e)
-        {
-            if (InvokeRequired)
-            {
-                _log.Debug("In AutoFocusRun_Done BeginInvoke:" + Thread.CurrentThread.ManagedThreadId.ToString());
-                BeginInvoke(new EventHandler(AutoFocusRun_Done), sender, e);
-
-                return;
-            }
-            _log.Debug("In AutoFocusRun_Done:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            GrabOff();
-            camera.ImageGrabbed -= OnAutoFocusImageGrabbed;
-            camera.ImageGrabbed += OnImageGrabbed;
-            GrabOn();
-        }
-        private double Cv2LaplacianVariance(Object image)
-        {
-            Console.WriteLine("Cv2LaplacianVariance");
-            Mat mat = (Mat)image;
-            double variance;
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
-#if false
-            using (var laplacian = new Mat())
-            {
-                int kernel_size = 3;
-                int scale = 1;
-                int delta = 0;
-                int ddepth = image.Type().Depth;
-                Cv2.Laplacian(image, laplacian, ddepth, kernel_size, scale, delta);
-                Cv2.MeanStdDev(laplacian, out var mean, out var stddev);
-                variance = stddev.Val0 * stddev.Val0;
-            }
-#else
-            using (var gray = new Mat())
-            using (var laplacian = new Mat())
-            {
-                Cv2.CvtColor(mat, gray, ColorConversionCodes.BGR2GRAY);
-                Cv2.Laplacian(gray, laplacian, MatType.CV_64F);
-                Cv2.MeanStdDev(laplacian, out var mean, out var stddev);
-                variance = stddev.Val0 * stddev.Val0;
-            }
-#endif
-
-            mat.Dispose();
-
-            watch.Stop();
-
-            if (watch.ElapsedMilliseconds < minAFFuncMs)
-                minAFFuncMs = watch.ElapsedMilliseconds;
-            else if (watch.ElapsedMilliseconds > maxAFFuncMs)
-                maxAFFuncMs = watch.ElapsedMilliseconds;
-
-            return variance;
+            OpButtonFreeze();
+            toMagePosDelegate.BeginInvoke(mag_type
+                 , new AsyncCallback(SetMag_Callback)
+                 , toMagePosDelegate);
+            _log.Debug("DoAutoFocus:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
 
         #endregion
@@ -1761,6 +1488,7 @@ namespace Velociraptor
         private void DoAlignment()
         {
             GrabOn();
+            DoSetMag(eMagType.MinMag);
             if (tb_dieX.Text == "" || tb_dieY.Text == "")
             {
                 MessageBox.Show("請先輸入die的邊長");
@@ -1771,9 +1499,7 @@ namespace Velociraptor
                 MessageBox.Show("請先輸入影像分割閥值");
                 return;
             }
-            grp_cmb.Enabled = false;
-            grp_op.Enabled = false;
-            grp_move.Enabled = false;
+            OpButtonFreeze();
 
             VisionCalibrator vc = new VisionCalibrator();
             die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
@@ -1793,6 +1519,7 @@ namespace Velociraptor
         {
             RawDownloadStop();
             GrabOn();
+            OpButtonFreeze();
             Bitmap map;
             lock (_image_lock)
             {
@@ -1801,6 +1528,12 @@ namespace Velociraptor
             measureFunc.BeginInvoke(f_list, p_list, _scan_type, _measure_distance
                                   , map, die_size, int.Parse(tbThreshold1.Text)
                                   , new AsyncCallback(Measure_Callback), measureFunc);
+        }
+        private void OpButtonFreeze()
+        {
+            grp_cmb.Enabled = false;
+            grp_op.Enabled = false;
+            grp_move.Enabled = false;
         }
         #endregion
         #region callback
@@ -1819,6 +1552,21 @@ namespace Velociraptor
             }
             SynOpErrorArgs error = (SynOpErrorArgs)e;
             ExceptionDialog(error.Ex, error.Message);
+        }
+        private void OnAsyncMove(Object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                _log.Debug("OnAsyncMove InvokeRequired: " + Thread.CurrentThread.ManagedThreadId);
+                Invoke(new EventHandler(OnAsyncMove), sender, e);
+                _log.Debug("OnAsyncMove InvokeRequired Finished: " + Thread.CurrentThread.ManagedThreadId);
+                return;
+            }
+
+            _log.Debug("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
+            MoveEventArgs moveEventArgs;
+            moveEventArgs = (MoveEventArgs)e;
+            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
         }
         private void OnImageGrabbed(Object sender, EventArgs e)
         {
@@ -1885,6 +1633,42 @@ namespace Velociraptor
                     camera.ImageData = null;
             }
         }
+        private void OnImageFiltered(Object sender, EventArgs e)
+        {
+            AvvaCamera camera = sender as AvvaCamera;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new EventHandler(OnImageFiltered), sender, e);
+
+                return;
+            }
+
+            if (camera.ImageData != null)
+            {
+                Mat mat = new OpenCvSharp.Mat(camera.ImageHeight, camera.ImageWidth, MatType.CV_8UC4);
+
+                try
+                {
+                    camera.ConvertImage((int)mat.Step(), mat.DataStart);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    mat.Dispose();
+                    return;
+                }
+
+                _syn_op.ImgMat = mat;
+
+                //if (isAutoLighting == true)
+                //{
+                //    ColorHistShow((Mat)image);
+                //}
+
+                _syn_op.imageFilterDone.Set();
+            }
+        }
         private void OnScanParamSet(Object sender, EventArgs e)
         {
             if (InvokeRequired)
@@ -1920,6 +1704,34 @@ namespace Velociraptor
             func.EndInvoke(result);
             _log.Debug("SyncMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             GroupMoveEnable(true);
+        }
+        private void AutoFocus_Callback(IAsyncResult result)
+        {
+            try
+            {
+                WaferLoadDelegate func = (WaferLoadDelegate)result.AsyncState;
+                func.EndInvoke(result);
+                _log.Debug("AutoFocus_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "AutoFocus_Callback");
+            }
+            OpFreeze_Done(this, EventArgs.Empty);
+        }
+        private void SetMag_Callback(IAsyncResult result)
+        {
+            try
+            {
+                SetMagDelegate func = (SetMagDelegate)result.AsyncState;
+                func.EndInvoke(result);
+                _log.Debug("MagSet_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                ExceptionDialog(ex, "MagSet_Callback");
+            }
+            OpFreeze_Done(this, EventArgs.Empty);
         }
         private void FindAngle_Callback(IAsyncResult result)
         {
@@ -1960,6 +1772,19 @@ namespace Velociraptor
             _syn_op.Draw(ref bmp);
             pic_camera.Image = bmp;
         }
+        private void OpFreeze_Done(object sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new EventHandler(OpFreeze_Done), sender, e);
+                _log.Debug("OpFreeze_Done InvokeRequired:" + Thread.CurrentThread.ManagedThreadId);
+                return;
+            }
+            _log.Debug("OpFreeze_Done:" + Thread.CurrentThread.ManagedThreadId);
+            grp_cmb.Enabled = true;
+            grp_op.Enabled = true;
+            grp_move.Enabled = true;
+        }
         private void Alignment_Callback(IAsyncResult result)
         {
             _threadAction = eThreadAction.None;
@@ -1967,18 +1792,14 @@ namespace Velociraptor
             {
                 FindAngleDelegate func = (FindAngleDelegate)result.AsyncState;
                 func.EndInvoke(result);
+                DoSetMag(eMagType.MaxMag);
                 _log.Debug("Alignment_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
             {
                 ExceptionDialog(ex, "Alignment_Callback");
             }
-            Invoke((MethodInvoker)delegate 
-                { 
-                    grp_cmb.Enabled = true;
-                    grp_op.Enabled = true;
-                    grp_move.Enabled = true;
-                });
+            OpFreeze_Done(this, EventArgs.Empty);
         }
         private void Measure_Callback(IAsyncResult result)
         {
@@ -1993,12 +1814,7 @@ namespace Velociraptor
             {
                 ExceptionDialog(ex, "Measure_Callback");
             }
-            Invoke((MethodInvoker)delegate
-            {
-                grp_cmb.Enabled = true;
-                grp_op.Enabled = true;
-                grp_move.Enabled = true;
-            });
+            OpFreeze_Done(this, EventArgs.Empty);
         }
         private void MeasureTimeout(object sender, EventArgs e)
         {
@@ -2366,12 +2182,7 @@ namespace Velociraptor
             cb_wafersize.Enabled = false;
             try
             {
-                _syn_op.MoveToCenter();
-                GrabOff();
-                camera.ImageGrabbed -= OnImageGrabbed;
-                camera.ImageGrabbed += OnAutoFocusImageGrabbed;
-                GrabOn();
-                autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
+                DoWaferLoad();
             }
             catch (Exception ex)
             {
@@ -2638,9 +2449,7 @@ namespace Velociraptor
         }
         private void btn_autofocus_Click_1(object sender, EventArgs e)
         {
-            camera.ImageGrabbed -= OnImageGrabbed;
-            camera.ImageGrabbed += OnAutoFocusImageGrabbed;
-            autoFocusRun.BeginInvoke(sender, e, new AsyncCallback(AutoFocusRun_Callback), null);
+            DoWaferLoad();
         }
         private void cb_wafersize_SelectedIndexChanged(object sender, EventArgs e)
         {
