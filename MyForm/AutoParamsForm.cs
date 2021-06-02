@@ -84,6 +84,7 @@ namespace Velociraptor.Form
                 return;
             }
             this.DialogResult = DialogResult.OK;
+            this.Close();
         }
 
         private void btn_cancel_Click(object sender, EventArgs e)

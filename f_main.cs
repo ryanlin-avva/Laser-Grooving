@@ -1576,12 +1576,12 @@ namespace Velociraptor
                 _threadAction = eThreadAction.eAutoMeasure;
                 _threadActionProcess.EventUserList[(int)eThreadAction.eFindAngle].Set();
                 AutoParamsForm form = new AutoParamsForm();
+                form.tb_wafer_id.Text = _wafer_id;
                 if (form.ShowDialog() != DialogResult.OK) return;
 
                 grp_op.Enabled = false;
                 grp_move.Enabled = false;
 
-                _wafer_id = form.tb_wafer_id.Text;
                 _notch_idx = form.cmb_notch.SelectedIndex;
                 _die_row_count = int.Parse(form.tb_row_count.Text);
                 _die_col_count = int.Parse(form.tb_col_count.Text);
@@ -1729,13 +1729,18 @@ namespace Velociraptor
         {
             WaferInfo wafer = new WaferInfo();
             WaferBasicForm w_form = new WaferBasicForm(wafer);
-            if (w_form.DialogResult != DialogResult.OK) return;
+            if (w_form.ShowDialog() != DialogResult.OK) return;
 
             die_size[0] = wafer.Die_sizeX;
             die_size[1] = wafer.Die_sizeY;
             _measure_distance = wafer.Measure_distance;
             _scan_type = wafer.Scan_type;
             _wafer_type = wafer.Wafer_type;
+            _wafer_id = wafer.Wafer_ID;
+            lb_dieX.Text = wafer.Die_sizeX.ToString();
+            lb_dieY.Text = wafer.Die_sizeY.ToString();
+            lb_precision.Text = (_scan_type == eScanType.Scan5Um) ? "5 um" : "1 um";
+            lb_waferid.Text = "Wafer ID: " + wafer.Wafer_ID;
             try
             {
                 if (_wafer_type == 12) chuck.Set_12inchWafer();

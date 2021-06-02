@@ -26,8 +26,10 @@ namespace Velociraptor.MyForm
             _wafer.Scan_type = (cb_selectMeasurePrecision.SelectedIndex == 0)
                                 ? eScanType.Scan1Um : eScanType.Scan5Um;
             _wafer.Wafer_type = (cb_wafersize.SelectedIndex == 0) ? 12 : 8;
+            _wafer.Wafer_ID = tb_waferid.Text;
 
             this.DialogResult = DialogResult.OK;
+            this.Close();
         }
 
         private void button2_Click(object sender, System.EventArgs e)
@@ -49,6 +51,7 @@ namespace Velociraptor.MyForm
         public int Measure_distance { get; set; }
         public eScanType Scan_type { get; set; }
         public int Wafer_type { get; set; }
+        public string Wafer_ID { get; set; }
     }
 
 }
