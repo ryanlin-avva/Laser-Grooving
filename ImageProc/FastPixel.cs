@@ -81,7 +81,7 @@ namespace Velociraptor
                 }
 
             }
-            if (bmp.PixelFormat == PixelFormat.Format32bppRgb)
+            if (bmp.PixelFormat == PixelFormat.Format32bppRgb || bmp.PixelFormat == PixelFormat.Format32bppArgb)
             {
                 for (int j = 0; j < ny; j++)
                 {
