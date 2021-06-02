@@ -738,7 +738,11 @@ namespace Velociraptor
         }
         public void MotorOn() { _motion.MotorOn(); }
         public void MotorOff() { _motion.MotorOff(); }
-        public void GoHome() { _motion.GoHome(); }
+        public void GoHome()
+        { 
+            _motion.GoHome();
+            hasGoHome = true;
+        }
         public void StopMove() { _motion.StopMove(); }
         public void ClearAlarm() { _motion.ClearAlarm(); }
         #endregion
