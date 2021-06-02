@@ -215,8 +215,9 @@ namespace Avva.MotionFramework
         
         public void MotorOff()
         {
-            // Executes servo OFF-- By best effort
-            rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_OFF, 5000);
+			DeclareDevice();
+			// Executes servo OFF-- By best effort
+			rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_OFF, 5000);
 			if (rc != CMotionAPI.MP_SUCCESS)
 				throw new AvvaMotionException("ymcClearAlarm error-" + MyErrorCode.ErrorMessage(rc));
 			ClearDevice();
