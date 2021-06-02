@@ -434,9 +434,7 @@ namespace Velociraptor
         public double[] EstimatedDieSide { get { return _estimatedDieSide; } }
         public double AngleAverage { get { return _fs.AngleAverage;  } }
         public void Draw(ref Bitmap bmp) { _fs.Draw(ref bmp); }
-        public Bitmap Threshold(Bitmap mymap, int threshold) {
-            mymap.Save("c:/avva/test/synop_threshold.bmp");
-            return _fs.DoThreshold(mymap, threshold); }
+        public Bitmap Threshold(Bitmap mymap, int threshold) { return _fs.DoThreshold(mymap, threshold); }
         public bool FindAngleOK { get; set; }
         public void FindAngle(Bitmap mymap, double[] die_size, int threshold)
         {

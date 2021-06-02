@@ -1910,9 +1910,7 @@ namespace Velociraptor
             {
                 map = _cur_bitmap.Clone() as Bitmap;
             }
-            map.Save("c:/avva/test/map.bmp");
             pic_camera.Image = _syn_op.Threshold(map, int.Parse(tbThreshold1.Text));
-            pic_camera.Image.Save("c:/avva/test/threshold.bmp");
 
         }
         private void btn_test_Click(object sender, EventArgs e)

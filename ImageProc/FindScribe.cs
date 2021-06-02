@@ -43,7 +43,6 @@ namespace Velociraptor.ImageProc
         {
             _img_height = bitmap.Height;
             _img_width = bitmap.Width;
-            bitmap.Save("c:/avva/test/findscribe_dothreshold.bmp");
             FastPixel _fast_pixel = new FastPixel(); //宣告快速繪圖物件
             _fast_pixel.image = bitmap;
             _fast_pixel.Bmp2RGB(bitmap); //讀取RGB亮度陣列
