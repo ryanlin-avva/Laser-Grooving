@@ -11,7 +11,7 @@ using Velociraptor.ImageProc;
 
 namespace Velociraptor
 {
-    class SynOperation
+    public class SynOperation
     {
         public enum eScanType { Scan5Um, Scan1Um };
         public enum eMagType { MaxMag, MinMag, UnknownMag };
@@ -98,6 +98,10 @@ namespace Velociraptor
             MoveToCenter();
             MagAutoFocus(eMagType.MaxMag);
             MagAutoFocus(eMagType.MinMag);
+        }
+        public void WaferUnload()
+        {
+            MoveToUnload();
         }
         private void MagAutoFocus(eMagType mag_type)
         {
@@ -430,7 +434,9 @@ namespace Velociraptor
         public double[] EstimatedDieSide { get { return _estimatedDieSide; } }
         public double AngleAverage { get { return _fs.AngleAverage;  } }
         public void Draw(ref Bitmap bmp) { _fs.Draw(ref bmp); }
-        public Bitmap Threshold(Bitmap mymap, int threshold) { return _fs.DoThreshold(mymap, threshold); }
+        public Bitmap Threshold(Bitmap mymap, int threshold) {
+            mymap.Save("c:/avva/test/synop_threshold.bmp");
+            return _fs.DoThreshold(mymap, threshold); }
         public bool FindAngleOK { get; set; }
         public void FindAngle(Bitmap mymap, double[] die_size, int threshold)
         {

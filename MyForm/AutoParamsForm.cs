@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using static Velociraptor.SynOperation;
 
 namespace Velociraptor.Form
 {

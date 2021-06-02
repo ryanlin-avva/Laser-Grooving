@@ -19,8 +19,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -110,11 +110,23 @@
     <Compile Include="Motion\IAvvaMotion.cs" />
     <Compile Include="Motion\MotionParamReader.cs" />
     <Compile Include="Motion\YaskawaMotion.cs" />
+    <Compile Include="MyForm\EngineerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MyForm\EngineerForm.Designer.cs">
+      <DependentUpon>EngineerForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MyForm\Splash.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MyForm\Splash.Designer.cs">
       <DependentUpon>Splash.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MyForm\WaferBasicForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MyForm\WaferBasicForm.Designer.cs">
+      <DependentUpon>WaferBasicForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ParamReader.cs" />
     <Compile Include="Constants.cs" />
@@ -203,6 +215,9 @@
     <EmbeddedResource Include="MyForm\ConnectionIpForm.resx">
       <DependentUpon>ConnectionIpForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="MyForm\EngineerForm.resx">
+      <DependentUpon>EngineerForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MyForm\KeyBoardForm.resx">
       <DependentUpon>KeyBoardForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -223,6 +238,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MyForm\Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MyForm\WaferBasicForm.resx">
+      <DependentUpon>WaferBasicForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -266,6 +284,7 @@
     <None Include="Images\48\focus_icon.png" />
     <None Include="Images\48\ccw_new.png" />
     <Content Include="AvvaLaserGrooving.log4net.xml" />
+    <None Include="Images\AVVA R&amp;D Corp.png" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />

@@ -81,7 +81,7 @@ namespace Velociraptor
                 }
 
             }
-            if (bmp.PixelFormat == PixelFormat.Format32bppRgb)
+            if (bmp.PixelFormat == PixelFormat.Format32bppRgb || bmp.PixelFormat==PixelFormat.Format32bppArgb)
             {
                 for (int j = 0; j < ny; j++)
                 {
@@ -139,6 +139,7 @@ namespace Velociraptor
                 }
             }
             UnLockBMP(bmp);
+            bmp.Save("c:/avva/test/bwimg.bmp");
             return bmp;
         }
 

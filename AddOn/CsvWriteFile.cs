@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using static Velociraptor.SynOperation;
 
 namespace Velociraptor.AddOn
 {
@@ -28,12 +29,11 @@ namespace Velociraptor.AddOn
         }
         #endregion
         #region Open
-        public bool Open(string fileName, int ScanningMode)
+        public bool Open(string fileName, eScanType scan_type)
         {
             Debug.WriteLine("CsvWriteFile.Open()"+Thread.CurrentThread.ManagedThreadId.ToString());
             Close();
-            _scan_mode = ScanningMode;
-            _line_cnt = (_scan_mode == 5) ? 1 : 5;
+            _line_cnt = (scan_type == eScanType.Scan5Um) ? 1 : 5;
             for (int i = 0; i < _line_cnt; i++)
             {
                 line_keeper[i] = new LineKeeper();

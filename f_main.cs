@@ -196,7 +196,6 @@ namespace Velociraptor
         #region cls_components
 
         CsvWriteFile _ccsvWriteFiles = new CsvWriteFile();
-        sSpectrumRaw spectrumRaw = new sSpectrumRaw();
         #endregion
         #region measure settings
         private int _measure_distance;
@@ -213,6 +212,7 @@ namespace Velociraptor
         #endregion
         #region autofocus
         WaferLoadDelegate waferLoadDelegate;
+        WaferLoadDelegate waferUnloadDelegate;
         SetMagDelegate toMagePosDelegate;
         #endregion
         #region Move, Alignment, Scan
@@ -230,6 +230,7 @@ namespace Velociraptor
         #region wafer info
         WaferChuck chuck = new WaferChuck();
         private string _wafer_id;
+        private int _wafer_type; //12 or 8
         private int _notch_idx;
         private int _die_row_count = 0;
         private int _die_col_count = 0;
@@ -282,17 +283,12 @@ namespace Velociraptor
                 #endregion
                 #region Delegate function assignment
                 InitDisplayDelegate = new InitDisplayDelegateHandler(OnInitDisplay);
-                InitDownloadDisplayDelegate = new InitDownloadDisplayDelegateHandler(_OnUpdateInitDownloadDisplay);
-                DisplayConnectionStateDelegate = new DisplayConnectionStateDelegateHandler(DisplayClientConnectionState);
                 DisplayCommandDataDelegate = new DisplayCommandDataDelegateHandler(DisplayCommandData);
-                DisplayRawSpectraDelegate = new DisplaySpectraDelegateHandler(UpdateDisplayRawSpectraDelegate);
-                DisplayStatisticsDelegate = new DisplayStatisticsDelegateHandler(DisplayStatistics);
                 DisplayDataFormatDelegate = new DisplayDataFormatDelegateHandler(DisplayDataFormat);
                 _eventOnClientConnect = new cClientSocket.OnClientConnectEventHandler(OnClientConnect);
                 _eventOnClientDisconnect = new cClientSocket.OnClientDisconnectEventHandler(OnClientDisconnect);
                 _eventOnUpdateCommandData = new cClientCommunication.OnReceiveCommandDataEventHandler(OnUpdateCommandData);
                 _eventOnUpdateDataFormat = new cClientCommunication.OnReceiveDataFormatEventHandler(OnUpdateDataFormat);
-                _eventOnUpdateIhm = new cClientCommunication.OnUpdateIhmEventHandler(OnUpdateIhm);
                 _eventOnUpdateDataSample = new cClientCommunication.OnReceiveDataSampleEventHandler(_OnUpdateDataSample);
                 _eventOnUpdateDataFormatEntry = new cClientCommunication.OnReceiveDataFormatEventHandler(_OnUpdateDataFormatEntry);
                 _eventOnError = new cErrorEventArgs.OnErrorEventHandler(_OnError);
@@ -324,6 +320,7 @@ namespace Velociraptor
                 #endregion
                 #region synthesis operations initializations
                 waferLoadDelegate = new WaferLoadDelegate(_syn_op.WaferLoad);
+                waferUnloadDelegate = new WaferLoadDelegate(_syn_op.WaferUnload);
                 toMagePosDelegate = new SetMagDelegate(_syn_op.ToMagPos);
                 scanMove5umFunc = new ScanMoveDelegate(_syn_op.AsyncMove5um);
                 scanMove1umFunc = new ScanMoveDelegate(_syn_op.AsyncMove1um);
@@ -362,7 +359,6 @@ namespace Velociraptor
         private void f_main_Load(object sender, EventArgs e)
         {
             Text = string.Format("Velociraptor Version : {0}", Assembly.GetExecutingAssembly().GetName().Version);
-            clsRawImage.OnValueCursorChange += new RawImage.OnValueCursorChangeEventHandler(ctrl_display_OnValueCursorChange);
 
             #region sets the client parameter
             _client = new cClientCommunication(_rxBufferSizeOfClientSocket, _txBufferSizeOfClientSocket);
@@ -382,11 +378,8 @@ namespace Velociraptor
 
             _client.OnError += _eventOnError;
             _client.Dark();
-           
-
-            spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
-            spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
-            spectrumRaw.SpectraId = (uint)eSpectraId.SpectraIdRawSpectrum;
+            if (_client.DnldCommand.IsBusyDownloadRaw)
+                _client.DnldCommand.StopDownloadRaw();
             #endregion
             #region start thread
             //start process thread 
@@ -403,6 +396,9 @@ namespace Velociraptor
             _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
 
             #endregion
+            this.Size = new System.Drawing.Size(765, 745);
+            panel2.Visible = false;
+            CenterToScreen();
             #region Tool Tips
             ToolTip tips = new ToolTip();
 
@@ -420,7 +416,6 @@ namespace Velociraptor
             tips.SetToolTip(this.btn_start_mea, "開始測量");
             tips.SetToolTip(this.btn_load, "開啟影像");
             tips.SetToolTip(this.btn_find_angle, "找角度");
-            grp_manual_buttons.Visible = false;
             #endregion
 
             try
@@ -432,9 +427,6 @@ namespace Velociraptor
                 timer.Elapsed += UpdateUIControls;//定時時間到的時候的回撥函式
                 timer.AutoReset = true; //是否不斷重複定時器操作
                 timer.Enabled = true;
-                timer1 = new System.Timers.Timer(Constants.INTL_Engineering_mode);//定時週期300秒
-                timer1.Elapsed += GeneralMode;
-                timer1.AutoReset = false; //是否不斷重複定時器操作
                 timer_measure = new System.Timers.Timer(Constants.INTL_DataSaveDelay);
                 timer_measure.Elapsed += MeasureTimeout;
                 timer_measure.AutoReset = false;
@@ -443,12 +435,8 @@ namespace Velociraptor
                 _log.Debug("Camera Start Grabbing");
                 btn_grab.Image = Properties.Resources.green;
 
-                cb_SelectMeasureDistance.SelectedIndex = 0;
-                cb_wafersize.SelectedIndex = 0;
-                cb_selectMeasurePrecision.SelectedIndex = 0;
                 tbLight.Text = tr_light.Value.ToString();
                 tbThreshold1.Text = tr_threshold.Value.ToString();
-                GeneralMode(null, null);
             }
             catch (Exception ex)
             {
@@ -573,12 +561,6 @@ namespace Velociraptor
                         this.Invoke(this.DisplayConnectionStateDelegate, new object[] { _client });
                     }
                     #endregion
-                    #region Dislpay Statistics
-                    if (_threadGui.EventUserList[(int)enEventThreadGui.DisplayStatistics].WaitOne(0))
-                    {
-                        this.Invoke(this.DisplayStatisticsDelegate, new object[] { _client.ClientStatisticsList });
-                    }
-                    #endregion
                     #region Dislpay Command Data
                     if ((_timoutStatisticsValue > _timoutStatistics) && (_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayCommandData].WaitOne(0)))
                     {
@@ -592,28 +574,6 @@ namespace Velociraptor
                                     clsCommandData = (cClsCommandData)_fifoCommandData.Dequeue();
                                     this.Invoke(this.DisplayCommandDataDelegate, new object[] { clsCommandData });
                                 }
-                            }
-                        }
-                    }
-                    #endregion
-                    #region Display Download Raw Spectra
-                    if (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDownloadRawSpectra].WaitOne(0))
-                    {
-                        if ((_client != null) && (_client.DnldCommand != null))
-                        {
-                            sDnldCommandState dnldCommandState = _client.DnldCommand.StateDownloadRaw;
-                            sBuffer = _client.DnldCommand.DataRawSpectra;
-
-                            if (sBuffer != null)
-                            {
-                                sSpectraRaw spectra = new sSpectraRaw(_client.DnldCommand.SpectrumRaw, sBuffer, _client.FibersParameters);
-                                //if (!startmeasure)//避免掃完第一點後要掃第二點時client因為clsRawImage而斷線
-                                //{
-                                    clsRawImage.Data = spectra.Data;
-                                    if (spectra.Data != null)
-                                        this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
-                                //}
-                                
                             }
                         }
                     }
@@ -633,12 +593,6 @@ namespace Velociraptor
                                 }
                             }
                         }
-                    }
-                    #endregion
-                    #region Display Error
-                    if (_threadGui.EventUserList[(int)enEventThreadGui.DisplayError].WaitOne(0))
-                    {
-                        this.Invoke(new cClientIhm.UpdateDisplayErrorDelegateHandler(cClientIhm.FuncUpdateDisplayErrorDelegateHandler), lst_log, _errorList);
                     }
                     #endregion
                 }
@@ -734,13 +688,6 @@ namespace Velociraptor
                                     _threadAction = eThreadAction.None;
                                     break;
                             }
-                            if (_threadGui != null)
-                            {
-                                if (is_advanced_mode)
-                                {
-                                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayStatistics].Set();
-                                }
-                            }
                         }
                     }
                     #endregion  
@@ -813,8 +760,7 @@ namespace Velociraptor
                 }
                 if ((_client != null||_syn_op.IsSimulate) && (_threadMeasure.EventUserList[(int)eThreadMeasure.eRun].WaitOne(0)))
                 {
-                    int scan_mode = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
-                    _ccsvWriteFiles.Open(Path.Combine(_syn_op.SavingPath, _measure_filename+".data"), scan_mode);
+                    _ccsvWriteFiles.Open(Path.Combine(_syn_op.SavingPath, _measure_filename+".data"), _scan_type);
                     timer_measure.Enabled = true;
                     _in_trigger = true;
                 }
@@ -840,22 +786,6 @@ namespace Velociraptor
             if (_threadGui != null)
             {
                 _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
-            }
-        }
-        #endregion
-        #region DisplayClientConnectionState
-        private void DisplayClientConnectionState(cClientCommunication client)
-        {
-            if (client != null)
-            {
-                if (client.ClientIsConnected)
-                {
-                    btn_connect.Image = Properties.Resources.green;
-                }
-                else
-                {
-                    btn_connect.Image = Properties.Resources.red;
-                }
             }
         }
         #endregion
@@ -886,12 +816,6 @@ namespace Velociraptor
             _eventcontrolUpdateTextToValue = new cControlUpdateEx.OnEventHandler(OnControlUpdateTextToValue);
             _controlUpdate = new cControlUpdateEx(_eventcontrolUpdateTextToValue, _eventControlUpdateValueToText, Color.LemonChiffon);
             _controlUpdate.ControlUpdateList.Clear();
-            _clu_led_intensity = new sControlUpdateEx(ntb_led_intensity);
-            _controlUpdate.ControlUpdateList.Add(_clu_led_intensity);
-            _clu_threshold = new sControlUpdateEx(ntb_threshold);
-            _controlUpdate.ControlUpdateList.Add(_clu_threshold);
-            _clu_frequency = new sControlUpdateEx(ntb_frequency);
-            _controlUpdate.ControlUpdateList.Add(_clu_frequency);
             _threadGui.EventUserList[(int)enEventThreadGui.DisplaySampleRate].Set();
             Invalidate();
         }
@@ -991,18 +915,6 @@ namespace Velociraptor
                     if (controlUpdate.Object is NumericTextBox)
                     {
                         NumericTextBox numericTextBox = (NumericTextBox)controlUpdate.Object;
-                        if (numericTextBox == ntb_led_intensity)//Led Intensity
-                        {
-                            _client.LedIntensity = (float)ntb_led_intensity.Value;
-                        }
-                        else if (numericTextBox == ntb_threshold)//Threshold
-                        {
-                            _client.Threshold = (float)ntb_threshold.Value;
-                        }
-                        else if (numericTextBox == ntb_frequency)
-                        {
-                            _generalSettings.General.HighSpeed = new sHighSpeed(_generalSettings.HighSpeedBase, (uint)ntb_frequency.Value, _client.SensorFrequencyMax);
-                        }
                         Invoke((Action)(() => { numericTextBox.SelectAll(); }));
                     }
                 }
@@ -1060,328 +972,14 @@ namespace Velociraptor
             _log.Debug("DisplayDataFormat");
         }
         #endregion 
-        #region DisplayStatistics
-        private void DisplayStatistics(List<cClientStatistics> clientStatisticsList)
-        {
-            if (clientStatisticsList != null)
-            {
-                for (int idx = 0; idx < clientStatisticsList.Count; idx++)
-                {
-                    cClientStatistics clientStatistics = clientStatisticsList[idx];
-                    if (clientStatistics.IdName == "Client Socket Rx Data")
-                    {
-                        lbl_rx_rate.Text = string.Format("Rx : {0,12}", cCalculationsOnTheRate.BytesToString(clientStatistics.Rate.Value));
-                        lbl_rx_rate.ForeColor = Color.Blue;
-                        lbl_number_of_overflow_in_data_raw_socket.Text = string.Format("{0}, Max Used : {1:P0}", clientStatistics.DataFifo.Overflow, clientStatistics.DataFifo.MaxPercent);
-                        lbl_number_of_overflow_in_data_raw_socket.ForeColor = (clientStatistics.DataFifo.Overflow > 0) ? Color.Red : Color.Blue;
-                        ctrl_percentage_use_of_fifo_data_raw_socket.Value = (int)(clientStatistics.DataFifo.Percent * 100);
-                    }
-                    else if (clientStatistics.IdName == "Client Socket Tx Data")
-                    {
-                        lbl_tx_rate.Text = string.Format("Tx : {0,12}", cCalculationsOnTheRate.BytesToString(clientStatistics.Rate.Value));
-                        lbl_tx_rate.ForeColor = Color.Blue;
-                    }
-                    else if ((clientStatistics.IdName == "Client Binary Data Rx Raw") && (clientStatistics.DataFifo != null))
-                    {
-                        lbl_number_of_overflow_in_data_raw_fifo.Text = string.Format("{0}, Max Used : {1:P0}", clientStatistics.DataFifo.Overflow, clientStatistics.DataFifo.MaxPercent);
-                        lbl_number_of_overflow_in_data_raw_fifo.ForeColor = (clientStatistics.DataFifo.Overflow > 0) ? Color.Red : Color.Blue;
-                        ctrl_percentage_use_of_fifo_data_raw_fifo.Value = (int)(clientStatistics.DataFifo.Percent * 100);
-                        lbl_error_unknow_telegram_type.Text = string.Format("Error unknow telegram type : {0,10}", clientStatistics.ErrorUnknowTelegramType);
-                        lbl_error_unknow_telegram_type.ForeColor = (clientStatistics.ErrorUnknowTelegramType == 0) ? Color.Black : Color.Red;
-                        lbl_error_command_header.Text = string.Format("Error command header       : {0,10}", clientStatistics.ErrorCommandHeader);
-                        lbl_error_command_header.ForeColor = (clientStatistics.ErrorCommandHeader == 0) ? Color.Black : Color.Red;
-                        lbl_error_command_data.Text = string.Format("Error command data         : {0,10}", clientStatistics.ErrorCommandData);
-                        lbl_error_command_data.ForeColor = (clientStatistics.ErrorCommandData == 0) ? Color.Black : Color.Red;
-                        lbl_error_data_format_header.Text = string.Format("Error data format header   : {0,10}", clientStatistics.ErrorDataFormatHeader);
-                        lbl_error_data_format_header.ForeColor = (clientStatistics.ErrorDataFormatHeader == 0) ? Color.Black : Color.Red;
-                        lbl_error_data_format_entry.Text = string.Format("Error data format entry    : {0,10}", clientStatistics.ErrorDataFormatEntry);
-                        lbl_error_data_format_entry.ForeColor = (clientStatistics.ErrorDataFormatEntry == 0) ? Color.Black : Color.Red;
-                        lbl_error_data_header.Text = string.Format("Error data header          : {0,10}", clientStatistics.ErrorDataHeader);
-                        lbl_error_data_header.ForeColor = (clientStatistics.ErrorDataHeader == 0) ? Color.Black : Color.Red;
-                        lbl_error_data.Text = string.Format("Error data                 : {0,10}", clientStatistics.ErrorData);
-                        lbl_error_data.ForeColor = (clientStatistics.ErrorData == 0) ? Color.Black : Color.Red;
-                        lbl_error_no_dataformat.ForeColor = (clientStatistics.ErrorNoDataFormat == 0) ? Color.Black : Color.Red;
-                        lbl_error_no_dataformat.Text = string.Format("Error no DataFormat        : {0,10}", clientStatistics.ErrorNoDataFormat);
-                        lbl_resynchronization.Text = string.Format("Error de synchronization   : {0,10}", clientStatistics.Resynchronization);
-                        lbl_resynchronization.ForeColor = (clientStatistics.Resynchronization == 0) ? Color.Black : Color.Red;
-                        lbl_not_enough_data.Text = string.Format("Not enough data            : {0,10}", clientStatistics.NotEnoughData);
-                        lbl_number_of_command.Text = string.Format("Number of command          : {0,10}", clientStatistics.NumberOfCommandMessage);
-                        lbl_number_of_command.ForeColor = (clientStatistics.NumberOfCommandMessage == 0) ? Color.Black : Color.Green;
-                        lbl_number_of_format.Text = string.Format("Number of format data      : {0,10}", clientStatistics.NumberOfFormatMessage);
-                        lbl_number_of_format.ForeColor = (clientStatistics.NumberOfCommandMessage == 0) ? Color.Black : Color.Green;
-                        lbl_number_of_data.Text = string.Format("Number of data             : {0,10}", clientStatistics.NumberOfDataMessage);
-                        lbl_number_of_data.ForeColor = (clientStatistics.NumberOfCommandMessage == 0) ? Color.Black : Color.Green;
-                        lbl_number_of_spectra.Text = string.Format("Number of spectra          : {0,10}", clientStatistics.NumberOfSpectraMessage);
-                        lbl_unformatted_data.Text = string.Format("Unformatted data           : {0,10}", clientStatistics.UnformattedData);
-                        lbl_unformatted_data.ForeColor = (clientStatistics.UnformattedData == 0) ? Color.Black : Color.Orange;
-                    }
-                    else if ((clientStatistics.IdName == "Client Data Sample") && (clientStatistics.DataFifo != null))
-                    {
-                        lbl_number_of_overflow_in_data_sample_fifo.Text = string.Format("{0}, Max Used : {1:P0}", clientStatistics.DataFifo.Overflow, clientStatistics.DataFifo.MaxPercent);
-                        lbl_number_of_overflow_in_data_sample_fifo.ForeColor = (clientStatistics.DataFifo.Overflow > 0) ? Color.Red : Color.Blue;
-                        ctrl_percentage_use_of_data_sample_fifo.Value = (int)(clientStatistics.DataFifo.Percent * 100);
-                    }
-                    else if ((clientStatistics.IdName != "Client Command Data") && (clientStatistics.DataFifo != null))
-                    {
-                        lbl_number_of_overflow_in_command_data_fifo.Text = string.Format("{0}, Max Used : {1:P0}", clientStatistics.DataFifo.Overflow, clientStatistics.DataFifo.MaxPercent);
-                        lbl_number_of_overflow_in_command_data_fifo.ForeColor = (clientStatistics.DataFifo.Overflow > 0) ? Color.Red : Color.Blue;
-                        ctrl_percentage_use_of_command_data_fifo.Value = (int)(clientStatistics.DataFifo.Percent * 100);
-                    }
-                }
-            }
-        }
-        #endregion
-        #region 即時顯示圖事件
-        #region _OnUpdateInitDownloadDisplay
-        private void _OnUpdateInitDownloadDisplay(System.Windows.Forms.Form form)
-        {
-            double Zoom = 2;
-
-            clsRawImage.FirstDataLine = 0;
-            if (_ccd_range != null)
-            {
-                clsRawImage.SizeOfDataLine = _ccd_range.PixelRange;
-            }
-            clsRawImage.FirstDataColumn = 0;
-            clsRawImage.SizeOfDataColumn = _generalSettings.General.Sensor.NumberOfFibers; ;
-            clsRawImage.ZoomX = (float)Zoom;
-            clsRawImage.ZoomY = (float)Zoom;
-            clsRawImage.ClearCursorList();
-            _cursor_raw_v1 = new cRawImageCursor(cRawImageCursor.eTypeOfCursor.Vertical);
-            _cursor_raw_v1.CursorColor = Color.Red;
-            _cursor_raw_v1.Name = "_cursor_v1";
-            clsRawImage.AddCursorList(_cursor_raw_v1);
-            _cursor_raw_v2 = new cRawImageCursor(cRawImageCursor.eTypeOfCursor.Vertical);
-            _cursor_raw_v2.CursorColor = Color.Blue;
-            _cursor_raw_v2.Name = "_cursor_v2";
-            clsRawImage.AddCursorList(_cursor_raw_v2);
-            _cursor_raw_v3 = new cRawImageCursor(cRawImageCursor.eTypeOfCursor.Vertical);
-            _cursor_raw_v3.CursorColor = Color.Green;
-            _cursor_raw_v3.Name = "_cursor_v3";
-            clsRawImage.AddCursorList(_cursor_raw_v3);
-            #region NumericUpDown
-            chk_cursor_v1.Tag = _cursor_raw_v1;
-            nud_cursor_v1.Tag = _cursor_raw_v1;
-            nud_cursor_v1.Minimum = clsRawImage.FirstDataColumn;
-            nud_cursor_v1.Maximum = clsRawImage.FirstDataColumn + clsRawImage.SizeOfDataColumn;
-            chk_cursor_v2.Tag = _cursor_raw_v2;
-            nud_cursor_v2.Tag = _cursor_raw_v2;
-            nud_cursor_v2.Minimum = clsRawImage.FirstDataColumn;
-            nud_cursor_v2.Maximum = clsRawImage.FirstDataColumn + clsRawImage.SizeOfDataColumn;
-            chk_cursor_v3.Tag = _cursor_raw_v3;
-            nud_cursor_v3.Tag = _cursor_raw_v3;
-            nud_cursor_v3.Minimum = clsRawImage.FirstDataColumn;
-            nud_cursor_v3.Maximum = clsRawImage.FirstDataColumn + clsRawImage.SizeOfDataColumn;
-            #endregion
-            #region zegraph
-            if (_curve_v1 != null)
-            {
-                _curve_v1.Dispose();
-                _curve_v1 = null;
-            }
-            if (_curve_v2 != null)
-            {
-                _curve_v2.Dispose();
-                _curve_v2 = null;
-            }
-            if (_curve_v3 != null)
-            {
-                _curve_v3.Dispose();
-                _curve_v3 = null;
-            }
-            _curve_v1 = cMagicGraphCurve.PrepareCurve(_cursor_raw_v1.DataPoint, null, _cursor_raw_v1.CursorColor, -1, -1, _cursor_raw_v1.Name);
-            _curve_v2 = cMagicGraphCurve.PrepareCurve(_cursor_raw_v2.DataPoint, null, _cursor_raw_v2.CursorColor, -1, -1, _cursor_raw_v2.Name);
-            _curve_v3 = cMagicGraphCurve.PrepareCurve(_cursor_raw_v3.DataPoint, null, _cursor_raw_v3.CursorColor, -1, -1, _cursor_raw_v3.Name);
-            ctrl_zgc_dnld.DisplayInit();
-            ctrl_zgc_dnld.SetXAxisTitle("Pixels", Color.Black, Color.SkyBlue, 10);
-            ctrl_zgc_dnld.SetYAxisTitle("Intensity", Color.Black, Color.SkyBlue, 10);
-            ctrl_zgc_dnld.GraphPane.XAxis.Scale.Format = "#";
-            ctrl_zgc_dnld.GraphPane.YAxis.Scale.Format = "#";
-            ctrl_zgc_dnld.GraphPane.YAxis.Title.FontSpec.Angle = 180;
-            ctrl_zgc_dnld.GraphPane.XAxis.Scale.Min = clsRawImage.FirstDataColumn;
-            ctrl_zgc_dnld.GraphPane.XAxis.Scale.Max = clsRawImage.FirstDataColumn + clsRawImage.SizeOfDataLine;
-            ctrl_zgc_dnld.GraphPane.YAxis.Scale.Min = -50;
-            ctrl_zgc_dnld.GraphPane.YAxis.Scale.Max = 0x7FFF;
-            ctrl_zgc_dnld.ClearCurves();
-            ctrl_zgc_dnld.AddCurve(_curve_v1);
-            ctrl_zgc_dnld.AddCurve(_curve_v2);
-            ctrl_zgc_dnld.AddCurve(_curve_v3);
-            ctrl_zgc_dnld.AxisChange();
-            ctrl_zgc_dnld.Refresh();
-            #endregion
-        }
-        #endregion
-
-        #region UpdateDisplayRawSpectraDelegate
-        private void UpdateDisplayRawSpectraDelegate(cDnldCommand dnldCommand)
-        {
-            if (clsRawImage.Data != null)
-            {
-                if ((_isCursorV1IndexChange) || (_isCursorV2IndexChange) || (_isCursorH1IndexChange))
-                {
-                    #region cursor V1
-                    if (_isCursorV1IndexChange)
-                    {
-                        _curve_v1.IsVisible = _cursor_raw_v1.Visible;
-                        _curve_v1.DataOne = _cursor_raw_v1.DataPoint;
-                        _isCursorV1IndexChange = false;
-                    }
-                    #endregion
-                    #region cursor V2
-                    if (_isCursorV2IndexChange)
-                    {
-                        _curve_v2.IsVisible = _cursor_raw_v2.Visible;
-                        _curve_v2.DataOne = _cursor_raw_v2.DataPoint;
-                        _isCursorV2IndexChange = false;
-                    }
-                    #endregion
-                    #region cursor H1
-                    if (_isCursorH1IndexChange)
-                    {
-                        _curve_v3.IsVisible = _cursor_raw_v3.Visible;
-                        _curve_v3.DataOne = _cursor_raw_v3.DataPoint;
-                        _isCursorH1IndexChange = false;
-                    }
-                    #endregion
-                    ctrl_zgc_dnld.AxisChange();
-                    ctrl_zgc_dnld.DisplayClear();
-                    ctrl_zgc_dnld.DisplayCurves();
-                    ctrl_zgc_dnld.Refresh();
-                }
-            }
-        }
-        #endregion
-        #region Noise Offset
-        private void hsb_noise_offset_Scroll(object sender, ScrollEventArgs e)
-        {
-            clsRawImage.NoiseOffset = e.NewValue;
-        }
-        #endregion
-        #region Dynamic
-        private void nud_dynamic_ValueChanged(object sender, EventArgs e)
-        {
-            if (sender is NumericUpDown)
-            {
-                NumericUpDown nud_cursor = (NumericUpDown)sender;
-                clsRawImage.Dynamic = (byte)nud_cursor.Value;
-            }
-        }
-        #endregion
-        #region ctrl_display_OnValueCursorChange
-        //-------------------------------------------------------------------------------------------
-        private void ctrl_display_OnValueCursorChange(object sender, int value)
-        {
-            if (sender is cRawImageCursor)
-            {
-                cRawImageCursor cursor = (cRawImageCursor)sender;
-                if (cursor.Name == "_cursor_v1")
-                {
-                    this.Invoke((MethodInvoker)delegate { nud_cursor_v1.Value = Math.Min(Math.Max(nud_cursor_v1.Minimum, cursor.Index), nud_cursor_v1.Maximum - 1); });
-                    _isCursorV1IndexChange = true;
-                }
-                if (cursor.Name == "_cursor_v2")
-                {
-                    this.Invoke((MethodInvoker)delegate { nud_cursor_v2.Value = Math.Min(Math.Max(nud_cursor_v2.Minimum, cursor.Index), nud_cursor_v2.Maximum - 1); });
-                    _isCursorV2IndexChange = true;
-                }
-                if (cursor.Name == "_cursor_v3")
-                {
-                    this.Invoke((MethodInvoker)delegate { nud_cursor_v3.Value = Math.Min(Math.Max(nud_cursor_v3.Minimum, cursor.Index), nud_cursor_v3.Maximum - 1); });
-                    _isCursorH1IndexChange = true;
-                }
-            }
-        }
-        #endregion
-        #region nud_cursor_vx_ValueChanged
-        private void nud_cursor_vx_ValueChanged(object sender, EventArgs e)
-        {
-            if (sender is NumericUpDown)
-            {
-                NumericUpDown nud_cursor = (NumericUpDown)sender;
-                cRawImageCursor cursor = (cRawImageCursor)nud_cursor.Tag;
-                if (cursor != null)
-                {
-                    cursor.Index = (int)nud_cursor.Value;
-                    if (_client.DnldCommand.IsBusyDownloadRaw == false)
-                    {
-                        this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
-                        clsRawImage.Invalidate();
-                    }
-                }
-            }
-        }
-        #endregion
-        #region chk_cursor_v_Click
-        private void chk_cursor_v_Click(object sender, EventArgs e)
-        {
-            if (sender is Panel)
-            {
-                Panel panel = (Panel)sender;
-                cRawImageCursor cursor = (cRawImageCursor)panel.Tag;
-                if (cursor != null)
-                {
-                    if (cursor.Name == "_cursor_v1")
-                    {
-                        _isCursorV1IndexChange = true;
-                    }
-                    if (cursor.Name == "_cursor_v2")
-                    {
-                        _isCursorV2IndexChange = true;
-                    }
-                    if (cursor.Name == "_cursor_v3")
-                    {
-                        _isCursorH1IndexChange = true;
-                    }
-                    cursor.Visible = (cursor.Visible) ? false : true;
-                    if (_client.DnldCommand.IsBusyDownloadRaw == false)
-                    {
-                        this.Invoke(this.DisplayRawSpectraDelegate, new object[] { _client.DnldCommand });
-                        clsRawImage.Invalidate();
-                    }
-                }
-            }
-        }
-        #endregion
-
-        #region OnUpdateIhm
-        private void OnUpdateIhm(object sender)
-        {
-            if ((sender != null) && (sender is sDnldCommandState))
-            {
-                switch ((eSpectraId)((sDnldCommandState)sender).SpectraId)
-                {
-                    case eSpectraId.SpectraIdRawSpectrum:
-                        if (_threadGui != null)
-                        {
-                            _threadGui.EventUserList[(int)enEventThreadGui.DisplayDownloadRawSpectra].Set();
-                        }
-                        break;
-                }
-            }
-        }
-        #endregion
-
-        #endregion
         private void _OnError(object sender, cErrorEventArgs e)
         {
             try
             {
                 if (e.Message.MessageType == eMessageType.Error)
                 {
-                    lock (_errorList)
-                    {
-                        _errorList.Add(e);
-                    }
-                    if (_threadGui == null)
-                    {
-                        _log.Debug(String.Format("->> {0} : Error {1}"
+                    _log.Debug(String.Format("->> {0} : Error {1}"
                             , sender.GetType().FullName.ToString(), e.Message.Text));
-                    }
-                    else
-                    {
-                        _threadGui.EventUserList[(int)enEventThreadGui.DisplayError].Set();
-                        _log.Debug(String.Format("->> {0} : Error {1}", sender.GetType().FullName.ToString(), e.Message.Text));
-                    }
                 }
             }
             catch (Exception)
@@ -1441,7 +1039,14 @@ namespace Velociraptor
         private void DoWaferLoad()
         {
             OpButtonFreeze();
-            waferLoadDelegate.BeginInvoke(new AsyncCallback(AutoFocus_Callback)
+            waferLoadDelegate.BeginInvoke(new AsyncCallback(WaferLoad_Callback)
+                                        , waferLoadDelegate);
+            _log.Debug("DoAutoFocus:" + Thread.CurrentThread.ManagedThreadId.ToString());
+        }
+        private void DoWaferUnload()
+        {
+            OpButtonFreeze();
+            waferUnloadDelegate.BeginInvoke(new AsyncCallback(WaferLoad_Callback)
                                         , waferLoadDelegate);
             _log.Debug("DoAutoFocus:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
@@ -1458,21 +1063,11 @@ namespace Velociraptor
         #region FindAngle, Alignment, Measure
         private void DoFindAngle()
         {
-            if (tb_dieX.Text == "" || tb_dieY.Text == "")
-            {
-                MessageBox.Show("請先輸入die的邊長");
-                return;
-            }
-            if (tbThreshold1.Text == "")
-            {
-                MessageBox.Show("請先輸入影像分割閥值");
-                return;
-            }
             btn_find_angle.Enabled = false;
 
             VisionCalibrator vc = new VisionCalibrator();
-            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(die_size[Constants.WAY_HORIZONTAL]);
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(die_size[Constants.WAY_VERTICAL]);
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
             Bitmap map;
             lock (_image_lock)
@@ -1489,21 +1084,11 @@ namespace Velociraptor
         {
             GrabOn();
             DoSetMag(eMagType.MinMag);
-            if (tb_dieX.Text == "" || tb_dieY.Text == "")
-            {
-                MessageBox.Show("請先輸入die的邊長");
-                return;
-            }
-            if (tbThreshold1.Text == "")
-            {
-                MessageBox.Show("請先輸入影像分割閥值");
-                return;
-            }
             OpButtonFreeze();
 
             VisionCalibrator vc = new VisionCalibrator();
-            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));           
+            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(die_size[Constants.WAY_HORIZONTAL]);
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(die_size[Constants.WAY_VERTICAL]);
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
 
             Bitmap map;
@@ -1517,7 +1102,6 @@ namespace Velociraptor
         }
         private void DoMeasure(List<string> f_list, List<PointF> p_list)
         {
-            RawDownloadStop();
             GrabOn();
             OpButtonFreeze();
             Bitmap map;
@@ -1531,7 +1115,6 @@ namespace Velociraptor
         }
         private void OpButtonFreeze()
         {
-            grp_cmb.Enabled = false;
             grp_op.Enabled = false;
             grp_move.Enabled = false;
         }
@@ -1705,17 +1288,17 @@ namespace Velociraptor
             _log.Debug("SyncMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             GroupMoveEnable(true);
         }
-        private void AutoFocus_Callback(IAsyncResult result)
+        private void WaferLoad_Callback(IAsyncResult result)
         {
             try
             {
                 WaferLoadDelegate func = (WaferLoadDelegate)result.AsyncState;
                 func.EndInvoke(result);
-                _log.Debug("AutoFocus_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                _log.Debug("WaferLoad_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
             {
-                ExceptionDialog(ex, "AutoFocus_Callback");
+                ExceptionDialog(ex, "WaferLoad_Callback");
             }
             OpFreeze_Done(this, EventArgs.Empty);
         }
@@ -1781,7 +1364,6 @@ namespace Velociraptor
                 return;
             }
             _log.Debug("OpFreeze_Done:" + Thread.CurrentThread.ManagedThreadId);
-            grp_cmb.Enabled = true;
             grp_op.Enabled = true;
             grp_move.Enabled = true;
         }
@@ -1807,7 +1389,6 @@ namespace Velociraptor
             {
                 MeasureDelegate func = (MeasureDelegate)result.AsyncState;
                 func.EndInvoke(result);
-                RawDownloadStart();
                 _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
             }
             catch (Exception ex)
@@ -1853,23 +1434,12 @@ namespace Velociraptor
         }
         private void UpdateUIControls(object sender, EventArgs e)
         {
-            ntb_x_cur_pos.Text = _syn_op.GetPos('X').ToString();
-            ntb_y_cur_pos.Text = _syn_op.GetPos('Y').ToString();
-            ntb_z_cur_pos.Text = _syn_op.GetPos('Z').ToString();
             ntb_x_cur_motorpos.Text = _syn_op.GetPos('X').ToString();
             ntb_y_cur_motorpos.Text = _syn_op.GetPos('Y').ToString();
             ntb_z_cur_motorpos.Text = _syn_op.GetPos('Z').ToString();
             ntb_r_cur_motorpos.Text = _syn_op.GetPos('R').ToString();
             if (isGarpping) btn_grab.Image = Properties.Resources.green;
             else btn_grab.Image = Properties.Resources.red; ;
-            if (_client.ClientIsConnected)
-                btn_connect.Image = Properties.Resources.green;
-            else
-                btn_connect.Image = Properties.Resources.red;
-            if (_client.DnldCommand.IsBusyDownloadRaw)
-                btn_download.Image = Properties.Resources._0_7;
-            else
-                btn_download.Image = Properties.Resources._0_6;
         }
         private void GroupMoveEnable(bool toEnabled)
         {
@@ -1951,16 +1521,6 @@ namespace Velociraptor
                     return;
                 }
             }
-            if (tb_dieX.Text == "" || tb_dieY.Text == "")
-            {
-                MessageBox.Show("請先輸入die的邊長");
-                return;
-            }
-            if (tbThreshold1.Text == "")
-            {
-                MessageBox.Show("請先輸入影像分割閥值");
-                return;
-            }
             SaveFileDialog sfd_upload = new SaveFileDialog();
             sfd_upload.Filter = "DATA file|*.data";
             sfd_upload.Title = "Save a File";
@@ -1974,13 +1534,12 @@ namespace Velociraptor
                 return;
             _measure_filename = sfd_upload.FileName;
 
-            grp_cmb.Enabled = false;
             grp_op.Enabled = false;
             grp_move.Enabled = false;
 
             VisionCalibrator vc = new VisionCalibrator();
-            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+            die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(die_size[Constants.WAY_HORIZONTAL]);
+            die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(die_size[Constants.WAY_VERTICAL]);
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
 
             PointF pos = new PointF((float)_syn_op.GetPos('X')
@@ -2009,19 +1568,9 @@ namespace Velociraptor
             }
             try
             {
-                if (tb_dieX.Text == "" || tb_dieY.Text == "")
-                {
-                    MessageBox.Show("請先輸入die的邊長");
-                    return;
-                }
-                if (tbThreshold1.Text == "")
-                {
-                    MessageBox.Show("請先輸入影像分割閥值");
-                    return;
-                }
                 VisionCalibrator vc = new VisionCalibrator();
-                die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(Int32.Parse(tb_dieX.Text));
-                die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(Int32.Parse(tb_dieY.Text));
+                die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(die_size[Constants.WAY_HORIZONTAL]);
+                die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(die_size[Constants.WAY_VERTICAL]);
                 die_size[2] = Constants.SCRIBE_LINE_WIDTH;
 
                 _threadAction = eThreadAction.eAutoMeasure;
@@ -2029,7 +1578,6 @@ namespace Velociraptor
                 AutoParamsForm form = new AutoParamsForm();
                 if (form.ShowDialog() != DialogResult.OK) return;
 
-                grp_cmb.Enabled = false;
                 grp_op.Enabled = false;
                 grp_move.Enabled = false;
 
@@ -2048,7 +1596,7 @@ namespace Velociraptor
                 DBKeeper.SCAN_DATA data = new DBKeeper.SCAN_DATA();
                 data.wafer_id = _wafer_id;
                 data.points_cnt = pts_cnt * 4 + 1;
-                data.scan_type = cb_selectMeasurePrecision.SelectedIndex == 0 ? 1 : 5;
+                data.scan_type = _scan_type == eScanType.Scan1Um ? 1 : 5;
                 data.notch_way = form.cmb_notch.SelectedIndex;
                 data.scan_ok = 0;
                 List<Point> _mea_pts = new List<Point>();
@@ -2179,9 +1727,21 @@ namespace Velociraptor
         #region btn_load/unload_wafer_Click
         private void btn_load_wafer_Click(object sender, EventArgs e)
         {
-            cb_wafersize.Enabled = false;
+            WaferInfo wafer = new WaferInfo();
+            WaferBasicForm w_form = new WaferBasicForm(wafer);
+            if (w_form.DialogResult != DialogResult.OK) return;
+
+            die_size[0] = wafer.Die_sizeX;
+            die_size[1] = wafer.Die_sizeY;
+            _measure_distance = wafer.Measure_distance;
+            _scan_type = wafer.Scan_type;
+            _wafer_type = wafer.Wafer_type;
             try
             {
+                if (_wafer_type == 12) chuck.Set_12inchWafer();
+                else chuck.Set_8inchWafer();
+                MessageBox.Show("即將開始載入wafer，請確認wafer已經放好");
+                chuck.PressWafer();
                 DoWaferLoad();
             }
             catch (Exception ex)
@@ -2193,7 +1753,8 @@ namespace Velociraptor
         {
             try
             {
-                cb_wafersize.Enabled = true;
+                DoWaferUnload();
+                chuck.ReleaseWafer();
             }
             catch (Exception ex)
             {
@@ -2215,51 +1776,16 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region btn mode switch
         private void btn_advanced_mode_Click(object sender, EventArgs e)
         {
-            if (is_advanced_mode) GeneralMode(sender, e);
-            else AdvancedMode();
+            panel2.Visible = !panel2.Visible;
+            if (panel2.Visible)
+                this.Size = new System.Drawing.Size(1173, 745);
+            else
+                this.Size = new System.Drawing.Size(765, 745);
+            CenterToScreen();
         }
-        private void AdvancedMode()
-        {
-            //PasswordBox psForm = new PasswordBox();
 
-            //if (psForm.ShowDialog() == DialogResult.OK)
-            //{
-            _log.Debug("AdvancedMode");
-            is_advanced_mode = true;
-            //timer.Enabled = false;
-            timer1.Enabled = true; //定時器啟動
-
-            tabControlMain.TabPages.Add(tbp_motion); //Add a tab page
-            grp_cursor.Visible = true;
-            grp_align_test.Visible = true;
-            btn_connection_ip.Visible = true;
-            grp_mea_para.Visible = true;
-            grp_test.Visible = true;
-            //}
-            //else
-            //{
-            //    MessageBox.Show("密碼錯誤!!");
-            //}
-        }
-        #region general mode
-        public void GeneralMode(object sender, EventArgs e)
-        {
-            _log.Debug("GeneralMode");
-            is_advanced_mode = false;
-            timer1.Enabled = false;
-
-            tabControlMain.TabPages.Remove(tbp_motion); //Remove a tab page
-            grp_cursor.Visible = false;
-            grp_align_test.Visible = false;
-            btn_connection_ip.Visible = false;
-            grp_mea_para.Visible = false;
-            grp_test.Visible = false;
-        }
-        #endregion
-        #endregion
         #region btn_move_distance
         private void btn_move_distance_Click(object sender, EventArgs e)
         {
@@ -2290,12 +1816,6 @@ namespace Velociraptor
                 btn_grab.Image = Properties.Resources.green;
             }
         }
-        #region cb_SelectMeasureDistance_SelectedIndexChanged
-        private void cb_SelectMeasureDistance_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _measure_distance = int.Parse(cb_SelectMeasureDistance.Text);
-        }
-        #endregion
         private void btn_ClearAlarm_Click(object sender, EventArgs e)
         {
             try
@@ -2306,30 +1826,6 @@ namespace Velociraptor
             catch (Exception ex)
             {
                 ExceptionDialog(ex, "Clear Alarm");
-            }
-        }
-        private void btn_manual_mode_Click(object sender, EventArgs e)
-        {
-            grp_manual_buttons.Visible = !grp_manual_buttons.Visible;
-        }
-        private void btn_download_Click(object sender, EventArgs e)
-        {
-            if ((_client != null) && (_client.DnldCommand != null))
-            {
-                if (_client.DnldCommand.IsBusyDownloadRaw)
-                {
-                    _client.DnldCommand.StopDownloadRaw();
-                    btn_download.Image = Properties.Resources._0_6;
-                }
-                else
-                {
-                    sSpectrumRaw spectrumRaw = new sSpectrumRaw();
-                    spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
-                    spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
-                    spectrumRaw.SpectraId = (uint)eSpectraId.SpectraIdRawSpectrum;
-                    _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
-                    btn_download.Image = Properties.Resources._0_7;
-                }
             }
         }
         private void ConnectMeasure()
@@ -2377,8 +1873,6 @@ namespace Velociraptor
                 die_size[1] = param.Height;
                 die_size[2] = Constants.SCRIBE_LINE_WIDTH;
                 tbThreshold1.Text = param.Threshold.ToString();
-                tb_dieX.Text = param.Width.ToString();
-                tb_dieY.Text = param.Height.ToString();
                 ImageFullPath = param.ImageFilePath;
                 _cur_bitmap = new Bitmap(ImageFullPath);
                 pic_camera.Image = _cur_bitmap;
@@ -2409,21 +1903,17 @@ namespace Velociraptor
             Bitmap map;
             lock (_image_lock)
             {
-                map = new Bitmap(_cur_bitmap);
+                map = _cur_bitmap.Clone() as Bitmap;
             }
+            map.Save("c:/avva/test/map.bmp");
             pic_camera.Image = _syn_op.Threshold(map, int.Parse(tbThreshold1.Text));
+            pic_camera.Image.Save("c:/avva/test/threshold.bmp");
+
         }
         private void btn_test_Click(object sender, EventArgs e)
         {
             _log.Debug("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
-
-        private void cb_selectMeasurePrecision_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _scan_type = (cb_selectMeasurePrecision.SelectedIndex == 0)
-                         ? eScanType.Scan1Um : eScanType.Scan5Um;
-        }
-
         private void tbThreshold1_TextChanged(object sender, EventArgs e)
         {
             int value;
@@ -2450,28 +1940,6 @@ namespace Velociraptor
         private void btn_autofocus_Click_1(object sender, EventArgs e)
         {
             DoWaferLoad();
-        }
-        private void cb_wafersize_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cb_wafersize.SelectedIndex == 0) chuck.Set_12inchWafer();
-            else chuck.Set_8inchWafer();
-        }
-        private void RawDownloadStart()
-        {
-            if ((_client != null) && (_client.DnldCommand != null))
-            {
-                if (!_client.DnldCommand.IsBusyDownloadRaw)
-                    _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
-            }
-        }
-        private void RawDownloadStop()
-        {
-            if (_syn_op.IsSimulate) return;
-            if ((_client != null) && (_client.DnldCommand != null))
-            {
-                if (_client.DnldCommand.IsBusyDownloadRaw)
-                    _client.DnldCommand.StopDownloadRaw();
-            }
         }
         private void GrabOn()
         {
@@ -2525,28 +1993,8 @@ namespace Velociraptor
             MessageBox.Show(message);
         }
         #endregion
-
         #endregion
 
-        private void tb_dieX_TextChanged(object sender, EventArgs e)
-        {
-            int value;
-            if (!int.TryParse(tb_dieX.Text, out value))
-            {
-                MessageBox.Show("Only number allowed");
-                tb_dieX.Text = "1";
-            }
-        }
-
-        private void tb_dieY_TextChanged(object sender, EventArgs e)
-        {
-            int value;
-            if (!int.TryParse(tb_dieY.Text, out value))
-            {
-                MessageBox.Show("Only number allowed");
-                tb_dieY.Text = "1";
-            }
-        }
         public void StartSplash()
         {
             Application.Run(new Splash());

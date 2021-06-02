@@ -39,9 +39,10 @@ namespace Velociraptor.MyForm
             // pic_avva
             // 
             this.pic_avva.Image = ((System.Drawing.Image)(resources.GetObject("pic_avva.Image")));
-            this.pic_avva.Location = new System.Drawing.Point(0, 2);
+            this.pic_avva.Location = new System.Drawing.Point(0, 0);
+            this.pic_avva.Margin = new System.Windows.Forms.Padding(0);
             this.pic_avva.Name = "pic_avva";
-            this.pic_avva.Size = new System.Drawing.Size(2004, 708);
+            this.pic_avva.Size = new System.Drawing.Size(925, 354);
             this.pic_avva.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pic_avva.TabIndex = 0;
             this.pic_avva.TabStop = false;
@@ -50,21 +51,23 @@ namespace Velociraptor.MyForm
             // 
             this.pic_loading.BackColor = System.Drawing.Color.Transparent;
             this.pic_loading.Image = ((System.Drawing.Image)(resources.GetObject("pic_loading.Image")));
-            this.pic_loading.Location = new System.Drawing.Point(1672, 594);
+            this.pic_loading.Location = new System.Drawing.Point(772, 297);
+            this.pic_loading.Margin = new System.Windows.Forms.Padding(1, 2, 1, 2);
             this.pic_loading.Name = "pic_loading";
-            this.pic_loading.Size = new System.Drawing.Size(332, 116);
+            this.pic_loading.Size = new System.Drawing.Size(153, 58);
             this.pic_loading.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pic_loading.TabIndex = 1;
             this.pic_loading.TabStop = false;
             // 
             // Splash
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(2007, 710);
+            this.ClientSize = new System.Drawing.Size(926, 355);
             this.Controls.Add(this.pic_loading);
             this.Controls.Add(this.pic_avva);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Margin = new System.Windows.Forms.Padding(1, 2, 1, 2);
             this.Name = "Splash";
             this.Text = "AVVA";
             ((System.ComponentModel.ISupportInitialize)(this.pic_avva)).EndInit();
