@@ -99,7 +99,7 @@ namespace Avva.MotionFramework
 			{
 				throw new AvvaMotionException("ymcMoveDriverPositioning error-" + MyErrorCode.ErrorMessage(rc));
 			}
-			
+			ClearDevice();
 		}
 		//Default use relative move
 		//If use absolute move, ONLY SPECIFIED AXIS ARE SET TO ABS
@@ -125,7 +125,7 @@ namespace Avva.MotionFramework
 			{
 				throw new AvvaMotionException("ymcMoveDriverPositioning error-" + MyErrorCode.ErrorMessage(rc));
 			}
-
+			ClearDevice();
 		}
 		public double GetPos(int axis)
         {
@@ -219,10 +219,7 @@ namespace Avva.MotionFramework
             rc = CMotionAPI.ymcServoControl(g_hDevice, (UInt16)CMotionAPI.ApiDefs.SERVO_OFF, 5000);
 			if (rc != CMotionAPI.MP_SUCCESS)
 				throw new AvvaMotionException("ymcClearAlarm error-" + MyErrorCode.ErrorMessage(rc));
-			//Deletes the device handle created in this thread. 
-			rc = CMotionAPI.ymcClearDevice(g_hDevice);
-            if (rc != CMotionAPI.MP_SUCCESS) 
-				throw new AvvaMotionException("ymcClearDevice error-" + MyErrorCode.ErrorMessage(rc));
+			ClearDevice();
 			CloseController();
 		}
 		public void MotorOn()
@@ -282,8 +279,17 @@ namespace Avva.MotionFramework
 			#endregion
 		}
         #region Basic Function
+        #region ClearDevice
+		public void ClearDevice()
+        {
+			//Deletes the device handle created in this thread. 
+			rc = CMotionAPI.ymcClearDevice(g_hDevice);
+			if (rc != CMotionAPI.MP_SUCCESS)
+				throw new AvvaMotionException("ymcClearDevice error-" + MyErrorCode.ErrorMessage(rc));
+		}
+        #endregion
         #region DeclareDevice
-		public void DeclareDevice()
+        public void DeclareDevice()
         {
 			rc = CMotionAPI.ymcDeclareDevice((UInt16)_axis_num, hAxis, ref g_hDevice);
 			if (rc != CMotionAPI.MP_SUCCESS)
