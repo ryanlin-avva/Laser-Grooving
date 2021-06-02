@@ -1633,7 +1633,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(960, 367);
+            this.panel1.Size = new System.Drawing.Size(1155, 367);
             this.panel1.TabIndex = 161;
             // 
             // grp_op
@@ -2023,7 +2023,7 @@
             this.tb_dieX.Name = "tb_dieX";
             this.tb_dieX.Size = new System.Drawing.Size(71, 25);
             this.tb_dieX.TabIndex = 181;
-            this.tb_dieX.Text = "100";
+            this.tb_dieX.Text = "2230";
             this.tb_dieX.TextChanged += new System.EventHandler(this.tb_dieX_TextChanged);
             // 
             // tb_dieY
@@ -2034,7 +2034,7 @@
             this.tb_dieY.Name = "tb_dieY";
             this.tb_dieY.Size = new System.Drawing.Size(71, 25);
             this.tb_dieY.TabIndex = 182;
-            this.tb_dieY.Text = "100";
+            this.tb_dieY.Text = "2230";
             this.tb_dieY.TextChanged += new System.EventHandler(this.tb_dieY_TextChanged);
             // 
             // label40
@@ -2079,7 +2079,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(960, 528);
+            this.ClientSize = new System.Drawing.Size(1155, 528);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.tabControlMain);
             this.Font = new System.Drawing.Font("新細明體", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));

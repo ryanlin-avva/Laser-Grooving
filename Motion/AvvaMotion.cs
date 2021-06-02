@@ -370,7 +370,7 @@ namespace Avva.MotionFramework
             for (int i = 0; i < axis.Length; i++)
                 speed[i] = _default_speed[axis[i]];
             return speed;
-        }
+        }      
         private int[] GetAxisNumArray(char[] axis)
         {
             int[] axis_array = new int[axis.Length];

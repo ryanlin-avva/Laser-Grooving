@@ -621,12 +621,12 @@ namespace Velociraptor
                 char[] axis = { 'X', 'Y' };
                 double[] center = GetCenter();
                 MoveEventArgs moveEventArgs = new MoveEventArgs(axis, GetCenter(), false);
-                OnAsyncMove(this, moveEventArgs);
+                AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 FindAngle(mymap, die_size, threshold);
                 if (!FindAngleOK) return;
                 moveEventArgs = new MoveEventArgs('R', _fs.AngleAverage * 1000, true);
-                OnAsyncMove(this, moveEventArgs);
+                AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 ToMagPos(eMagType.MaxMag);
                 AlignmentOK = true;
@@ -679,6 +679,8 @@ namespace Velociraptor
             {
                 while (GetPos(_target_axis[i]) != _target_pos[i])
                 {
+                    Debug.WriteLine("nowpos="+ GetPos(_target_axis[i]));
+                    Debug.WriteLine("targetpos=" + _target_pos[i]);
                     Thread.Sleep(50);
                 }
             }
@@ -747,19 +749,20 @@ namespace Velociraptor
         public void ClearAlarm() { _motion.ClearAlarm(); }
         #endregion
         #region Get Param
-        public bool IsSimulate { get { return _motion.IsSimulate; } }
+        public bool IsSimulate { get { return _motion.IsSimulate; } }      
         public int DataDirection { get { return _paraReader.DataDirection; } }
         public int TriggerInterval { get { return _paraReader.TriggerInterval; } }
         public string SavingPath { get { return _paraReader.SavingPath; } }
         #endregion
     }
     public class MoveEventArgs : EventArgs
-    {
+    {        
         public MoveEventArgs(char[] axis, double[] position, bool isRelative)
         {
             Relative = isRelative;
             Position = position;
             Axis = axis;
+            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char[] axis, double[] position,double[] velocity, bool isRelative)
         {
@@ -774,7 +777,8 @@ namespace Velociraptor
             double[] pos = { position };
             char[] a = { axis };
             Position = pos;
-            Axis = a;           
+            Axis = a;
+            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char axis, double position,double velocity, bool isRelative)
         {
