@@ -625,12 +625,12 @@ namespace Velociraptor
                 char[] axis = { 'X', 'Y' };
                 double[] center = GetCenter();
                 MoveEventArgs moveEventArgs = new MoveEventArgs(axis, GetCenter(), false);
-                OnAsyncMove(this, moveEventArgs);
+                AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 FindAngle(mymap, die_size, threshold);
                 if (!FindAngleOK) return;
                 moveEventArgs = new MoveEventArgs('R', _fs.AngleAverage * 1000, true);
-                OnAsyncMove(this, moveEventArgs);
+                AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 ToMagPos(eMagType.MaxMag);
                 AlignmentOK = true;
@@ -760,6 +760,7 @@ namespace Velociraptor
             Relative = isRelative;
             Position = position;
             Axis = axis;
+            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char[] axis, double[] position,double[] velocity, bool isRelative)
         {
@@ -774,7 +775,8 @@ namespace Velociraptor
             double[] pos = { position };
             char[] a = { axis };
             Position = pos;
-            Axis = a;           
+            Axis = a;
+            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char axis, double position,double velocity, bool isRelative)
         {

@@ -10,7 +10,7 @@ namespace Velociraptor
         static public int AutoMeasureDistance = 1000; //um
         static public int MeasureScanBuffer = 100; //um
         static public int MeasureScanVelocity = 1000; //um
-       
+        static public double[] MoveVelocity = { 10000, 10000, 10000, 5000 }; //um,um,um,0.001度
 
         //----------------------------------------
         //Timer設定 (unit:ms)
