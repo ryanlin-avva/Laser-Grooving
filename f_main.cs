@@ -2731,7 +2731,15 @@ namespace Velociraptor
             _log.Debug("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
 
             DefreezeControls();
+            ProcessStartInfo Info2 = new ProcessStartInfo();
 
+            Info2.FileName = "ThickInspector.exe";//執行的檔案名稱
+
+            Info2.WorkingDirectory = @"C:\Users\User\Desktop\20210603";//檔案所在的目錄
+
+            Info2.Arguments = string.Format(@"{0} 1 0", "0_0.data");
+
+            Process.Start(Info2);
             //_syn_op.AsyncMove5um(1000);
         }
 
