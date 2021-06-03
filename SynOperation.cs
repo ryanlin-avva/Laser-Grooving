@@ -756,6 +756,7 @@ namespace Velociraptor
             Relative = isRelative;
             Position = position;
             Axis = axis;
+            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char[] axis, double[] position,double[] velocity, bool isRelative)
         {
@@ -770,7 +771,8 @@ namespace Velociraptor
             double[] pos = { position };
             char[] a = { axis };
             Position = pos;
-            Axis = a;           
+            Axis = a;
+            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char axis, double position,double velocity, bool isRelative)
         {
