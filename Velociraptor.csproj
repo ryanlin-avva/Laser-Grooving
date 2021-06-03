@@ -285,6 +285,7 @@
     <None Include="Images\48\ccw_new.png" />
     <Content Include="AvvaLaserGrooving.log4net.xml" />
     <None Include="Images\AVVA R&amp;D Corp.png" />
+    <None Include="Images\48\crosshair.png" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />

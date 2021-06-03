@@ -99,6 +99,7 @@ namespace Velociraptor
         Bitmap _cur_bitmap = null;
         IAvvaCamera basler = new BaslerCamera();
         AvvaCamera camera;
+        bool useCrosshair = false;
         #endregion
         #region Threads and events
         /// <summary>the current thread action</summary>
@@ -138,54 +139,21 @@ namespace Velociraptor
         private const int _maxNumberOfBufferInFifoDataFormat = 64;
         private cQueueExt _fifoDataFormat = null;
         #endregion
-        #region Control Update
-        cControlUpdateEx _controlUpdate = null;
-        sControlUpdateEx _clu_led_intensity = null;
-        sControlUpdateEx _clu_number_of_peak = null;
-        sControlUpdateEx _clu_frequency = null;
-        sControlUpdateEx _clu_threshold = null;
-        cControlUpdateEx.OnEventHandler _eventControlUpdateValueToText = null;
-        cControlUpdateEx.OnEventHandler _eventcontrolUpdateTextToValue = null;
-        #endregion
-        #region cursor and curve
-        cCurve _curve_v1 = null;
-        cCurve _curve_v2 = null;
-        cCurve _curve_v3 = null;
-        cRawImageCursor _cursor_raw_v1 = null;
-        cRawImageCursor _cursor_raw_v2 = null;
-        cRawImageCursor _cursor_raw_v3 = null;
-        bool _isCursorV1IndexChange = false;
-        bool _isCursorV2IndexChange = false;
-        bool _isCursorH1IndexChange = false;
-        #endregion
         #region delegate function for precitec
-        delegate void InitDisplayDelegateHandler(System.Windows.Forms.Form form);
-        InitDisplayDelegateHandler InitDisplayDelegate;
+        delegate void DisplayConnectionStateDelegate(cClientCommunication client);
+        DisplayConnectionStateDelegate displayConnectionStateDelegate;
 
-        delegate void InitDownloadDisplayDelegateHandler(System.Windows.Forms.Form form);
-        InitDownloadDisplayDelegateHandler InitDownloadDisplayDelegate;
+        //delegate void DisplayCommandDataDelegate(cClsCommandData clsCommand);
+        //DisplayCommandDataDelegate displayCommandDataDelegate;
 
-        delegate void DisplayStatisticsDelegateHandler(List<cClientStatistics> clientStatisticsList);
-        DisplayStatisticsDelegateHandler DisplayStatisticsDelegate;
-
-        delegate void DisplayConnectionStateDelegateHandler(cClientCommunication client);
-        DisplayConnectionStateDelegateHandler DisplayConnectionStateDelegate;
-
-        delegate void DisplayCommandDataDelegateHandler(cClsCommandData clsCommand);
-        DisplayCommandDataDelegateHandler DisplayCommandDataDelegate;
-
-        delegate void DisplaySpectraDelegateHandler(cDnldCommand dnldCommand);
-        DisplaySpectraDelegateHandler DisplayRawSpectraDelegate;
-
-        delegate void DisplayDataFormatDelegateHandler(cClientCommunication client);
-        DisplayDataFormatDelegateHandler DisplayDataFormatDelegate;
+        //delegate void DisplayDataFormatDelegate(cClientCommunication client);
+        //DisplayDataFormatDelegate displayDataFormatDelegate;
 
         cClientSocket.OnClientConnectEventHandler _eventOnClientConnect = null;
         cClientSocket.OnClientDisconnectEventHandler _eventOnClientDisconnect = null;
         cClientCommunication.OnReceiveCommandDataEventHandler _eventOnUpdateCommandData = null;
-        cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormat = null;
-        cClientCommunication.OnUpdateIhmEventHandler _eventOnUpdateIhm = null;
-        cClientCommunication.OnReceiveDataSampleEventHandler _eventOnUpdateDataSample = null;
+        //cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormat = null;
+        //cClientCommunication.OnReceiveDataSampleEventHandler _eventOnUpdateDataSample = null;
         cClientCommunication.OnReceiveDataFormatEventHandler _eventOnUpdateDataFormatEntry = null;
 
         delegate void CloseFormDelegate(object sender, EventArgs e);
@@ -193,22 +161,15 @@ namespace Velociraptor
         List<cErrorEventArgs> _errorList = null;
         cErrorEventArgs.OnErrorEventHandler _eventOnError = null;
         #endregion
-        #region cls_components
-
-        CsvWriteFile _ccsvWriteFiles = new CsvWriteFile();
-        #endregion
         #region measure settings
+        CsvWriteFile _ccsvWriteFiles = new CsvWriteFile();
         private int _measure_distance;
-        private bool is_advanced_mode = false;
         private SynOperation _syn_op;
         private DBKeeper _db;
         private string _measure_filename;
         public bool _in_trigger = false;
-        private int _trigger_end = 0;
         private bool _cancelFormClosing = true;
         public bool startmeasure = false;
-        public bool measureFinish = true;
-
         #endregion
         #region autofocus
         WaferLoadDelegate waferLoadDelegate;
@@ -240,7 +201,7 @@ namespace Velociraptor
         #endregion
         #region Misc
         System.Timers.Timer timer;
-        System.Timers.Timer timer1;
+        System.Timers.Timer timer_connect;
         System.Timers.Timer timer_measure;
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
         log4net.ILog _log;
@@ -282,14 +243,14 @@ namespace Velociraptor
                 _fifoDataMeasure.OnError += _eventOnError;
                 #endregion
                 #region Delegate function assignment
-                InitDisplayDelegate = new InitDisplayDelegateHandler(OnInitDisplay);
-                DisplayCommandDataDelegate = new DisplayCommandDataDelegateHandler(DisplayCommandData);
-                DisplayDataFormatDelegate = new DisplayDataFormatDelegateHandler(DisplayDataFormat);
+                displayConnectionStateDelegate = new DisplayConnectionStateDelegate(DisplayClientConnectionState);
+                //displayCommandDataDelegate = new DisplayCommandDataDelegate(DisplayCommandData);
+                //displayDataFormatDelegate = new DisplayDataFormatDelegate(DisplayDataFormat);
                 _eventOnClientConnect = new cClientSocket.OnClientConnectEventHandler(OnClientConnect);
                 _eventOnClientDisconnect = new cClientSocket.OnClientDisconnectEventHandler(OnClientDisconnect);
                 _eventOnUpdateCommandData = new cClientCommunication.OnReceiveCommandDataEventHandler(OnUpdateCommandData);
-                _eventOnUpdateDataFormat = new cClientCommunication.OnReceiveDataFormatEventHandler(OnUpdateDataFormat);
-                _eventOnUpdateDataSample = new cClientCommunication.OnReceiveDataSampleEventHandler(_OnUpdateDataSample);
+                //_eventOnUpdateDataFormat = new cClientCommunication.OnReceiveDataFormatEventHandler(OnUpdateDataFormat);
+                //_eventOnUpdateDataSample = new cClientCommunication.OnReceiveDataSampleEventHandler(_OnUpdateDataSample);
                 _eventOnUpdateDataFormatEntry = new cClientCommunication.OnReceiveDataFormatEventHandler(_OnUpdateDataFormatEntry);
                 _eventOnError = new cErrorEventArgs.OnErrorEventHandler(_OnError);
                 _eventCloseForm = new CloseFormDelegate(_OnCloseOnStart);
@@ -369,17 +330,19 @@ namespace Velociraptor
             _client.OnClientConnect += _eventOnClientConnect;
             _client.OnClientDisconnect += _eventOnClientDisconnect;
             _client.OnReceiveCommandData += _eventOnUpdateCommandData;
-            _client.OnReceiveDataFormat += _eventOnUpdateDataFormat;
-            _client.OnReceiveDataSample += _eventOnUpdateDataSample;
-            _client.OnUpdateIhm += _eventOnUpdateIhm;
+            //_client.OnReceiveDataFormat += _eventOnUpdateDataFormat;
+            //_client.OnReceiveDataSample += _eventOnUpdateDataSample;
             _client.PortNumber = 7891;
             _client.TimeoutConnection = 500;
             _client.IP = IPAddress.Parse(_generalSettings.General.IpAddress);
 
             _client.OnError += _eventOnError;
             _client.Dark();
-            if (_client.DnldCommand.IsBusyDownloadRaw)
-                _client.DnldCommand.StopDownloadRaw();
+            if ((_client != null) && (_client.DnldCommand != null))
+            {
+                if (!_syn_op.IsSimulate && _client.DnldCommand.IsBusyDownloadRaw)
+                    _client.DnldCommand.StopDownloadRaw();
+            }
             #endregion
             #region start thread
             //start process thread 
@@ -413,20 +376,27 @@ namespace Velociraptor
             tips.SetToolTip(this.btn_advanced_mode, "工程模式切換");
             tips.SetToolTip(this.btn_ClearAlarm, "運動報警重置");
             tips.SetToolTip(this.btn_align, "晶圓轉正");
-            tips.SetToolTip(this.btn_start_mea, "開始測量");
+            tips.SetToolTip(this.btn_start_mea, "手動量測");
             tips.SetToolTip(this.btn_load, "開啟影像");
             tips.SetToolTip(this.btn_find_angle, "找角度");
+            tips.SetToolTip(this.btn_crosshair, "顯示十字線");
             #endregion
 
             try
             {
-                ConnectMeasure();
-
+                if (!_syn_op.IsSimulate)
+                {
+                    _threadAction = eThreadAction.eClientConnect;
+                    _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
+                }
                 Control.CheckForIllegalCrossThreadCalls = false;
                 timer = new System.Timers.Timer(Constants.INTL_gui_update);//定時週期0.1秒
                 timer.Elapsed += UpdateUIControls;//定時時間到的時候的回撥函式
                 timer.AutoReset = true; //是否不斷重複定時器操作
                 timer.Enabled = true;
+                timer_connect = new System.Timers.Timer(Constants.INTL_ConnectRetryDelay);
+                timer_connect.Elapsed += ConnectRetry;
+                timer_connect.AutoReset = false;
                 timer_measure = new System.Timers.Timer(Constants.INTL_DataSaveDelay);
                 timer_measure.Elapsed += MeasureTimeout;
                 timer_measure.AutoReset = false;
@@ -472,9 +442,8 @@ namespace Velociraptor
             {
                 _client.OnReceiveCommandData -= _eventOnUpdateCommandData;
                 _client.OnReceiveDataFormat -= _eventOnUpdateDataFormatEntry;
-                _client.OnReceiveDataSample -= _eventOnUpdateDataSample;
+                //_client.OnReceiveDataSample -= _eventOnUpdateDataSample;
                 _client.OnError -= _eventOnError;
-                _client.OnUpdateIhm -= _eventOnUpdateIhm;
                 _client.OnClientConnect -= _eventOnClientConnect;
                 _client.OnClientDisconnect -= _eventOnClientDisconnect;
                 _generalSettings.General.SodxCommand = _client.SelectOutputFormat;
@@ -508,7 +477,6 @@ namespace Velociraptor
                 _fifoDataSample = null;
             }
             #endregion
-            if (_controlUpdate != null) _controlUpdate.Dispose();
             #region _threadProcess
             if (_threadActionProcess != null)
             {
@@ -525,12 +493,11 @@ namespace Velociraptor
         /// <summary>This method is called when starting the thread.</summary> 
         public void ThreadGuiLoop()
         {
-            cClsCommandData clsCommandData = null;
+            //cClsCommandData clsCommandData = null;
             cTimeMeasurement _tm = new cTimeMeasurement(cTimeMeasurement.enTimeStepType.MILLISECOND, false);
-            cDataFormat dataFormat = null;
+            //cDataFormat dataFormat = null;
             double dTimeout = _tm.FlashTiming;
-            short[,] sBuffer = null;
-            int _timoutStatistics = 250, _timoutStatisticsValue = 0; //Display Statistics step 250 mms
+            //int _timoutStatistics = 250, _timoutStatisticsValue = 0; //Display Statistics step 250 mms
             int _timoutDataSampleValue = 0;
             try
             {
@@ -538,63 +505,49 @@ namespace Velociraptor
                 {
                     //Debug.WriteLine("ThreadGuiLoop");
                     dTimeout = _tm.FlashTiming;
-                    _timoutStatisticsValue += (int)dTimeout;
+                    //_timoutStatisticsValue += (int)dTimeout;
                     _timoutDataSampleValue += (int)dTimeout;
 
-                    #region InitDisplay
-                    if (_threadGui.EventUserList[(int)enEventThreadGui.InitDisplay].WaitOne(0))
-                    {
-                        this.Invoke(this.InitDisplayDelegate, new object[] { this });
-                    }
-                    #endregion
-                    #region Display Download Display
-                    if (_threadGui.EventUserList[(int)enEventThreadGui.InitDownloadDisplay].WaitOne(0))
-                    {
-                        this.Invoke(this.InitDownloadDisplayDelegate, new object[] { this });
-                        //_curve_v2.IsVisible = _cursor_raw_v2.Visible = false;
-                        //_curve_v3.IsVisible = _cursor_raw_v3.Visible = false;
-                    }
-                    #endregion
-                    #region Display Client Connection
+                    //Display Client Connection
                     if (_threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].WaitOne(0))
                     {
-                        this.Invoke(this.DisplayConnectionStateDelegate, new object[] { _client });
+                        Console.WriteLine("enEventThreadGui.DisplayConnectionState:" + Thread.CurrentThread.ManagedThreadId);
+                        displayConnectionStateDelegate.Invoke(_client);
+                        //Invoke(displayConnectionStateDelegate, new object[] { _client });
                     }
-                    #endregion
-                    #region Dislpay Command Data
-                    if ((_timoutStatisticsValue > _timoutStatistics) && (_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayCommandData].WaitOne(0)))
-                    {
-                        _timoutStatisticsValue = 0;
-                        if (_fifoCommandData != null)
-                        {
-                            lock (_fifoCommandData)
-                            {
-                                while (_fifoCommandData.Count > 0)
-                                {
-                                    clsCommandData = (cClsCommandData)_fifoCommandData.Dequeue();
-                                    this.Invoke(this.DisplayCommandDataDelegate, new object[] { clsCommandData });
-                                }
-                            }
-                        }
-                    }
-                    #endregion
 
-                    #region Display Data Format
-                    if ((_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].WaitOne(0)))
-                    {
-                        if (_fifoDataFormat != null)
-                        {
-                            lock (_fifoDataFormat)
-                            {
-                                while (_fifoDataFormat.Count > 0)
-                                {
-                                    dataFormat = (cDataFormat)_fifoDataFormat.Dequeue();
-                                    this.Invoke(this.DisplayDataFormatDelegate, new object[] { _client });
-                                }
-                            }
-                        }
-                    }
-                    #endregion
+                    //Dislpay Command Data
+                    //if ((_timoutStatisticsValue > _timoutStatistics) && (_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayCommandData].WaitOne(0)))
+                    //{
+                    //    _timoutStatisticsValue = 0;
+                    //    if (_fifoCommandData != null)
+                    //    {
+                    //        lock (_fifoCommandData)
+                    //        {
+                    //            while (_fifoCommandData.Count > 0)
+                    //            {
+                    //                clsCommandData = (cClsCommandData)_fifoCommandData.Dequeue();
+                    //                this.Invoke(this.displayCommandDataDelegate, new object[] { clsCommandData });
+                    //            }
+                    //        }
+                    //    }
+                    //}
+
+                    //Display Data Format
+                    //if ((_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].WaitOne(0)))
+                    //{
+                    //    if (_fifoDataFormat != null)
+                    //    {
+                    //        lock (_fifoDataFormat)
+                    //        {
+                    //            while (_fifoDataFormat.Count > 0)
+                    //            {
+                    //                dataFormat = (cDataFormat)_fifoDataFormat.Dequeue();
+                    //                this.Invoke(this.displayDataFormatDelegate, new object[] { _client });
+                    //            }
+                    //        }
+                    //    }
+                    //}
                 }
                 _threadGui.EventExitProcessThreadDo.Set();
             }
@@ -611,6 +564,7 @@ namespace Velociraptor
             cTimeout timeout = new cTimeout(true, cTimeMeasurement.enTimeStepType.MILLISECOND);
             int timeoutValue = 10;
             timeout.TimeoutValue = 200; //200ms.
+            int retry_cnt = 0;
             try
             {
                 while (_threadActionProcess.EventExitProcessThread.WaitOne(timeoutValue) == false)
@@ -647,6 +601,7 @@ namespace Velociraptor
                             {
                                 //client connect
                                 case eThreadAction.eClientConnect:
+                                    timer_connect.Enabled = false;
                                     if (_client.Open())
                                     {
                                         _threadAction = eThreadAction.None;
@@ -665,27 +620,19 @@ namespace Velociraptor
                                     else
                                     {
                                         _threadAction = eThreadAction.eClientDisconnect;
-                                        _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
                                     }
-                                    if ((_client != null) && (_client.DnldCommand != null))
-                                    {
-                                        if (_client.DnldCommand.IsBusyDownloadRaw)
-                                        {
-                                            _client.DnldCommand.StopDownloadRaw();
-                                        }
-                                        else
-                                        {
-                                            sSpectrumRaw spectrumRaw = new sSpectrumRaw();
-                                            spectrumRaw.FirstChannel = Constants.PREC_FirstChannel;
-                                            spectrumRaw.NumberOfChannels = Constants.PREC_NumberOfChannels;
-                                            spectrumRaw.SpectraId = (uint)eSpectraId.SpectraIdRawSpectrum;
-                                            _client.DnldCommand.StartDownloadRaw(spectrumRaw, -1);
-                                        }
-                                    }
+                                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
                                     break;
                                 case eThreadAction.eClientDisconnect:
                                     _client.Close();
                                     _threadAction = eThreadAction.None;
+                                    retry_cnt++;
+                                    if (retry_cnt < 3)
+                                        timer_connect.Enabled = true;
+                                    else
+                                    {
+                                        ExceptionDialog("Connect To Measuring Instrument Failed");
+                                    }
                                     break;
                             }
                         }
@@ -809,17 +756,19 @@ namespace Velociraptor
         #endregion
 
         #endregion
-        #region OnInitDisplay
-        private void OnInitDisplay(System.Windows.Forms.Form form)
+        private void DisplayClientConnectionState(cClientCommunication client)
         {
-            _eventControlUpdateValueToText = new cControlUpdateEx.OnEventHandler(OnControlUpdateValueToText);
-            _eventcontrolUpdateTextToValue = new cControlUpdateEx.OnEventHandler(OnControlUpdateTextToValue);
-            _controlUpdate = new cControlUpdateEx(_eventcontrolUpdateTextToValue, _eventControlUpdateValueToText, Color.LemonChiffon);
-            _controlUpdate.ControlUpdateList.Clear();
-            _threadGui.EventUserList[(int)enEventThreadGui.DisplaySampleRate].Set();
-            Invalidate();
+            if (client != null)
+            {
+                this.Invoke((MethodInvoker)delegate
+                {
+                    Console.WriteLine("DisplayClientConnectionState:" + Thread.CurrentThread.ManagedThreadId);
+                    if (client.ClientIsConnected) pic_warnlight.Visible = false;
+                    else pic_warnlight.Visible = true;
+                });
+            }
         }
-        #endregion
+
         #region -OnUpdateDataSample
         /// <summary>Event receive new data sample</summary>
         /// <param name="clsCommand"> The <see cref="cDataSample"/> instance containing the data sample.</param>
@@ -838,26 +787,26 @@ namespace Velociraptor
         #region OnUpdateCommandData
         private void OnUpdateCommandData(cClsCommandData clsCommand)
         {
-            if (_fifoCommandData != null)
-            {
-                lock (_fifoCommandData)
-                {
-                    _fifoCommandData.Enqueue(clsCommand);
-                }
-                if (_threadGui != null)
-                {
-                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayCommandData].Set();
-                }
-            }
+            //if (_fifoCommandData != null)
+            //{
+            //    lock (_fifoCommandData)
+            //    {
+            //        _fifoCommandData.Enqueue(clsCommand);
+            //    }
+                //if (_threadGui != null)
+                //{
+                //    _threadGui.EventUserList[(int)enEventThreadGui.DisplayCommandData].Set();
+                //}
+            //}
         }
         #endregion
-        #region OnUpdateDataFormat
-        /// <summary>Event receive new data format</summary>
-        /// <param name="clsCommand"> The <see cref="cDataFormat"/> instance containing the data format.</param>
-        private void OnUpdateDataFormat(cDataFormat dataFormat)
-        {
-        }
-        #endregion
+        //#region OnUpdateDataFormat
+        ///// <summary>Event receive new data format</summary>
+        ///// <param name="clsCommand"> The <see cref="cDataFormat"/> instance containing the data format.</param>
+        //private void OnUpdateDataFormat(cDataFormat dataFormat)
+        //{
+        //}
+        //#endregion
         #region _OnUpdateDataFormatEntry
         private void _OnUpdateDataFormatEntry(cDataFormat dataFormat)
         {
@@ -867,111 +816,26 @@ namespace Velociraptor
                 {
                     _fifoDataFormat.Enqueue(dataFormat);
                 }
-                if (_threadGui != null)
-                {
-                    _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].Set();
-                }
+                //if (_threadGui != null)
+                //{
+                //    _threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].Set();
+                //}
             }
         }
         #endregion
-        #region OnControlUpdateValueToText
-        private void OnControlUpdateValueToText(object sender)
-        {
-            if (sender is sControlUpdateEx)
-            {
-                sControlUpdateEx controlUpdate = (sControlUpdateEx)sender;
-                if (controlUpdate.Object is NumericTextBox)
-                {
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        ((NumericTextBox)controlUpdate.Object).Text = controlUpdate.Text;
-                    });
-                }
-                else if (controlUpdate.Object is TextBox)
-                {
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        ((TextBox)controlUpdate.Object).Text = controlUpdate.Text;
-                    });
-                }
-                else if (controlUpdate.Object is ComboBox)
-                {
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        ((ComboBox)controlUpdate.Object).Text = controlUpdate.Text;
-                    });
-                }
-            }
-        }
-        #endregion
-        #region OnControlUpdateTextToValue
-        private void OnControlUpdateTextToValue(object sender)
-        {
-            try
-            {
-                if ((_client != null) && (_client.ClientIsConnected) && (sender is sControlUpdateEx))
-                {
-                    sControlUpdateEx controlUpdate = (sControlUpdateEx)sender;
-                    if (controlUpdate.Object is NumericTextBox)
-                    {
-                        NumericTextBox numericTextBox = (NumericTextBox)controlUpdate.Object;
-                        Invoke((Action)(() => { numericTextBox.SelectAll(); }));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialog(ex, string.Format("Error : {0}.{1}", this.GetType().FullName.ToString(), System.Reflection.MethodInfo.GetCurrentMethod().Name));
-            }
-        }
-        #endregion
-        #region DisplayCommandData
-        private void DisplayCommandData(cClsCommandData clsCommand)
-        {
-            _log.Debug("DisplayCommandData");
-
-            if ((clsCommand != null) && (clsCommand.ErrorEventArgs == null))
-            {
-                switch (clsCommand.CommandList)
-                {
-                    //Led Intensity
-                    case eCommandList.LAI:
-                        if (_clu_led_intensity != null)
-                            this.Invoke(new cIhmUpdateControl.UpdateTextHandler(cIhmUpdateControl.UpdateText), _clu_led_intensity, string.Format("{0}", Convert.ToInt32(clsCommand.Value)), false, true, true);
-                        break;
-                    //Free Sample Rate
-                    case eCommandList.SHZ:
-                        if (_clu_frequency != null)
-                            this.Invoke(new cIhmUpdateControl.UpdateTextHandler(cIhmUpdateControl.UpdateText), _clu_frequency, string.Format("{0}", Convert.ToInt32(clsCommand.Value)), false, true, true);
-                        break;
-                    //Number Of Peaks
-                    case eCommandList.NOP:
-                        if (_clu_number_of_peak != null)
-                            this.Invoke(new cIhmUpdateControl.UpdateTextHandler(cIhmUpdateControl.UpdateText), _clu_number_of_peak, string.Format("{0}", Convert.ToInt32(clsCommand.Value)), false, true, true);
-                        break;
-                    //Threshold
-                    case eCommandList.THR:
-                        if (_clu_threshold != null)
-                            this.Invoke(new cIhmUpdateControl.UpdateTextHandler(cIhmUpdateControl.UpdateText), _clu_threshold, string.Format("{0}", Convert.ToInt32(clsCommand.Value)), false, true, true);
-                        break;
-                    //CCD Range
-                    case eCommandList.CRA:
-                        if (clsCommand.Value is sCCDRange)
-                        {
-                            _ccd_range = (sCCDRange)clsCommand.Value;
-                            _threadGui.EventUserList[(int)enEventThreadGui.InitDownloadDisplay].Set();
-                        }
-                        break;
-                }
-            }
-        }
-        #endregion
-        #region DisplayDataFormat
-        private void DisplayDataFormat(cClientCommunication client)
-        {
-            _log.Debug("DisplayDataFormat");
-        }
-        #endregion 
+        //#region DisplayCommandData
+        //private void DisplayCommandData(cClsCommandData clsCommand)
+        //{
+        //    if ((clsCommand != null) && (clsCommand.ErrorEventArgs == null))
+        //        _log.Debug("DisplayCommandData:" + clsCommand.CommandList);
+        //}
+        //#endregion
+        //#region DisplayDataFormat
+        //private void DisplayDataFormat(cClientCommunication client)
+        //{
+        //    _log.Debug("DisplayDataFormat");
+        //}
+        //#endregion 
         private void _OnError(object sender, cErrorEventArgs e)
         {
             try
@@ -1029,7 +893,6 @@ namespace Velociraptor
             if (!(_client.ClientIsConnected && EnableTriggerDuringReturnMovement && ChooseAxis
                 && EndlessRountripTrigger && SetStopPosition && SetTriggerInterval && SetStartPosition
                 && SelectEncoderTriggerSource)) return false;
-            _trigger_end = StopPos;
             _client.TriggerEach();
             return true;
             #endregion
@@ -1197,18 +1060,18 @@ namespace Velociraptor
                     _cur_bitmap = bitmap;
                 }
                 pic_camera.Image = bitmap;
-                //if (is_advanced_mode)
-                //{
-                //    using (Graphics g = Graphics.FromImage(pic_camera.Image))
-                //    {
-                //        Pen pen = new Pen(Color.SkyBlue, 4);
+                if (useCrosshair)
+                {
+                    using (Graphics g = Graphics.FromImage(pic_camera.Image))
+                    {
+                        Pen pen = new Pen(Color.SkyBlue, 4);
 
-                //        g.DrawLine(pen, 0, camera.ImageHeight / 2 - 1, camera.ImageWidth, camera.ImageHeight / 2 - 1);
-                //        g.DrawLine(pen, camera.ImageWidth / 2 - 1, 0, camera.ImageWidth / 2 - 1, camera.ImageHeight);
+                        g.DrawLine(pen, 0, camera.ImageHeight / 2 - 1, camera.ImageWidth, camera.ImageHeight / 2 - 1);
+                        g.DrawLine(pen, camera.ImageWidth / 2 - 1, 0, camera.ImageWidth / 2 - 1, camera.ImageHeight);
 
-                //        g.DrawEllipse(pen, camera.ImageWidth / 2 - 16 - 1, camera.ImageHeight / 2 - 16 - 1, 32, 32);
-                //    }
-                //}
+                        g.DrawEllipse(pen, camera.ImageWidth / 2 - 16 - 1, camera.ImageHeight / 2 - 16 - 1, 32, 32);
+                    }
+                }
 
                 bitmapOld?.Dispose();
 
@@ -1431,6 +1294,15 @@ namespace Velociraptor
             ScanMoveDelegate func = (ScanMoveDelegate)result.AsyncState;
             func.EndInvoke(result);
             _log.Debug("ScanMove_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+        }
+        private void ConnectRetry(object sender, EventArgs e)
+        {
+            _threadAction = (_client.ClientIsConnected) ? eThreadAction.eClientDisconnect : eThreadAction.eClientConnect;
+            if (!_client.ClientIsConnected)
+            {
+                _threadAction = eThreadAction.eClientConnect;
+                _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
+            }
         }
         private void UpdateUIControls(object sender, EventArgs e)
         {
@@ -1833,39 +1705,6 @@ namespace Velociraptor
                 ExceptionDialog(ex, "Clear Alarm");
             }
         }
-        private void ConnectMeasure()
-        {
-            if (_client != null)
-            {
-                if (_generalSettings.General.IpAddress == "")
-                {
-                    btn_connection_ip_Click(null, null);
-                }
-                lock (_lockActionProcess)
-                {
-                    _threadAction = (_client.ClientIsConnected) ? eThreadAction.eClientDisconnect : eThreadAction.eClientConnect;
-                    switch (_threadAction)
-                    {
-                        case eThreadAction.eClientConnect:
-                            _threadActionProcess.EventUserList[(int)eThreadAction.eClientConnect].Set();
-                            break;
-                        case eThreadAction.eClientDisconnect:
-                            _threadActionProcess.EventUserList[(int)eThreadAction.eClientDisconnect].Set();
-                            break;
-                    }
-                }
-            }
-        }
-        private void btn_connection_ip_Click(object sender, EventArgs e)
-        {
-            ConnectionIpForm frm = new ConnectionIpForm();
-            frm.ctrl_ip_address.Text = _generalSettings.General.IpAddress;
-            if (frm.ShowDialog() == DialogResult.OK)
-            {
-                _client.IP = IPAddress.Parse(frm.ctrl_ip_address.Text);
-                _generalSettings.General.IpAddress = frm.ctrl_ip_address.Text;
-            }
-        }
         private void btn_load_Click(object sender, EventArgs e)
         {
             openFileDialog1.Filter = "txt files (*.case)|*.case|All files (*.*)|*.*";
@@ -1883,15 +1722,10 @@ namespace Velociraptor
                 pic_camera.Image = _cur_bitmap;
             }
         }
-        private void btn_connect_Click(object sender, EventArgs e)
-        {
-            ConnectMeasure();
-        }
         private void tr_threshold_Scroll(object sender, EventArgs e)
         {
             tbThreshold1.Text = tr_threshold.Value.ToString();
         }
-
         private void tr_light_Scroll(object sender, EventArgs e)
         {
             tbLight.Text = tr_light.Value.ToString();
@@ -1915,7 +1749,7 @@ namespace Velociraptor
         }
         private void btn_test_Click(object sender, EventArgs e)
         {
-            _log.Debug("btn_test_Click:" + Thread.CurrentThread.ManagedThreadId.ToString());
+            DoWaferLoad();
         }
         private void tbThreshold1_TextChanged(object sender, EventArgs e)
         {
@@ -1940,9 +1774,9 @@ namespace Velociraptor
                 tbLight.Text = "0";
             }
         }
-        private void btn_autofocus_Click_1(object sender, EventArgs e)
+        private void btn_crosshair_Click(object sender, EventArgs e)
         {
-            DoWaferLoad();
+            useCrosshair = !useCrosshair;
         }
         private void GrabOn()
         {

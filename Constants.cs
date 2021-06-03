@@ -18,6 +18,7 @@ namespace Velociraptor
         public const int INTL_gui_update = 100;
         public const int INTL_Engineering_mode = 300000;
         public const int INTL_DataSaveDelay = 3000;
+        public const int INTL_ConnectRetryDelay = 10000;
         //----------------------------------------
         //Precitec參數
         //----------------------------------------
