@@ -286,6 +286,9 @@
     <Content Include="AvvaLaserGrooving.log4net.xml" />
     <None Include="Images\AVVA R&amp;D Corp.png" />
     <None Include="Images\48\crosshair.png" />
+    <None Include="Images\48\search-48.png" />
+    <None Include="Images\48\preview.png" />
+    <None Include="Images\running.gif" />
     <Content Include="my_icon.ico" />
     <Content Include="Resources\background.jpg" />
     <None Include="Resources\dart.png" />

@@ -374,7 +374,7 @@ namespace Velociraptor
             tips.SetToolTip(this.btn_ClearAlarm, "運動報警重置");
             tips.SetToolTip(this.btn_align, "晶圓轉正");
             tips.SetToolTip(this.btn_start_mea, "手動量測");
-            tips.SetToolTip(this.btn_load, "開啟影像");
+            tips.SetToolTip(this.btn_load_case, "開啟影像");
             tips.SetToolTip(this.btn_find_angle, "找角度");
             tips.SetToolTip(this.btn_crosshair, "顯示十字線");
             #endregion
@@ -404,6 +404,7 @@ namespace Velociraptor
 
                 tbLight.Text = tr_light.Value.ToString();
                 tbThreshold1.Text = tr_threshold.Value.ToString();
+                lb_waferid.Text = "";
             }
             catch (Exception ex)
             {
@@ -685,14 +686,8 @@ namespace Velociraptor
                                 if ((_dataAcquisitionNumber <= 0 || _syn_op.IsSimulate) 
                                     && startmeasure == true)
                                 {
-                                    SaveMeasureData();                                    
-                                    Process profiler = new Process();
-                                    profiler.StartInfo.FileName = "ThickInspector.exe";
-                                    if (_threadAction==eThreadAction.eAutoMeasure)
-                                        profiler.StartInfo.Arguments = Path.GetDirectoryName( _measure_filename); 
-                                    else
-                                        profiler.StartInfo.Arguments = _measure_filename;
-                                    profiler.Start();
+                                    SaveMeasureData();
+                                    ShowMeasureResult();
                                 }
                             }
                         }
@@ -849,31 +844,6 @@ namespace Velociraptor
             }
         }
         #endregion
-        #region sEventActionProcessControl
-        class sEventActionProcessControl
-        {
-            public eThreadAction Event = eThreadAction.None;
-            public object Tag = null;
-            public object TagExt = null;
-
-            public sEventActionProcessControl(eThreadAction eventFifoGui)
-            {
-                Event = eventFifoGui;
-                Tag = null;
-            }
-            public sEventActionProcessControl(eThreadAction eventFifoGui, object tag)
-            {
-                Event = eventFifoGui;
-                Tag = tag;
-            }
-            public sEventActionProcessControl(eThreadAction eventFifoGui, object tag, object tagExt)
-            {
-                Event = eventFifoGui;
-                Tag = tag;
-                TagExt = tagExt;
-            }
-        }
-        #endregion
         #region Set_EncoderParameter
         private bool Set_EncoderParameter(int StartPos, float TrigInterval, int TrigNum)
         {
@@ -972,6 +942,16 @@ namespace Velociraptor
             measureFunc.BeginInvoke(f_list, p_list, _scan_type, _measure_distance
                                   , map, die_size, int.Parse(tbThreshold1.Text)
                                   , new AsyncCallback(Measure_Callback), measureFunc);
+        }
+        private void ShowMeasureResult()
+        {
+            Process profiler = new Process();
+            profiler.StartInfo.FileName = "ThickInspector.exe";
+            if (_threadAction == eThreadAction.eAutoMeasure)
+                profiler.StartInfo.Arguments = Path.GetDirectoryName(_measure_filename);
+            else
+                profiler.StartInfo.Arguments = _measure_filename;
+            profiler.Start();
         }
         private void OpButtonFreeze()
         {
@@ -1161,6 +1141,7 @@ namespace Velociraptor
                 ExceptionDialog(ex, "WaferLoad_Callback");
             }
             OpFreeze_Done(this, EventArgs.Empty);
+            Invoke((MethodInvoker)delegate { pic_waiting.Visible = false; });
         }
         private void SetMag_Callback(IAsyncResult result)
         {
@@ -1178,7 +1159,6 @@ namespace Velociraptor
         }
         private void FindAngle_Callback(IAsyncResult result)
         {
-            _threadAction = eThreadAction.None;
             try
             {
                 FindAngleDelegate func = (FindAngleDelegate)result.AsyncState;
@@ -1229,7 +1209,6 @@ namespace Velociraptor
         }
         private void Alignment_Callback(IAsyncResult result)
         {
-            _threadAction = eThreadAction.None;
             try
             {
                 FindAngleDelegate func = (FindAngleDelegate)result.AsyncState;
@@ -1434,6 +1413,11 @@ namespace Velociraptor
                     MessageBox.Show("量測相機初始化失敗，請重新啟動系統");
                     return;
                 }
+                if (lb_waferid.Text == "")
+                {
+                    MessageBox.Show("尚未輸入晶圓相關參數，請重新執行載入");
+                    return;
+                }
             }
             try
             {
@@ -1616,6 +1600,7 @@ namespace Velociraptor
                 else chuck.Set_8inchWafer();
                 MessageBox.Show("即將開始載入wafer，請確認wafer已經放好");
                 chuck.PressWafer();
+                pic_waiting.Visible = true;
                 DoWaferLoad();
             }
             catch (Exception ex)
@@ -1834,6 +1819,10 @@ namespace Velociraptor
             Application.Run(new Splash());
         }
 
+        private void btn_show_Click(object sender, EventArgs e)
+        {
+            ShowMeasureResult();
+        }
     }
     [Serializable]
     class AvvaException : Exception

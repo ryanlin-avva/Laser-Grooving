@@ -11,6 +11,7 @@ namespace Velociraptor.MyForm
         {
             InitializeComponent();
             _wafer = wafer;
+            tb_waferid.Text = "";
         }
 
         private void button1_Click(object sender, System.EventArgs e)
@@ -18,6 +19,11 @@ namespace Velociraptor.MyForm
             if (num_dieX.Value==0 || num_dieY.Value == 0)
             {
                 MessageBox.Show("請輸入正確的Die邊長");
+                return;
+            }
+            if (tb_waferid.Text == "")
+            {
+                MessageBox.Show("請輸入Wafer ID");
                 return;
             }
             _wafer.Die_sizeX = (double)num_dieX.Value;
