@@ -173,7 +173,7 @@ namespace Velociraptor
         WaferLoadDelegate waferUnloadDelegate;
         SetMagDelegate toMagePosDelegate;
         #endregion
-        #region Move, Alignment, Scan
+        #region Move, Alignment, Measure
         FindAngleDelegate findAngleDelegate;
         FindAngleDelegate alignmentFunc;
         object _image_lock = new object();
@@ -183,7 +183,6 @@ namespace Velociraptor
         MoveDelegate syncMoveFunc;
         MeasureDelegate measureFunc;
         eScanType _scan_type;
-
         #endregion
         #region wafer info
         WaferChuck chuck = new WaferChuck();
@@ -203,6 +202,7 @@ namespace Velociraptor
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();//引用stopwatch物件
         log4net.ILog _log;
         Thread splashThread;
+        bool _wafer_loaded;
         #endregion
         #endregion
         #region 主程式開關
@@ -293,6 +293,8 @@ namespace Velociraptor
                 camera.MaxMagSet();
                 camera.ImageGrabbed += OnImageGrabbed;
                 camera.ImageFiltered += OnImageFiltered;
+
+                _measure_filename = "";
                 #endregion
                 _db = new DBKeeper();
                 _log.Info("Form construction finished");
@@ -405,6 +407,8 @@ namespace Velociraptor
                 tbLight.Text = tr_light.Value.ToString();
                 tbThreshold1.Text = tr_threshold.Value.ToString();
                 lb_waferid.Text = "";
+                _wafer_loaded = false;
+
             }
             catch (Exception ex)
             {
@@ -945,6 +949,7 @@ namespace Velociraptor
         }
         private void ShowMeasureResult()
         {
+            if (_measure_filename == "") return;
             Process profiler = new Process();
             profiler.StartInfo.FileName = "ThickInspector.exe";
             if (_threadAction == eThreadAction.eAutoMeasure)
@@ -1069,7 +1074,7 @@ namespace Velociraptor
 
             if (camera.ImageData != null)
             {
-                Mat mat = new OpenCvSharp.Mat(camera.ImageHeight, camera.ImageWidth, MatType.CV_8UC4);
+                Mat mat = new Mat(camera.ImageHeight, camera.ImageWidth, MatType.CV_8UC4);
 
                 try
                 {
@@ -1602,6 +1607,7 @@ namespace Velociraptor
                 chuck.PressWafer();
                 pic_waiting.Visible = true;
                 DoWaferLoad();
+                _wafer_loaded = true;
             }
             catch (Exception ex)
             {
@@ -1614,6 +1620,7 @@ namespace Velociraptor
             {
                 DoWaferUnload();
                 chuck.ReleaseWafer();
+                _wafer_loaded = false;
             }
             catch (Exception ex)
             {

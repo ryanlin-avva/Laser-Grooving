@@ -59,7 +59,7 @@ namespace Velociraptor.MyForm
             this.label41.Location = new System.Drawing.Point(308, 50);
             this.label41.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(68, 17);
+            this.label41.Size = new System.Drawing.Size(137, 33);
             this.label41.TabIndex = 163;
             this.label41.Text = "die X 邊長";
             // 
@@ -70,7 +70,7 @@ namespace Velociraptor.MyForm
             this.label15.Location = new System.Drawing.Point(654, 154);
             this.label15.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(28, 17);
+            this.label15.Size = new System.Drawing.Size(56, 33);
             this.label15.TabIndex = 197;
             this.label15.Text = "um";
             // 
@@ -81,7 +81,7 @@ namespace Velociraptor.MyForm
             this.label35.Location = new System.Drawing.Point(542, 50);
             this.label35.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label35.Name = "label35";
-            this.label35.Size = new System.Drawing.Size(60, 17);
+            this.label35.Size = new System.Drawing.Size(119, 33);
             this.label35.TabIndex = 122;
             this.label35.Text = "掃描距離";
             // 
@@ -95,7 +95,7 @@ namespace Velociraptor.MyForm
             this.cb_selectMeasurePrecision.Location = new System.Drawing.Point(550, 154);
             this.cb_selectMeasurePrecision.Margin = new System.Windows.Forms.Padding(7);
             this.cb_selectMeasurePrecision.Name = "cb_selectMeasurePrecision";
-            this.cb_selectMeasurePrecision.Size = new System.Drawing.Size(100, 25);
+            this.cb_selectMeasurePrecision.Size = new System.Drawing.Size(100, 41);
             this.cb_selectMeasurePrecision.TabIndex = 195;
             // 
             // label44
@@ -105,7 +105,7 @@ namespace Velociraptor.MyForm
             this.label44.Location = new System.Drawing.Point(448, 154);
             this.label44.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label44.Name = "label44";
-            this.label44.Size = new System.Drawing.Size(28, 17);
+            this.label44.Size = new System.Drawing.Size(56, 33);
             this.label44.TabIndex = 168;
             this.label44.Text = "um";
             // 
@@ -116,7 +116,7 @@ namespace Velociraptor.MyForm
             this.label17.Location = new System.Drawing.Point(540, 132);
             this.label17.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(60, 17);
+            this.label17.Size = new System.Drawing.Size(119, 33);
             this.label17.TabIndex = 196;
             this.label17.Text = "掃描精度";
             // 
@@ -133,7 +133,7 @@ namespace Velociraptor.MyForm
             this.cb_SelectMeasureDistance.Location = new System.Drawing.Point(548, 76);
             this.cb_SelectMeasureDistance.Margin = new System.Windows.Forms.Padding(7);
             this.cb_SelectMeasureDistance.Name = "cb_SelectMeasureDistance";
-            this.cb_SelectMeasureDistance.Size = new System.Drawing.Size(102, 25);
+            this.cb_SelectMeasureDistance.Size = new System.Drawing.Size(102, 41);
             this.cb_SelectMeasureDistance.TabIndex = 121;
             // 
             // label43
@@ -143,7 +143,7 @@ namespace Velociraptor.MyForm
             this.label43.Location = new System.Drawing.Point(450, 76);
             this.label43.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(28, 17);
+            this.label43.Size = new System.Drawing.Size(56, 33);
             this.label43.TabIndex = 167;
             this.label43.Text = "um";
             // 
@@ -154,7 +154,7 @@ namespace Velociraptor.MyForm
             this.label42.Location = new System.Drawing.Point(306, 132);
             this.label42.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(67, 17);
+            this.label42.Size = new System.Drawing.Size(136, 33);
             this.label42.TabIndex = 164;
             this.label42.Text = "die Y 邊長";
             // 
@@ -165,7 +165,7 @@ namespace Velociraptor.MyForm
             this.label39.Location = new System.Drawing.Point(654, 76);
             this.label39.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label39.Name = "label39";
-            this.label39.Size = new System.Drawing.Size(28, 17);
+            this.label39.Size = new System.Drawing.Size(56, 33);
             this.label39.TabIndex = 169;
             this.label39.Text = "um";
             // 
@@ -176,7 +176,7 @@ namespace Velociraptor.MyForm
             this.label40.Location = new System.Drawing.Point(52, 132);
             this.label40.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label40.Name = "label40";
-            this.label40.Size = new System.Drawing.Size(60, 17);
+            this.label40.Size = new System.Drawing.Size(119, 33);
             this.label40.TabIndex = 184;
             this.label40.Text = "晶圓尺寸";
             // 
@@ -190,7 +190,7 @@ namespace Velociraptor.MyForm
             this.cb_wafersize.Location = new System.Drawing.Point(55, 154);
             this.cb_wafersize.Margin = new System.Windows.Forms.Padding(7);
             this.cb_wafersize.Name = "cb_wafersize";
-            this.cb_wafersize.Size = new System.Drawing.Size(159, 25);
+            this.cb_wafersize.Size = new System.Drawing.Size(159, 41);
             this.cb_wafersize.TabIndex = 183;
             // 
             // label3
@@ -200,7 +200,7 @@ namespace Velociraptor.MyForm
             this.label3.Location = new System.Drawing.Point(218, 154);
             this.label3.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(21, 17);
+            this.label3.Size = new System.Drawing.Size(41, 33);
             this.label3.TabIndex = 185;
             this.label3.Text = "吋";
             // 
@@ -209,8 +209,13 @@ namespace Velociraptor.MyForm
             this.num_dieX.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
             this.num_dieX.Location = new System.Drawing.Point(312, 76);
             this.num_dieX.Margin = new System.Windows.Forms.Padding(4);
+            this.num_dieX.Maximum = new decimal(new int[] {
+            5000000,
+            0,
+            0,
+            0});
             this.num_dieX.Name = "num_dieX";
-            this.num_dieX.Size = new System.Drawing.Size(133, 25);
+            this.num_dieX.Size = new System.Drawing.Size(133, 42);
             this.num_dieX.TabIndex = 198;
             // 
             // num_dieY
@@ -218,8 +223,13 @@ namespace Velociraptor.MyForm
             this.num_dieY.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
             this.num_dieY.Location = new System.Drawing.Point(312, 154);
             this.num_dieY.Margin = new System.Windows.Forms.Padding(4);
+            this.num_dieY.Maximum = new decimal(new int[] {
+            5000000,
+            0,
+            0,
+            0});
             this.num_dieY.Name = "num_dieY";
-            this.num_dieY.Size = new System.Drawing.Size(133, 25);
+            this.num_dieY.Size = new System.Drawing.Size(133, 42);
             this.num_dieY.TabIndex = 199;
             // 
             // button1
@@ -255,7 +265,7 @@ namespace Velociraptor.MyForm
             this.label2.Location = new System.Drawing.Point(54, 50);
             this.label2.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(48, 17);
+            this.label2.Size = new System.Drawing.Size(95, 33);
             this.label2.TabIndex = 203;
             this.label2.Text = "晶圓ID";
             // 
@@ -264,12 +274,12 @@ namespace Velociraptor.MyForm
             this.tb_waferid.Font = new System.Drawing.Font("Microsoft JhengHei", 9.75F, System.Drawing.FontStyle.Bold);
             this.tb_waferid.Location = new System.Drawing.Point(55, 76);
             this.tb_waferid.Name = "tb_waferid";
-            this.tb_waferid.Size = new System.Drawing.Size(159, 25);
+            this.tb_waferid.Size = new System.Drawing.Size(159, 42);
             this.tb_waferid.TabIndex = 204;
             // 
             // WaferBasicForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(16F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(739, 320);
             this.Controls.Add(this.tb_waferid);

@@ -375,11 +375,11 @@ namespace Velociraptor
             int[] channels = { 0 };
             int[] size = { 256 };
             Rangef[] range = { new Rangef(0.0F, 256.0F) };
-            OpenCvSharp.Scalar[] color =
+            Scalar[] color =
                 new[] {
-                    new OpenCvSharp.Scalar(255, 0, 0),
-                    new OpenCvSharp.Scalar(0, 255, 0),
-                    new OpenCvSharp.Scalar(0, 0, 255),
+                    new Scalar(255, 0, 0),
+                    new Scalar(0, 255, 0),
+                    new Scalar(0, 0, 255),
                 };
 
             Cv2.Split(image, out planes);
@@ -546,6 +546,9 @@ namespace Velociraptor
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     _camera.SaveImage(pathname + ".bmp");
+                    Bitmap cur_img = new Bitmap(pathname + ".bmp");
+                    _fs.FindAngle(cur_img, threshold, die_size);
+
                     double[] relative2Measure = { _paraReader.RelToMeasureCameraX
                                         , _paraReader.RelToMeasureCameraY};//放外面relative2Measure經過一次for loop會*10倍
                     moveEventArgs = new MoveEventArgs(axisXY, relative2Measure, _motion.GetAxisDefaultSpeed(axisXY), true);
