@@ -994,7 +994,7 @@ namespace Velociraptor
             _log.Debug("OnAsyncMove: " + Thread.CurrentThread.ManagedThreadId);
             MoveEventArgs moveEventArgs;
             moveEventArgs = (MoveEventArgs)e;
-            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Relative);
+            _syn_op.AsyncMoveTo(moveEventArgs.Axis, moveEventArgs.Position, moveEventArgs.Velocity, moveEventArgs.Relative);
         }
         private void OnImageGrabbed(Object sender, EventArgs e)
         {

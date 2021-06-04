@@ -541,8 +541,19 @@ namespace Velociraptor
                     ScanFileName = pathname[i];
                     ScanFileIndex = i;
                     _log.Debug("MeasureScan filename:"+ ScanFileName);
-                    double[] distance = { pos[i].X, pos[i].Y };
-                    moveEventArgs = new MoveEventArgs(axisXY, distance,_motion.GetAxisDefaultSpeed(axisXY), false);
+                    double[] distance = new double[2];
+                    if (_paraReader.NeedRotate)
+                    {
+                        distance[0] = -pos[i].X;
+                        distance[1] = -pos[i].Y;
+                        //_camera.Rotate();
+                    }
+                    else
+                    {
+                        distance[0] = pos[i].X;
+                        distance[1] = pos[i].Y;
+                    }
+                    moveEventArgs = new MoveEventArgs(axisXY, distance, _motion.GetAxisDefaultSpeed(axisXY), false);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
                     _camera.SaveImage(pathname + ".bmp");
@@ -709,15 +720,10 @@ namespace Velociraptor
                                 };
             return distance;
         }
-        public void AsyncMoveTo(char axis_char, double distance, bool isRelative = true)
+        public void AsyncMoveTo(char[] axis_char, double[] distance, double[] velocity, bool isRelative = true)
         {
             _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            _motion.AsyncMoveTo(axis_char, distance, isRelative);
-        }
-        public void AsyncMoveTo(char[] axis_char, double[] distance, bool isRelative = true)
-        {
-            _log.Debug("SynOp AsyncMoveTo:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            _motion.AsyncMoveTo(axis_char, distance, isRelative);
+            _motion.AsyncMoveTo(axis_char, distance, velocity, isRelative);
         }
         public void SyncMoveTo(MoveEventArgs moveEventArgs)
         {
