@@ -219,7 +219,7 @@ namespace Velociraptor
             char[] axisZ = { 'Z' };
             char[] axisXY = { 'X', 'Y' };
             char[] axisXYZ = { 'X', 'Y', 'Z' };
-            double[] CLStoBaslerDistance = { -40400 };
+            double[] CLStoBaslerDistance = { -40450 };
            
             
             try
