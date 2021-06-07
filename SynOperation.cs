@@ -27,6 +27,7 @@ namespace Velociraptor
         private double _minMagFocusPos;
         private int _maxMagIntensity;
         private int _minMagIntensity;
+        private Dictionary<char, double> _default_speed = new Dictionary<char, double>();
 
         //Delegate for autofocus and change lens maginitude
         public delegate void SetMagDelegate(eMagType mag_type);
@@ -50,6 +51,7 @@ namespace Velociraptor
             ScanFileIndex = -1;
             computeFocusScoreDelegate = new ComputeScoreDelegate(Cv2LaplacianVariance);
             computeLightScoreDelegate = new ComputeScoreDelegate(ContrastVariance);
+            PrepareDefaultSpeed();
         }
         #region AutoFocus
         private long minAFFuncMs;
@@ -71,12 +73,12 @@ namespace Velociraptor
                 if (mag_type == eMagType.MaxMag)
                 {
                     _camera.MaxMagSet();
-                    moveEventArgs = new MoveEventArgs('Z', _maxMagFocusPos, false);
+                    moveEventArgs = new MoveEventArgs('Z', _maxMagFocusPos, _default_speed['Z'],false);
                 }
                 else
                 {
                     _camera.MinMagSet();
-                    moveEventArgs = new MoveEventArgs('Z', _minMagFocusPos, false);
+                    moveEventArgs = new MoveEventArgs('Z', _minMagFocusPos, _default_speed['Z'], false);
                 }
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
@@ -143,7 +145,7 @@ namespace Velociraptor
                 for (int position = beginPosition, i = 0; position <= endPosition; position += 1000, i++)
                 {
                     runPosition[i] = position;
-                    moveEventArgs = new MoveEventArgs('Z', position, false);
+                    moveEventArgs = new MoveEventArgs('Z', position, _default_speed['Z'], false);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
 
@@ -199,7 +201,7 @@ namespace Velociraptor
                 for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
                 {
                     runPosition[i] = position;
-                    moveEventArgs = new MoveEventArgs('Z', position, false);
+                    moveEventArgs = new MoveEventArgs('Z', position, _default_speed['Z'], false);
                     AsyncMove(this, moveEventArgs);
                     AsyncMoveWait();
 
@@ -233,7 +235,7 @@ namespace Velociraptor
                 if (mag_type == eMagType.MaxMag) _maxMagFocusPos = runPosition[positionId];
                 else _minMagFocusPos = runPosition[positionId];
                 _cur_mag = mag_type;
-                moveEventArgs = new MoveEventArgs('Z', runPosition[positionId], false);
+                moveEventArgs = new MoveEventArgs('Z', runPosition[positionId], _default_speed['Z'], false);
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 _log.Debug("position id: " + positionId + ", position: " + runPosition[positionId] + ", variance: " + variance[positionId]);
@@ -638,12 +640,13 @@ namespace Velociraptor
                 ToMagPos(eMagType.MinMag);
                 char[] axis = { 'X', 'Y' };
                 double[] center = GetCenter();
-                MoveEventArgs moveEventArgs = new MoveEventArgs(axis, GetCenter(), false);
+                double[] velocity = { _default_speed['X'], _default_speed['Y'] };
+                MoveEventArgs moveEventArgs = new MoveEventArgs(axis, GetCenter(), velocity, false);
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 FindAngle(mymap, die_size, threshold);
                 if (!FindAngleOK) return;
-                moveEventArgs = new MoveEventArgs('R', _fs.AngleAverage * 1000, true);
+                moveEventArgs = new MoveEventArgs('R', _fs.AngleAverage * 1000, _default_speed['R'], true);
                 AsyncMove(this, moveEventArgs);
                 AsyncMoveWait();
                 ToMagPos(eMagType.MaxMag);
@@ -701,15 +704,29 @@ namespace Velociraptor
                 }
             }
         }
-
+        private void PrepareDefaultSpeed()
+        {
+            _default_speed.Add('X', Constants.MoveVelocity[0]);
+            _default_speed.Add('Y', Constants.MoveVelocity[1]);
+            _default_speed.Add('Z', Constants.MoveVelocity[2]);
+            _default_speed.Add('R', Constants.MoveVelocity[3]);
+        }
+        public double GetDefaultSpeed(char axis)
+        {
+            return _default_speed[axis];
+        }
         public void MoveToCenter()
         {
             char[] axis = { 'X', 'Y', 'R' };
             double[] distance = { _paraReader.MoveToWaferCenterPointXDistance
                                 , _paraReader.MoveToWaferCenterPointYDistance
                                  ,_paraReader.MoveToWaferCenterPointRDistance};
+            double[] velocity = { _default_speed['X']
+                                , _default_speed['Y']
+                                , _default_speed['R']};
             if (!hasGoHome) GoHome();
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance,_motion.GetAxisDefaultSpeed(axis), false);
+
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance, velocity, false);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
         }
@@ -739,7 +756,10 @@ namespace Velociraptor
             double[] distance = { _paraReader.MoveToWaferCenterPointXDistance
                                 , _paraReader.MoveToWaferUnloadPointYDistance
                                 , 0 };
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance, false);
+            double[] velocity = { _default_speed['X']
+                                , _default_speed['Y']
+                                , _default_speed['Z']};
+            MoveEventArgs moveEventArgs = new MoveEventArgs(axis, distance, velocity, false);
             AsyncMove(this, moveEventArgs);
             AsyncMoveWait();
         }
@@ -768,28 +788,12 @@ namespace Velociraptor
     }
     public class MoveEventArgs : EventArgs
     {
-        public MoveEventArgs(char[] axis, double[] position, bool isRelative)
-        {
-            Relative = isRelative;
-            Position = position;
-            Axis = axis;
-            Velocity = Constants.MoveVelocity;
-        }
         public MoveEventArgs(char[] axis, double[] position,double[] velocity, bool isRelative)
         {
             Relative = isRelative;
             Position = position;
             Axis = axis;
             Velocity = velocity;
-        }
-        public MoveEventArgs(char axis, double position, bool isRelative)
-        {
-            Relative = isRelative;
-            double[] pos = { position };
-            char[] a = { axis };
-            Position = pos;
-            Axis = a;
-            Velocity = Constants.MoveVelocity;
         }
         public MoveEventArgs(char axis, double position,double velocity, bool isRelative)
         {

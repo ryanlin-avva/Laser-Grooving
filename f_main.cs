@@ -1303,18 +1303,14 @@ namespace Velociraptor
         }
         #endregion
         #region Sync Move emulating function
-        private void DoSyncMove(char[] axis_char, double[] distance, bool isRelative = true)
-        {
-            _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
-            syncMoveFunc.BeginInvoke(moveEventArgs
-                , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
-            GroupMoveEnable(false);
-        }
         private void DoSyncMove(char axis_char, double distance, bool isRelative = true)
         {
             _log.Debug("DoSyncMove:" + Thread.CurrentThread.ManagedThreadId.ToString());
-            MoveEventArgs moveEventArgs = new MoveEventArgs(axis_char, distance, isRelative);
+            MoveEventArgs moveEventArgs = new MoveEventArgs(
+                                                axis_char
+                                              , distance
+                                              , _syn_op.GetDefaultSpeed(axis_char)
+                                              , isRelative);
             syncMoveFunc.BeginInvoke(moveEventArgs
                 , new AsyncCallback(SyncMove_Callback), syncMoveFunc);
             GroupMoveEnable(false);
