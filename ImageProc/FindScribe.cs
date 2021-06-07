@@ -17,6 +17,10 @@ namespace Velociraptor.ImageProc
         public double AngleAverage { get; private set; }
         public double WidthAverage { get; private set; }
         public double HeightAverage { get; private set; }
+        public void FineTune(Bitmap bitmap, int threshold, double[] die_size)
+        {
+
+        }
         public void FindAngle(Bitmap bitmap, int threshold, double[]die_size)
         {
             _img_height = bitmap.Height;

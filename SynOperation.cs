@@ -544,8 +544,8 @@ namespace Velociraptor
                     double[] distance = new double[2];
                     if (_paraReader.NeedRotate)
                     {
-                        distance[0] = -pos[i].X;
-                        distance[1] = -pos[i].Y;
+                        distance[0] = _paraReader.MoveToWaferCenterPointXDistance - pos[i].X;
+                        distance[1] = _paraReader.MoveToWaferCenterPointYDistance - pos[i].Y;
                         //_camera.Rotate();
                     }
                     else
@@ -558,7 +558,7 @@ namespace Velociraptor
                     AsyncMoveWait();
                     _camera.SaveImage(pathname + ".bmp");
                     Bitmap cur_img = new Bitmap(pathname + ".bmp");
-                    _fs.FindAngle(cur_img, threshold, die_size);
+                    _fs.FineTune(cur_img, threshold, die_size);
 
                     double[] relative2Measure = { _paraReader.RelToMeasureCameraX
                                         , _paraReader.RelToMeasureCameraY};//放外面relative2Measure經過一次for loop會*10倍
