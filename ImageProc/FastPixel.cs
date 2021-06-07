@@ -9,7 +9,7 @@ namespace Velociraptor
     //Fast RGB Processing Class
     class FastPixel
     {
-        public int nx, ny; //影像寬與高
+        public int image_width = 4024, image_height = 3036; //影像寬與高
         public byte[,] array_Red, array_Green, array_Blue; //Red, Green & Blue 陣列
         public byte[,] array_Gray; //灰階陣列
         byte[] array_RGB; //影像的可存取副本資料陣列
@@ -22,6 +22,7 @@ namespace Velociraptor
                     -1,8,-1,
                     -1,-1,-1,
             };
+
 
 
 
@@ -49,18 +50,18 @@ namespace Velociraptor
         //取得RGB陣列
         public void Bmp2RGB(Bitmap bmp)
         {
-            nx = bmp.Width; ny = bmp.Height; //影像寬高
-            array_Red = new byte[nx, ny]; array_Green = new byte[nx, ny]; array_Blue = new byte[nx, ny]; //RGB
+            image_width = bmp.Width; image_height = bmp.Height; //影像寬高
+            array_Red = new byte[image_width, image_height]; array_Green = new byte[image_width, image_height]; array_Blue = new byte[image_width, image_height]; //RGB
             LockBMP(bmp);
-            if(bmp.PixelFormat == PixelFormat.Format8bppIndexed)
+            if (bmp.PixelFormat == PixelFormat.Format8bppIndexed)
             {
-                for (int j = 0; j < ny; j++)
+                for (int j = 0; j < image_height; j++)
                 {
                     int Lj = j * D.Stride;
-                    for (int i = 0; i < nx; i++)
+                    for (int i = 0; i < image_width; i++)
                     {
                         int k = Lj + i * nB;
-                       
+
                         array_Green[i, j] = array_RGB[k]; //Green
                     }
                 }
@@ -68,10 +69,10 @@ namespace Velociraptor
             }
             if (bmp.PixelFormat == PixelFormat.Format24bppRgb)
             {
-                for (int j = 0; j < ny; j++)
+                for (int j = 0; j < image_height; j++)
                 {
                     int Lj = j * D.Stride;
-                    for (int i = 0; i < nx; i++)
+                    for (int i = 0; i < image_width; i++)
                     {
                         int k = Lj + i * nB;
                         array_Red[i, j] = array_RGB[k + 2]; //Red
@@ -81,12 +82,12 @@ namespace Velociraptor
                 }
 
             }
-            if (bmp.PixelFormat == PixelFormat.Format32bppRgb || bmp.PixelFormat==PixelFormat.Format32bppArgb)
+            if (bmp.PixelFormat == PixelFormat.Format32bppRgb || bmp.PixelFormat == PixelFormat.Format32bppArgb)
             {
-                for (int j = 0; j < ny; j++)
+                for (int j = 0; j < image_height; j++)
                 {
                     int Lj = j * D.Stride;
-                    for (int i = 0; i < nx; i++)
+                    for (int i = 0; i < image_width; i++)
                     {
                         int k = Lj + i * nB;
                         array_Red[i, j] = array_RGB[k + 2]; //Red
@@ -147,7 +148,7 @@ namespace Velociraptor
         public int Laplacian(Bitmap bitmap)
         {
             int width = bitmap.Width, height = bitmap.Height;
-            int score_laplacian=0;
+            int score_laplacian = 0;
 
             Bmp2RGB(bitmap);
             LockBMP(bitmap);
@@ -156,16 +157,16 @@ namespace Velociraptor
                 for (int x = 1; x < (width - 1); x++)
                 {
                     score_laplacian += (array_Red[x, y] + array_Green[x, y] + array_Blue[x, y]) * LaplacianMask[4] +
-                                       (array_Red[x-1, y-1] + array_Green[x - 1, y - 1] + array_Blue[x - 1, y - 1]) * LaplacianMask[0] +
-                                       (array_Red[x, y-1] + array_Green[x, y - 1] + array_Blue[x, y - 1]) * LaplacianMask[1] +
-                                       (array_Red[x+1, y-1] + array_Green[x + 1, y - 1] + array_Blue[x + 1, y - 1]) * LaplacianMask[2] +
-                                       (array_Red[x-1, y] + array_Green[x - 1, y] + array_Blue[x - 1, y]) * LaplacianMask[3] +
-                                       (array_Red[x+1, y] + array_Green[x + 1, y] + array_Blue[x + 1, y]) * LaplacianMask[5] +
-                                       (array_Red[x-1, y+1] + array_Green[x - 1, y + 1] + array_Blue[x - 1, y + 1]) * LaplacianMask[6] +
-                                       (array_Red[x, y+1] + array_Green[x, y + 1] + array_Blue[x, y + 1]) * LaplacianMask[7] +
-                                       (array_Red[x+1, y+1] + array_Green[x + 1, y + 1] + array_Blue[x + 1, y + 1]) * LaplacianMask[8] ;
+                                       (array_Red[x - 1, y - 1] + array_Green[x - 1, y - 1] + array_Blue[x - 1, y - 1]) * LaplacianMask[0] +
+                                       (array_Red[x, y - 1] + array_Green[x, y - 1] + array_Blue[x, y - 1]) * LaplacianMask[1] +
+                                       (array_Red[x + 1, y - 1] + array_Green[x + 1, y - 1] + array_Blue[x + 1, y - 1]) * LaplacianMask[2] +
+                                       (array_Red[x - 1, y] + array_Green[x - 1, y] + array_Blue[x - 1, y]) * LaplacianMask[3] +
+                                       (array_Red[x + 1, y] + array_Green[x + 1, y] + array_Blue[x + 1, y]) * LaplacianMask[5] +
+                                       (array_Red[x - 1, y + 1] + array_Green[x - 1, y + 1] + array_Blue[x - 1, y + 1]) * LaplacianMask[6] +
+                                       (array_Red[x, y + 1] + array_Green[x, y + 1] + array_Blue[x, y + 1]) * LaplacianMask[7] +
+                                       (array_Red[x + 1, y + 1] + array_Green[x + 1, y + 1] + array_Blue[x + 1, y + 1]) * LaplacianMask[8];
 
-                    
+
                 }
             }
             //score_laplacian = score_laplacian / 3 / 9 / width / height;
@@ -207,7 +208,7 @@ namespace Velociraptor
         public int pm = 0; //目標與背景的對比強度
         public int cx = 0, cy = 0; //目標中心點座標
         public int ID = 0; //依對比度排序的序號
-        
+
     }
 
 
