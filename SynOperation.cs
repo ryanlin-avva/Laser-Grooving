@@ -130,7 +130,7 @@ namespace Velociraptor
                     _camera.MinMagSet();
                 }
 
-                positionNo = (Math.Abs(endPosition - beginPosition)) / 100 + 1;
+                positionNo = (Math.Abs(endPosition - beginPosition)) / 1000 + 1;
 
                 minAFFuncMs = Int32.MaxValue;
                 maxAFFuncMs = 0;
@@ -140,7 +140,7 @@ namespace Velociraptor
                 variance = new double[positionNo];
                 runImage = new Object[positionNo];
 
-                for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
+                for (int position = beginPosition, i = 0; position <= endPosition; position += 1000, i++)
                 {
                     runPosition[i] = position;
                     moveEventArgs = new MoveEventArgs('Z', position, false);
@@ -189,14 +189,14 @@ namespace Velociraptor
                 else
                     endPosition = runPosition[positionId + 1];
 
-                positionNo = (Math.Abs(endPosition - beginPosition)) / 10 + 1;
+                positionNo = (Math.Abs(endPosition - beginPosition)) / 100 + 1;
 
                 runPosition = new int[positionNo];
                 result = new IAsyncResult[positionNo];
                 variance = new double[positionNo];
                 runImage = new Object[positionNo];
 
-                for (int position = beginPosition, i = 0; position <= endPosition; position += 10, i++)
+                for (int position = beginPosition, i = 0; position <= endPosition; position += 100, i++)
                 {
                     runPosition[i] = position;
                     moveEventArgs = new MoveEventArgs('Z', position, false);
@@ -751,7 +751,11 @@ namespace Velociraptor
         }
         public void MotorOn() { _motion.MotorOn(); }
         public void MotorOff() { _motion.MotorOff(); }
-        public void GoHome() { _motion.GoHome(); }
+        public void GoHome() 
+        { 
+            _motion.GoHome();
+            hasGoHome = true;
+        }
         public void StopMove() { _motion.StopMove(); }
         public void ClearAlarm() { _motion.ClearAlarm(); }
         #endregion
