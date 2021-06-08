@@ -269,7 +269,7 @@ namespace Velociraptor
                 log4net.Config.XmlConfigurator.ConfigureAndWatch(repository2
                     , new FileInfo(Path.Combine(Constants.appConfigFolder, "AvvaMotion.log4net.xml")));
                 log4net.ILog log_motion = log4net.LogManager.GetLogger("AvvaMotion1", "AvvaMotion");
-                _syn_op = new SynOperation(Constants.appConfigFolder, camera, _log, log_motion);
+                _syn_op = new SynOperation(this, Constants.appConfigFolder, camera, _log, log_motion);
                 _syn_op.MotorOn();
                 _syn_op.GoHome();                
                 _syn_op.AsyncMove += OnAsyncMove;
@@ -495,19 +495,15 @@ namespace Velociraptor
         /// <summary>This method is called when starting the thread.</summary> 
         public void ThreadGuiLoop()
         {
-            //cClsCommandData clsCommandData = null;
             cTimeMeasurement _tm = new cTimeMeasurement(cTimeMeasurement.enTimeStepType.MILLISECOND, false);
-            //cDataFormat dataFormat = null;
             double dTimeout = _tm.FlashTiming;
-            //int _timoutStatistics = 250, _timoutStatisticsValue = 0; //Display Statistics step 250 mms
             int _timoutDataSampleValue = 0;
+            _log.Debug("ThreadGuiLoop:" + Thread.CurrentThread.ManagedThreadId);
             try
             {
                 while (!_threadGui.EventExitProcessThread.WaitOne(20))
                 {
-                    //Debug.WriteLine("ThreadGuiLoop");
                     dTimeout = _tm.FlashTiming;
-                    //_timoutStatisticsValue += (int)dTimeout;
                     _timoutDataSampleValue += (int)dTimeout;
 
                     //Display Client Connection
@@ -515,41 +511,7 @@ namespace Velociraptor
                     {
                         Console.WriteLine("enEventThreadGui.DisplayConnectionState:" + Thread.CurrentThread.ManagedThreadId);
                         displayConnectionStateDelegate.Invoke(_client);
-                        //Invoke(displayConnectionStateDelegate, new object[] { _client });
                     }
-
-                    //Dislpay Command Data
-                    //if ((_timoutStatisticsValue > _timoutStatistics) && (_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayCommandData].WaitOne(0)))
-                    //{
-                    //    _timoutStatisticsValue = 0;
-                    //    if (_fifoCommandData != null)
-                    //    {
-                    //        lock (_fifoCommandData)
-                    //        {
-                    //            while (_fifoCommandData.Count > 0)
-                    //            {
-                    //                clsCommandData = (cClsCommandData)_fifoCommandData.Dequeue();
-                    //                this.Invoke(this.displayCommandDataDelegate, new object[] { clsCommandData });
-                    //            }
-                    //        }
-                    //    }
-                    //}
-
-                    //Display Data Format
-                    //if ((_client != null) && (_client.ClientIsConnected) && (_threadGui.EventUserList[(int)enEventThreadGui.DisplayDataFormat].WaitOne(0)))
-                    //{
-                    //    if (_fifoDataFormat != null)
-                    //    {
-                    //        lock (_fifoDataFormat)
-                    //        {
-                    //            while (_fifoDataFormat.Count > 0)
-                    //            {
-                    //                dataFormat = (cDataFormat)_fifoDataFormat.Dequeue();
-                    //                this.Invoke(this.displayDataFormatDelegate, new object[] { _client });
-                    //            }
-                    //        }
-                    //    }
-                    //}
                 }
                 _threadGui.EventExitProcessThreadDo.Set();
             }
@@ -567,11 +529,11 @@ namespace Velociraptor
             int timeoutValue = 10;
             timeout.TimeoutValue = 200; //200ms.
             int retry_cnt = 0;
+            _log.Debug("ThreadLoop:" + Thread.CurrentThread.ManagedThreadId);
             try
             {
                 while (_threadActionProcess.EventExitProcessThread.WaitOne(timeoutValue) == false)
                 {
-                    //Debug.WriteLine("ThreadLoop");
                     if (_threadActionProcess.EventUserList[(int)eThreadAction.eCloseApplication].WaitOne(0))
                     {
                         _log.Debug("_threadActionProcess EventExitProcessThread");
@@ -661,9 +623,9 @@ namespace Velociraptor
         {
             int timeout = 20;
             _ccsvWriteFiles = new CsvWriteFile();
+            _log.Debug("ThreadMeasureLoop:"+Thread.CurrentThread.ManagedThreadId);
             while (!_threadMeasure.EventExitProcessThread.WaitOne(timeout))
             {
-                //Debug.WriteLine("ThreadMeasureLoop");              
                 if (_threadMeasure.EventUserList[(int)eThreadMeasure.eData].WaitOne(0))
                 {
                     if (_fifoDataSample != null)
@@ -852,6 +814,7 @@ namespace Velociraptor
         private bool Set_EncoderParameter(int StartPos, float TrigInterval, int TrigNum)
         {
             #region set triggerParameter
+            if (_syn_op.IsSimulate) return true;
             _client.TriggerStop();
             int StopPos = (int)(StartPos + TrigInterval * (TrigNum - 1));//TrigNum代表一行的點個數
             bool SelectEncoderTriggerSource = _client.SetEncoderTriggerControl(eEncoderTriggerControlFunc.SelectEncoderTriggerSource, 1);
@@ -895,6 +858,18 @@ namespace Velociraptor
 
         #endregion
         #region FindAngle, Alignment, Measure
+        public Bitmap CurImage
+        {
+            get
+            {
+                Bitmap map;
+                lock (_image_lock)
+                {
+                    map = new Bitmap(_cur_bitmap);
+                }
+                return map;
+            }
+        }
         private void DoFindAngle()
         {
             btn_find_angle.Enabled = false;
@@ -934,7 +909,7 @@ namespace Velociraptor
                              , int.Parse(tbThreshold1.Text), new AsyncCallback(Alignment_Callback), alignmentFunc);
             _log.Debug("DoAlignment:" + Thread.CurrentThread.ManagedThreadId.ToString());
         }
-        private void DoMeasure(List<string> f_list, List<PointF> p_list)
+        private void DoMeasure(List<string> f_list, List<System.Drawing.Point> p_list)
         {
             GrabOn();
             OpButtonFreeze();
@@ -943,7 +918,8 @@ namespace Velociraptor
             {
                 map = new Bitmap(_cur_bitmap);
             }
-            measureFunc.BeginInvoke(f_list, p_list, _scan_type, _measure_distance
+            measureFunc.BeginInvoke(f_list, p_list, _die_row_count, _die_col_count
+                                  , _scan_type, _measure_distance
                                   , map, die_size, int.Parse(tbThreshold1.Text)
                                   , new AsyncCallback(Measure_Callback), measureFunc);
         }
@@ -1234,6 +1210,16 @@ namespace Velociraptor
                 MeasureDelegate func = (MeasureDelegate)result.AsyncState;
                 func.EndInvoke(result);
                 _log.Debug("Measure_Callback:" + Thread.CurrentThread.ManagedThreadId.ToString());
+                if (_syn_op.MeasureOK)
+                {
+                    Process profiler = new Process();
+                    profiler.StartInfo.FileName = "ThickInspector.exe";
+                    if (_threadAction == eThreadAction.eAutoMeasure)
+                        profiler.StartInfo.Arguments = Path.GetDirectoryName(_measure_filename);
+                    else
+                        profiler.StartInfo.Arguments = _measure_filename;
+                    profiler.Start();
+                }
             }
             catch (Exception ex)
             {
@@ -1261,14 +1247,6 @@ namespace Velociraptor
             }
             _ccsvWriteFiles.Close();
             _syn_op.DataSaved.Set();
-
-            Process profiler = new Process();
-            profiler.StartInfo.FileName = "ThickInspector.exe";
-            if (_threadAction == eThreadAction.eAutoMeasure)
-                profiler.StartInfo.Arguments = Path.GetDirectoryName(_measure_filename);
-            else
-                profiler.StartInfo.Arguments = _measure_filename;
-            profiler.Start();
         }
         private void ScanMove_Callback(IAsyncResult result)
         {
@@ -1287,12 +1265,16 @@ namespace Velociraptor
         }
         private void UpdateUIControls(object sender, EventArgs e)
         {
-            ntb_x_cur_motorpos.Text = _syn_op.GetPos('X').ToString();
-            ntb_y_cur_motorpos.Text = _syn_op.GetPos('Y').ToString();
-            ntb_z_cur_motorpos.Text = _syn_op.GetPos('Z').ToString();
-            ntb_r_cur_motorpos.Text = _syn_op.GetPos('R').ToString();
-            if (isGarpping) btn_grab.Image = Properties.Resources.green;
-            else btn_grab.Image = Properties.Resources.red; ;
+            _log.Debug("UpdateUIControls:" + Thread.CurrentThread.ManagedThreadId);
+            Invoke((MethodInvoker)delegate
+            {
+                ntb_x_cur_motorpos.Text = _syn_op.GetPos('X').ToString();
+                ntb_y_cur_motorpos.Text = _syn_op.GetPos('Y').ToString();
+                ntb_z_cur_motorpos.Text = _syn_op.GetPos('Z').ToString();
+                ntb_r_cur_motorpos.Text = _syn_op.GetPos('R').ToString();
+                if (isGarpping) btn_grab.Image = Properties.Resources.green;
+                else btn_grab.Image = Properties.Resources.red;
+            });
         }
         private void GroupMoveEnable(bool toEnabled)
         {
@@ -1347,7 +1329,6 @@ namespace Velociraptor
         #region btn measurement related
         private void btn_find_angle_Click(object sender, EventArgs e)
         {
-            _threadAction = eThreadAction.eFindAngle;
             DoFindAngle();
         }
         private void btn_align_Click(object sender, EventArgs e)
@@ -1391,10 +1372,8 @@ namespace Velociraptor
             die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(die_size[Constants.WAY_VERTICAL]);
             die_size[2] = Constants.SCRIBE_LINE_WIDTH;
 
-            PointF pos = new PointF((float)_syn_op.GetPos('X')
-                                  , (float)_syn_op.GetPos('Y'));
             List<string> f_list = new List<string> { _measure_filename };
-            List<PointF> p_list = new List<PointF> { pos };
+            List<Point> p_list = new List<Point>();
             _log.Debug("DoMeasure:" + Thread.CurrentThread.ManagedThreadId.ToString());
             _in_trigger = true;
             _threadAction = eThreadAction.eManualMeasure;
@@ -1428,7 +1407,6 @@ namespace Velociraptor
                 die_size[2] = Constants.SCRIBE_LINE_WIDTH;
 
                 _threadAction = eThreadAction.eAutoMeasure;
-                _threadActionProcess.EventUserList[(int)eThreadAction.eFindAngle].Set();
                 AutoParamsForm form = new AutoParamsForm();
                 form.tb_wafer_id.Text = _wafer_id;
                 if (form.ShowDialog() != DialogResult.OK) return;
@@ -1439,27 +1417,26 @@ namespace Velociraptor
                 _notch_idx = form.cmb_notch.SelectedIndex;
                 _die_row_count = int.Parse(form.tb_row_count.Text);
                 _die_col_count = int.Parse(form.tb_col_count.Text);
-                int pts_cnt = form.cmb_mea_points.SelectedIndex;
+                int pts_cnt = form.cmb_mea_points.SelectedIndex * 4 + 1;
 
                 DateTime dt = DateTime.Now;
                 string dt_str = string.Format("_{0:yy_MM_dd_HH_mm}", dt);
-                _wafer_id += dt_str;
-                string path = Path.Combine(_syn_op.SavingPath, _wafer_id);
+                string waferid_temp = _wafer_id + dt_str;
+                string path = Path.Combine(_syn_op.SavingPath, waferid_temp);
                 Directory.CreateDirectory(path);
 
                 DBKeeper.SCAN_DATA data = new DBKeeper.SCAN_DATA();
-                data.wafer_id = _wafer_id;
-                data.points_cnt = pts_cnt * 4 + 1;
+                data.wafer_id = waferid_temp;
+                data.points_cnt = pts_cnt;
                 data.scan_type = _scan_type == eScanType.Scan1Um ? 1 : 5;
                 data.notch_way = form.cmb_notch.SelectedIndex;
                 data.scan_ok = 0;
                 List<Point> _mea_pts = new List<Point>();
-                List<PointF> _mea_pos;
 
                 int r = (_die_row_count % 2 == 0) ? 1 : 0;
                 int c = (_die_col_count % 2 == 0) ? 1 : 0;
                 _mea_pts.Add(new Point(c, r));
-                if (pts_cnt > 0)
+                if (pts_cnt > 1)
                 {
                     r = int.Parse(form.tb_mea_row1.Text);
                     c = int.Parse(form.tb_mea_col1.Text);
@@ -1474,7 +1451,7 @@ namespace Velociraptor
                     _mea_pts.Add(new Point(-c, r));
                     _mea_pts.Add(new Point(-c, -r));
                     _mea_pts.Add(new Point(c, -r));
-                    if (pts_cnt > 1)
+                    if (pts_cnt == 9)
                     {
                         r = int.Parse(form.tb_mea_row2.Text);
                         c = int.Parse(form.tb_mea_col2.Text);
@@ -1491,13 +1468,12 @@ namespace Velociraptor
                         _mea_pts.Add(new Point(-c, -r));
                     }
                 }
-                _mea_pos = _syn_op.TransformDiePos(_die_row_count, _die_col_count, _mea_pts);
-                _measure_distance = Constants.AutoMeasureDistance;
                 List<string> f_list = new List<string>();
                 //full pathname = data directory/wafer_id_datetime/DataSet_n.data
-                for (int i = 0; i < _mea_pos.Count; i++)
+                for (int i = 0; i < _mea_pts.Count; i++)
                     f_list.Add(Path.Combine(path, "DataSet_" + i.ToString()));
-                DoMeasure(f_list, _mea_pos);
+                _measure_distance = Constants.AutoMeasureDistance;
+                DoMeasure(f_list, _mea_pts);
                 _db.Insert(data);
             }
             catch (Exception ex)

@@ -25,11 +25,6 @@ namespace Velociraptor.ImageProc
         public int maxHeight { get { return (int)(_img_height * (1 - ratio)); } }
         public int minWidth { get { return (int)(_img_width * ratio); } }
         public int maxWidth { get { return (int)(_img_width * (1 - ratio)); } }
-
-        public void FineTune(Bitmap bitmap, int threshold, double[] die_size)
-        {
-
-        }
         public void FindAngle(Bitmap bitmap, int threshold, double[]die_size)
         {
             _img_height = bitmap.Height;
