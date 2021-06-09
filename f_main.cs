@@ -358,8 +358,7 @@ namespace Velociraptor
             _threadGui.EventUserList[(int)enEventThreadGui.DisplayConnectionState].Set();
 
             #endregion
-            this.Size = new System.Drawing.Size(765, 745);
-            panel2.Visible = false;
+            tabControl.TabPages.Remove(tabEngineer);
             CenterToScreen();
             #region Tool Tips
             ToolTip tips = new ToolTip();
@@ -400,7 +399,7 @@ namespace Velociraptor
                 timer_measure.Elapsed += MeasureTimeout;
                 timer_measure.AutoReset = false;
 
-                GrabOn();
+                //GrabOn();
                 _log.Debug("Camera Start Grabbing");
                 btn_grab.Image = Properties.Resources.green;
 
@@ -758,13 +757,6 @@ namespace Velociraptor
             //}
         }
         #endregion
-        //#region OnUpdateDataFormat
-        ///// <summary>Event receive new data format</summary>
-        ///// <param name="clsCommand"> The <see cref="cDataFormat"/> instance containing the data format.</param>
-        //private void OnUpdateDataFormat(cDataFormat dataFormat)
-        //{
-        //}
-        //#endregion
         #region _OnUpdateDataFormatEntry
         private void _OnUpdateDataFormatEntry(cDataFormat dataFormat)
         {
@@ -781,19 +773,6 @@ namespace Velociraptor
             }
         }
         #endregion
-        //#region DisplayCommandData
-        //private void DisplayCommandData(cClsCommandData clsCommand)
-        //{
-        //    if ((clsCommand != null) && (clsCommand.ErrorEventArgs == null))
-        //        _log.Debug("DisplayCommandData:" + clsCommand.CommandList);
-        //}
-        //#endregion
-        //#region DisplayDataFormat
-        //private void DisplayDataFormat(cClientCommunication client)
-        //{
-        //    _log.Debug("DisplayDataFormat");
-        //}
-        //#endregion 
         private void _OnError(object sender, cErrorEventArgs e)
         {
             try
@@ -937,7 +916,6 @@ namespace Velociraptor
         private void OpButtonFreeze()
         {
             grp_op.Enabled = false;
-            grp_move.Enabled = false;
         }
         #endregion
         #region callback
@@ -1178,15 +1156,7 @@ namespace Velociraptor
         }
         private void OpFreeze_Done(object sender, EventArgs e)
         {
-            if (InvokeRequired)
-            {
-                Invoke(new EventHandler(OpFreeze_Done), sender, e);
-                _log.Debug("OpFreeze_Done InvokeRequired:" + Thread.CurrentThread.ManagedThreadId);
-                return;
-            }
-            _log.Debug("OpFreeze_Done:" + Thread.CurrentThread.ManagedThreadId);
-            grp_op.Enabled = true;
-            grp_move.Enabled = true;
+            Invoke((MethodInvoker)delegate { grp_op.Enabled = false; });
         }
         private void Alignment_Callback(IAsyncResult result)
         {
@@ -1364,9 +1334,6 @@ namespace Velociraptor
                 return;
             _measure_filename = sfd_upload.FileName;
 
-            grp_op.Enabled = false;
-            grp_move.Enabled = false;
-
             VisionCalibrator vc = new VisionCalibrator();
             die_size[Constants.WAY_HORIZONTAL] = (int)vc.Um2Pixel_X(die_size[Constants.WAY_HORIZONTAL]);
             die_size[Constants.WAY_VERTICAL] = (int)vc.Um2Pixel_Y(die_size[Constants.WAY_VERTICAL]);
@@ -1410,9 +1377,6 @@ namespace Velociraptor
                 AutoParamsForm form = new AutoParamsForm();
                 form.tb_wafer_id.Text = _wafer_id;
                 if (form.ShowDialog() != DialogResult.OK) return;
-
-                grp_op.Enabled = false;
-                grp_move.Enabled = false;
 
                 _notch_idx = form.cmb_notch.SelectedIndex;
                 _die_row_count = int.Parse(form.tb_row_count.Text);
@@ -1593,6 +1557,7 @@ namespace Velociraptor
                 DoWaferUnload();
                 chuck.ReleaseWafer();
                 _wafer_loaded = false;
+                _measure_filename = "";
             }
             catch (Exception ex)
             {
@@ -1616,12 +1581,25 @@ namespace Velociraptor
         #endregion
         private void btn_advanced_mode_Click(object sender, EventArgs e)
         {
-            panel2.Visible = !panel2.Visible;
-            if (panel2.Visible)
-                this.Size = new System.Drawing.Size(1173, 745);
+            if (!grp_rd.Visible)
+            {
+                PasswordBox psForm = new PasswordBox(Constants.RDPassword);
+
+                if (psForm.ShowDialog() == DialogResult.OK)
+                {
+                    grp_rd.Visible = true;
+                    grp_rd.Enabled = true;
+
+                }
+                else
+                {
+                    MessageBox.Show("密碼錯誤!!");
+                }
+            }
             else
-                this.Size = new System.Drawing.Size(765, 745);
-            CenterToScreen();
+            {
+                grp_rd.Visible = false;
+            }
         }
 
         #region btn_move_distance
@@ -1801,6 +1779,37 @@ namespace Velociraptor
         private void btn_show_Click(object sender, EventArgs e)
         {
             ShowMeasureResult();
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (tabControl.SelectedIndex)
+            {
+                case 1:
+                    ShowMeasureResult();
+                    break;
+            }
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            tabControl.TabPages.Remove(tabEngineer);
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            PasswordBox psForm = new PasswordBox("1234");
+            if (psForm.ShowDialog() == DialogResult.OK)
+            {
+                tabControl.TabPages.Add(tabEngineer);
+                grp_rd.Visible = false;
+                grp_rd.Enabled = false;
+            }
+            else
+            {
+                MessageBox.Show("密碼錯誤!!");
+            }
         }
     }
     [Serializable]

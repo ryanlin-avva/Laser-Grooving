@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvvaCamera", "..\..\AvvaCam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvvaMotion", "..\..\AvvaMotion\AvvaMotion\AvvaMotion.csproj", "{B6556C40-6C7E-49FB-A24F-B346FD45941A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThickInspector", "..\snow-avva\ThickInspector\ThickInspector\ThickInspector.csproj", "{861ADEF0-FAD5-469E-B461-42A8794BA9EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,14 @@ Global
 		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|x86.ActiveCfg = Release|Any CPU
 		{B6556C40-6C7E-49FB-A24F-B346FD45941A}.Release|x86.Build.0 = Release|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Debug|x86.Build.0 = Debug|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Release|x86.ActiveCfg = Release|Any CPU
+		{861ADEF0-FAD5-469E-B461-42A8794BA9EA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,14 +5,16 @@ namespace Velociraptor.AddOn
 {
     public partial class PasswordBox : System.Windows.Forms.Form
     {
-        public PasswordBox()
+        private string _passwd;
+        public PasswordBox(string pass)
         {
+            _passwd = pass;
             InitializeComponent();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (tb_password.Text == "1234")
+            if (tb_password.Text == _passwd)
             {
                 this.DialogResult = DialogResult.OK;
             }
